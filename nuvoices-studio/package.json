@@ -1,0 +1,41 @@
+{
+  "name": "nuvoices",
+  "private": false,
+  "version": "1.0.0",
+  "main": "package.json",
+  "license": "MIT",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "deploy-graphql": "sanity graphql deploy",
+    "docs": "npx sanity docs",
+    "manage": "npx sanity manage",
+    "help": "npx sanity help"
+  },
+  "keywords": [
+    "sanity"
+  ],
+  "dependencies": {
+    "@sanity/vision": "^4.0.1",
+    "react": "^19.1",
+    "react-dom": "^19.1",
+    "sanity": "^4.0.1",
+    "styled-components": "^6.1.18"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^5.0.2",
+    "@types/react": "^19.1",
+    "eslint": "^9.28",
+    "prettier": "^3.5",
+    "typescript": "^5.8"
+  },
+  "prettier": {
+    "semi": false,
+    "printWidth": 100,
+    "bracketSpacing": false,
+    "singleQuote": true
+  },
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321"
+}
