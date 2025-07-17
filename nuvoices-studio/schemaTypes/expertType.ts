@@ -17,6 +17,5 @@ export const expertType = defineType({
       type: "array",
       of: [{type: "string"}],
     }),
-    
   ],
 });
