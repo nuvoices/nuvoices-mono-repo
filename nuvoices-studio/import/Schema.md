@@ -77,9 +77,35 @@ Hierarchical taxonomy for organizing content.
 Non-hierarchical taxonomy for content labeling.
 
 **Fields:**
-- `wp:term_id` - Unique numeric ID
-- `wp:tag_slug` - URL-friendly slug
-- `wp:tag_name` - Display name
+- `wp:term_id` - Unique numeric ID (ranging from 2 to 855+)
+- `wp:tag_slug` - URL-friendly slug (kebab-case format)
+- `wp:tag_name` - Display name (with proper capitalization, some with quotes or special characters)
+
+**Statistics:**
+- **Total unique tags**: 823 tags
+- **Tags used in posts**: 801 tags
+- **Single-use tags**: 612 tags (76% of all tags)
+- **Most frequently used tags**: Geographic and thematic content
+
+**Top 10 Most Used Tags:**
+1. **China** (70 uses) - Primary geographic focus
+2. **nuvoices** (62 uses) - Platform/organization tag
+3. **podcast** (52 uses) - Content format indicator
+4. **feminism** (30 uses) - Major thematic focus
+5. **hong kong** (19 uses) - Regional geographic tag
+6. **#MeToo** (17 uses) - Social movement hashtag
+7. **women** (16 uses) - Demographic/thematic tag
+8. **supchina** (15 uses) - Media organization
+9. **art** (15 uses) - Content category
+10. **journalism** (14 uses) - Professional focus
+
+**Tag Categories:**
+- **Geographic**: China, hong kong, xinjiang, taiwan, beijing, shanghai, new york
+- **Content Format**: podcast, book, fiction, memoir
+- **Thematic**: feminism, #MeToo, women, art, journalism
+- **Organizations**: nuvoices, supchina, Young China Watchers
+- **Person Names**: ~300+ individual contributor tags (mostly 1-3 uses each)
+- **Hashtags**: #MeToo, #metooinchina, #ijf24
 
 **Example:**
 ```xml
@@ -89,6 +115,9 @@ Non-hierarchical taxonomy for content labeling.
   <wp:tag_name><![CDATA["little people"]]></wp:tag_name>
 </wp:tag>
 ```
+
+**Content Focus Insights:**
+The tag distribution reveals a platform primarily focused on Chinese diaspora voices, social justice issues (particularly feminism and #MeToo movement), and podcast content. The heavy use of person name tags (37% of all tags) indicates significant emphasis on individual contributors and interview subjects.
 
 ### 4. Posts (`item` with `wp:post_type` = `post`)
 Main content entries - articles, stories, etc.
