@@ -1,0 +1,30 @@
+{
+  "name": "nuvoices-wordpress-importer",
+  "version": "1.0.0",
+  "description": "WordPress to Sanity migration tool for NüVoices content",
+  "main": "import.js",
+  "scripts": {
+    "import": "node import.js",
+    "import:authors": "node import.js --authors",
+    "import:taxonomies": "node import.js --taxonomies",
+    "import:posts": "node import.js --posts",
+    "help": "node import.js --help"
+  },
+  "dependencies": {
+    "@sanity/client": "^6.0.0",
+    "jsdom": "^22.0.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "dotenv": "^16.6.1"
+  },
+  "keywords": [
+    "wordpress",
+    "sanity",
+    "migration",
+    "import",
+    "cms"
+  ],
+  "author": "NüVoices Team",
+  "license": "MIT"
+}
