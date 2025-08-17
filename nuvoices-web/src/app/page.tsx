@@ -2,33 +2,36 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-pink-50">
-      {/* Hero Section */}
-      <section className="container mx-auto px-6 py-16 text-center">
-        {/* Logo placeholder */}
-        <div className="mb-8">
-          <div className="w-32 h-32 mx-auto bg-pink-300 rounded-full flex items-center justify-center">
-            <span className="text-white text-4xl font-bold">女</span>
+    <div className="min-h-screen">
+      {/* Hero Section with gradient background */}
+      <section className="relative bg-gradient-to-b from-pink-100 via-pink-50 to-white pt-16 pb-16">
+        <div className="container mx-auto px-6 text-center">
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="w-32 h-32 mx-auto bg-pink-400 rounded-full flex items-center justify-center relative">
+              <span className="text-white text-5xl font-bold">女</span>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-pink-400 rounded-full"></div>
+            </div>
+            <h1 className="mt-4 text-xl tracking-wider">NÜVOICES</h1>
           </div>
-          <h1 className="mt-4 text-2xl font-semibold">NUVOICES</h1>
-        </div>
 
-        {/* Tagline */}
-        <h2 className="text-4xl md:text-5xl font-serif text-gray-800 mb-12 max-w-3xl mx-auto">
-          Amplifying the voices of women and minority experts on China
-        </h2>
+          {/* Tagline */}
+          <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-12 max-w-3xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
+            Amplifying the voices of women and minority experts on China
+          </h2>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 justify-center mb-16">
-          <button className="px-8 py-3 bg-gray-800 text-white font-semibold uppercase tracking-wider hover:bg-gray-700 transition">
-            JOIN
-          </button>
-          <button className="px-8 py-3 bg-gray-800 text-white font-semibold uppercase tracking-wider hover:bg-gray-700 transition">
-            DONATE
-          </button>
-          <button className="px-8 py-3 bg-gray-800 text-white font-semibold uppercase tracking-wider hover:bg-gray-700 transition">
-            EXPLORE
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-4 justify-center">
+            <a href="/join" className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition inline-block">
+              JOIN
+            </a>
+            <button className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition">
+              DONATE
+            </button>
+            <button className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition">
+              EXPLORE
+            </button>
+          </div>
         </div>
       </section>
 
