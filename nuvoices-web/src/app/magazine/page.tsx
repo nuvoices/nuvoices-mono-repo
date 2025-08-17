@@ -10,7 +10,7 @@ export default function MagazinePage() {
           <div className="text-center mb-12">
             <h1 className="text-5xl font-serif mb-4">NüStories</h1>
             <p className="text-xl italic mb-8">A magazine of ideas from minority voices on China subjects</p>
-            <a href="/submit" className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition inline-block">
+            <a href="/submissions" className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition inline-block">
               SUBMISSIONS
             </a>
           </div>
@@ -167,7 +167,7 @@ export default function MagazinePage() {
               <a href="/about" className="hover:underline">About</a>
               <a href="/join" className="hover:underline">Join</a>
               <a href="/donate" className="hover:underline">Donate</a>
-              <a href="/submit" className="hover:underline">Submit</a>
+              <a href="/submissions" className="hover:underline">Submit</a>
               <a href="/contact" className="hover:underline">Contact</a>
             </nav>
           </div>
