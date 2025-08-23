@@ -89,7 +89,7 @@ export default async function PodcastPage() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the "podcast" category in Sanity.</p>
+            <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the &quot;podcast&quot; category in Sanity.</p>
           </div>
         )}
       </div>
