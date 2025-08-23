@@ -1,33 +1,44 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { client } from '@/sanity/client'
+import { groq } from 'next-sanity'
 
-export default function PodcastPage() {
-  const episodes = [
-    {
-      id: 1,
-      slug: "diplomacy-influence-impact",
-      title: "Diplomacy, Influence & Impact",
-      description: "Wenchi Yu talks about working in the US-China-Taiwan landscape",
-      date: "May 13, 2025",
-      image: "/placeholder-wenchi.jpg"
-    },
-    {
-      id: 2,
-      slug: "model-minority",
-      title: "How I Stopped Being a Model Minority",
-      description: "Anne Anlin Cheng discusses what it means to live firsthand as an Asian American woman",
-      date: "April 16, 2025",
-      image: "/placeholder-anne.jpg"
-    },
-    {
-      id: 3,
-      slug: "red-flowers-bloom",
-      title: "Let Only Red Flowers Bloom",
-      description: "A Conversation with Emily Feng about her new book",
-      date: "March 12, 2025",
-      image: "/placeholder-emily.jpg"
+interface PodcastEpisode {
+  _id: string
+  title: string
+  slug: { current: string }
+  excerpt: string
+  publishedAt: string
+  featuredImage?: {
+    asset: {
+      url: string
     }
-  ]
+  }
+  author: {
+    name: string
+  }
+}
+
+const PODCAST_QUERY = groq`
+  *[_type == "post" && status == "published" && "podcast" in categories[]->slug.current] | order(publishedAt desc) {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset-> {
+        url
+      }
+    },
+    author-> {
+      name
+    }
+  }
+`
+
+export default async function PodcastPage() {
+  const episodes = await client.fetch<PodcastEpisode[]>(PODCAST_QUERY)
 
   return (
     <div className="min-h-screen bg-pink-50">
@@ -37,33 +48,50 @@ export default function PodcastPage() {
           A show coordinated, produced and edited by the NüVoices board.
         </p>
 
-        {/* Episodes Grid - 3 rows of same episodes for demo */}
-        <div className="space-y-12">
-          {[1, 2, 3].map((row) => (
-            <div key={row} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {episodes.map((episode) => (
-                <Link 
-                  key={`${row}-${episode.id}`} 
-                  href={`/podcast/${episode.slug}`}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-square bg-gray-200 mb-4 overflow-hidden relative">
+        {/* Episodes Grid */}
+        {episodes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {episodes.map((episode) => (
+              <Link 
+                key={episode._id} 
+                href={`/podcast/${episode.slug.current}`}
+                className="group cursor-pointer"
+              >
+                <div className="aspect-square bg-gray-200 mb-4 overflow-hidden relative">
+                  {episode.featuredImage?.asset?.url ? (
+                    <Image
+                      src={episode.featuredImage.asset.url}
+                      alt={episode.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-gray-500">
                       [Podcast Episode Image]
                     </div>
-                  </div>
-                  <h3 className="text-xl font-serif mb-2 group-hover:underline">
-                    {episode.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2 italic">
-                    {episode.description}
-                  </p>
-                  <p className="text-xs text-gray-500">{episode.date}</p>
-                </Link>
-              ))}
-            </div>
-          ))}
-        </div>
+                  )}
+                </div>
+                <h3 className="text-xl font-serif mb-2 group-hover:underline">
+                  {episode.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-2 italic">
+                  {episode.excerpt || episode.author.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(episode.publishedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the "podcast" category in Sanity.</p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
