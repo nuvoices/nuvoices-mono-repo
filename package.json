@@ -1,0 +1,25 @@
+{
+  "name": "nuvoices-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for nuvoices website and CMS",
+  "packageManager": "pnpm@9.15.2",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "studio:dev": "pnpm --filter nuvoices-studio dev",
+    "web:dev": "pnpm --filter nuvoices-web dev",
+    "studio:build": "pnpm --filter nuvoices-studio build",
+    "web:build": "pnpm --filter nuvoices-web build",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
