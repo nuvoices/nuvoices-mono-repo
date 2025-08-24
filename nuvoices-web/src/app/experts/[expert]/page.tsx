@@ -1,6 +1,8 @@
 import { client } from "@/sanity/client";
 import { SanityDocument } from "next-sanity";
 
+export const runtime = "edge";
+
 export async function generateStaticParams() {
   try {
     const experts = await client.fetch<SanityDocument[]>(`*[_type == "expert"]{ _id }`);

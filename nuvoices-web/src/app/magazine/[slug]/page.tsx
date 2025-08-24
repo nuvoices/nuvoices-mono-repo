@@ -5,6 +5,8 @@ import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
 import { PortableText } from "@portabletext/react";
 
+export const runtime = "edge";
+
 interface Category {
   _id: string;
   title: string;

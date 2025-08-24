@@ -2,7 +2,9 @@
 
 ## Overview
 
-This guide explains how to deploy the nuvoices-web Next.js application to Cloudflare Pages. Due to some compatibility issues with Next.js 15's static export and dynamic routes, we recommend using Cloudflare's Next.js adapter approach.
+This guide explains how to deploy the nuvoices-web Next.js application to Cloudflare Pages. Due to compatibility issues with Next.js 15's static export and dynamic routes, we strongly recommend using Cloudflare's Next.js adapter approach.
+
+> **Note**: Next.js 15 has a known issue with `output: "export"` and dynamic routes using `generateStaticParams`. The standard build works fine, but static export fails. Use Option 1 below for deployment.
 
 ## Deployment Options
 

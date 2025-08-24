@@ -5,6 +5,8 @@ import { groq } from 'next-sanity'
 import { PortableText } from '@portabletext/react'
 import { notFound } from 'next/navigation'
 
+export const runtime = "edge";
+
 interface PodcastEpisode {
   _id: string
   title: string
