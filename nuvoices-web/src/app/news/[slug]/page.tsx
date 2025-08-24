@@ -71,9 +71,10 @@ export async function generateStaticParams() {
 export default async function NewsItemPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const newsItem = newsItems.find(item => item.slug === params.slug);
+  const { slug } = await params;
+  const newsItem = newsItems.find(item => item.slug === slug);
 
   if (!newsItem) {
     notFound();

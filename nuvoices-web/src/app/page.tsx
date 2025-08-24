@@ -7,13 +7,7 @@ export default function Home() {
       <section className="relative bg-gradient-to-b from-pink-100 via-pink-50 to-white pt-16 pb-16">
         <div className="container mx-auto px-6 text-center">
           {/* Logo */}
-          <div className="mb-8">
-            <div className="w-32 h-32 mx-auto bg-pink-400 rounded-full flex items-center justify-center relative">
-              <span className="text-white text-5xl font-bold">女</span>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-pink-400 rounded-full"></div>
-            </div>
-            <h1 className="mt-4 text-xl tracking-wider">NÜVOICES</h1>
-          </div>
+          <Image src="/nuvoices.jpg" alt="Nuvoices" width={226} height={292} />
 
           {/* Tagline */}
           <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-12 max-w-3xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
