@@ -92,7 +92,7 @@ export default async function TestCategoriesPage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Magazine Query Results</h2>
         <div className="bg-blue-100 p-4 rounded">
-          <p className="mb-2">Query: <code className="text-sm bg-white px-2 py-1 rounded">*[_type == "post" && status == "published" && "magazine" in categories[]->slug.current]</code></p>
+          <p className="mb-2">Query: <code className="text-sm bg-white px-2 py-1 rounded">*[_type == "post" && status == "published" && "magazine" in categories[]-&gt;slug.current]</code></p>
           <p className="font-semibold">Found {magazinePosts.length} posts</p>
           {magazinePosts.length > 0 && (
             <ul className="mt-2">

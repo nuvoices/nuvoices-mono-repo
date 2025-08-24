@@ -95,13 +95,22 @@ const postQuery = groq`
 `;
 
 export async function generateStaticParams() {
-  const posts = await client.fetch<{ slug: { current: string } }[]>(
-    groq`*[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] { slug }`
-  );
+  try {
+    const posts = await client.fetch<{ slug: { current: string } }[]>(
+      groq`*[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] { slug }`
+    );
 
-  return posts.map((post) => ({
-    slug: post.slug.current,
-  }));
+    if (!posts || posts.length === 0) {
+      return [];
+    }
+
+    return posts.map((post) => ({
+      slug: post.slug.current,
+    }));
+  } catch (error) {
+    console.error('Error fetching magazine posts:', error);
+    return [];
+  }
 }
 
 export default async function MagazineArticlePage({

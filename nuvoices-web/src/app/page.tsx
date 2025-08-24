@@ -117,7 +117,7 @@ export default function Home() {
               Diplomacy, Influence & Impact
             </h4>
             <p className="text-sm text-gray-600 mb-1">
-              Xiaoqiu Yu discusses the "soft power" of US-China Taiwan landscape
+              Xiaoqiu Yu discusses the &quot;soft power&quot; of US-China Taiwan landscape
             </p>
             <p className="text-xs text-gray-500">May 15, 2025</p>
           </article>

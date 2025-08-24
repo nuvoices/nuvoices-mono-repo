@@ -65,6 +65,25 @@ const NAVIGATION_QUERY = groq`{
   }
 }`
 
+export async function generateStaticParams() {
+  try {
+    const posts = await client.fetch<{ slug: { current: string } }[]>(
+      groq`*[_type == "post" && status == "published" && "podcast" in categories[]->slug.current] { slug }`
+    );
+
+    if (!posts || posts.length === 0) {
+      return [];
+    }
+
+    return posts.map((post) => ({
+      slug: post.slug.current,
+    }));
+  } catch (error) {
+    console.error('Error fetching podcast posts:', error);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const episode = await client.fetch<PodcastEpisode>(EPISODE_QUERY, { slug })
