@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 
+export const runtime = "edge";
+
 interface NewsItemData {
   _id: string;
   title: string;
@@ -62,11 +64,7 @@ By the end of the workshop, participants should expect to generate at least an o
   },
 ];
 
-export async function generateStaticParams() {
-  return newsItems.map((item) => ({
-    slug: item.slug,
-  }));
-}
+export const revalidate = 3600; // Revalidate every hour
 
 export default async function NewsItemPage({
   params,

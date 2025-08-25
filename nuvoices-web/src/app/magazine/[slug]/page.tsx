@@ -5,6 +5,8 @@ import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
 import { PortableText } from "@portabletext/react";
 
+export const runtime = "edge";
+
 interface Category {
   _id: string;
   title: string;
@@ -94,24 +96,7 @@ const postQuery = groq`
   }
 `;
 
-export async function generateStaticParams() {
-  try {
-    const posts = await client.fetch<{ slug: { current: string } }[]>(
-      groq`*[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] { slug }`
-    );
-
-    if (!posts || posts.length === 0) {
-      return [];
-    }
-
-    return posts.map((post) => ({
-      slug: post.slug.current,
-    }));
-  } catch (error) {
-    console.error('Error fetching magazine posts:', error);
-    return [];
-  }
-}
+export const revalidate = 3600; // Revalidate every hour
 
 export default async function MagazineArticlePage({
   params,
