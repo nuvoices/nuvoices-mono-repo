@@ -1,7 +1,6 @@
 import { client } from "@/sanity/client";
 import { SanityDocument } from "next-sanity";
 
-export const runtime = "edge";
 
 export async function generateStaticParams() {
   try {

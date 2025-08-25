@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 
-export const runtime = "edge";
-
 interface NewsItemData {
   _id: string;
   title: string;
