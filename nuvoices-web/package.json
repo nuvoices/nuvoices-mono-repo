@@ -9,7 +9,7 @@
     "lint": "next lint",
     "pages:build": "pnpm next-on-pages",
     "pages:dev": "pnpm wrangler pages dev .vercel/output/static --compatibility-date=2024-08-24 --compatibility-flag=nodejs_compat",
-    "pages:deploy": "npx wrangler@latest pages deploy .vercel/output/static"
+    "pages:deploy": "npx wrangler@latest pages deploy .vercel/output/static --project-name=nuvoices-web"
   },
   "dependencies": {
     "@portabletext/react": "^4.0.1",
