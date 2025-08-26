@@ -5,6 +5,8 @@ import { groq } from 'next-sanity'
 import { PortableText } from '@portabletext/react'
 import { notFound } from 'next/navigation'
 
+export const runtime = "edge";
+
 interface PodcastEpisode {
   _id: string
   title: string
@@ -65,24 +67,7 @@ const NAVIGATION_QUERY = groq`{
   }
 }`
 
-export async function generateStaticParams() {
-  try {
-    const posts = await client.fetch<{ slug: { current: string } }[]>(
-      groq`*[_type == "post" && status == "published" && "podcast" in categories[]->slug.current] { slug }`
-    );
-
-    if (!posts || posts.length === 0) {
-      return [];
-    }
-
-    return posts.map((post) => ({
-      slug: post.slug.current,
-    }));
-  } catch (error) {
-    console.error('Error fetching podcast posts:', error);
-    return [];
-  }
-}
+export const revalidate = 3600; // Revalidate every hour
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
