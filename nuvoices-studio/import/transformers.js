@@ -117,9 +117,9 @@ class ContentTransformer {
           children: this.parseInlineElements(element)
         };
       case 'ul':
-        return this.parseList(element, 'bullet');
+        return this.parseList(element, 'bullet', imageAssetMap);
       case 'ol':
-        return this.parseList(element, 'number');
+        return this.parseList(element, 'number', imageAssetMap);
       case 'img':
         return {
           _type: 'image',
@@ -222,7 +222,7 @@ class ContentTransformer {
     return this.parseInlineElements(element);
   }
 
-  static parseList(listElement, listType) {
+  static parseList(listElement, listType, imageAssetMap = null) {
     const items = [];
     
     for (const child of listElement.children) {
