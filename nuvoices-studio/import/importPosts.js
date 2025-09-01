@@ -145,9 +145,11 @@ async function processImagesInContent(client, html, postTitle, globalCache) {
   return { processedHtml: html, imageAssetMap };
 }
 
-async function importPosts() {
+async function importPosts(options = {}) {
+  const { updateExisting = false } = options;
+  
   try {
-    console.log('Starting post import...');
+    console.log(`Starting post import... (updateExisting: ${updateExisting})`);
     
     const parser = new WordPressParser('./nuvoices.xml');
     await parser.parseXML();
@@ -188,6 +190,7 @@ async function importPosts() {
 
     let importedCount = 0;
     let skippedCount = 0;
+    let updatedCount = 0;
 
     for (const wpPost of wpPosts) {
       try {
@@ -197,7 +200,7 @@ async function importPosts() {
           { wpPostId: wpPost.wpPostId }
         );
 
-        if (existingPost) {
+        if (existingPost && !updateExisting) {
           console.log(`Post "${wpPost.title}" already exists, skipping...`);
           skippedCount++;
           continue;
@@ -260,9 +263,32 @@ async function importPosts() {
           }
         };
 
-        const result = await client.create(postDoc);
-        console.log(`Imported post: ${postDoc.title}`);
-        importedCount++;
+        let result;
+        if (existingPost) {
+          // Update existing post
+          result = await client.patch(existingPost._id)
+            .set({
+              title: postDoc.title,
+              slug: postDoc.slug,
+              author: postDoc.author,
+              publishedAt: postDoc.publishedAt,
+              excerpt: postDoc.excerpt,
+              body: postDoc.body,
+              categories: postDoc.categories,
+              tags: postDoc.tags,
+              status: postDoc.status,
+              wpPostName: postDoc.wpPostName,
+              seo: postDoc.seo
+            })
+            .commit();
+          console.log(`Updated post: ${postDoc.title}`);
+          updatedCount++;
+        } else {
+          // Create new post
+          result = await client.create(postDoc);
+          console.log(`Imported post: ${postDoc.title}`);
+          importedCount++;
+        }
 
         // Add a small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -273,8 +299,8 @@ async function importPosts() {
       }
     }
 
-    console.log(`Post import completed: ${importedCount} imported, ${skippedCount} skipped`);
-    return { importedCount, skippedCount };
+    console.log(`Post import completed: ${importedCount} imported, ${updatedCount} updated, ${skippedCount} skipped`);
+    return { importedCount, updatedCount, skippedCount };
 
   } catch (error) {
     console.error('Error importing posts:', error);
@@ -284,9 +310,13 @@ async function importPosts() {
 
 // Run the import if this file is executed directly
 if (require.main === module) {
-  importPosts()
+  // Parse command line arguments
+  const args = process.argv.slice(2);
+  const updateExisting = args.includes('--update');
+  
+  importPosts({ updateExisting })
     .then((result) => {
-      console.log(`Post import completed successfully: ${result.importedCount} imported, ${result.skippedCount} skipped`);
+      console.log(`Post import completed successfully: ${result.importedCount} imported, ${result.updatedCount} updated, ${result.skippedCount} skipped`);
       process.exit(0);
     })
     .catch((error) => {
