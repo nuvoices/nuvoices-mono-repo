@@ -4,8 +4,16 @@ import Link from "next/link";
 import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
 import { PortableText } from "@portabletext/react";
+import imageUrlBuilder from "@sanity/image-url";
 
 export const runtime = "edge";
+
+// Configure the image URL builder
+const builder = imageUrlBuilder(client);
+
+function urlFor(source: any) {
+  return builder.image(source);
+}
 
 interface Category {
   _id: string;
@@ -82,7 +90,16 @@ const postQuery = groq`
         }
       }
     },
-    body,
+    body[] {
+      ...,
+      _type == "image" => {
+        ...,
+        asset->{
+          _id,
+          url
+        }
+      }
+    },
     categories[]->{
       _id,
       title,
@@ -106,6 +123,11 @@ export default async function MagazineArticlePage({
   const { slug } = await params;
   const post = await client.fetch<Post | null>(postQuery, { slug });
 
+  console.log('post', post);
+  
+  // Debug: Check if there are any image blocks in the body
+  const imageBlocks = post?.body?.filter((block: any) => block._type === 'image');
+  console.log('Image blocks found:', imageBlocks);
   if (!post) {
     notFound();
   }
@@ -156,7 +178,69 @@ export default async function MagazineArticlePage({
 
         {/* Article Body */}
         <div className="prose prose-lg max-w-none">
-          <PortableText value={post.body} />
+          <PortableText 
+            value={post.body}
+            components={{
+              types: {
+                image: ({value}: any) => {
+                  console.log('Rendering image block:', value);
+                  
+                  if (!value?.asset) {
+                    console.log('No asset found in image block');
+                    return null;
+                  }
+                  
+                  // Use the image URL builder to construct the proper URL
+                  const imageUrl = urlFor(value).width(1200).url();
+                  
+                  if (!imageUrl) {
+                    console.log('Could not generate image URL');
+                    return null;
+                  }
+                  
+                  console.log('Generated image URL:', imageUrl);
+                  
+                  return (
+                    <div className="my-8">
+                      <Image
+                        src={imageUrl}
+                        alt={value.alt || ''}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto"
+                        style={{ objectFit: 'cover' }}
+                      />
+                      {(value.caption || value.alt) && (
+                        <p className="text-sm text-gray-600 mt-2 text-center italic">
+                          {value.caption || value.alt}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+              },
+              marks: {
+                link: ({children, value}: {children: React.ReactNode; value?: {href?: string}}) => {
+                  const rel = value?.href && !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+                  return (
+                    <a href={value?.href || '#'} rel={rel} className="text-amber-900 underline hover:text-amber-700">
+                      {children}
+                    </a>
+                  );
+                },
+              },
+              block: {
+                normal: ({children}: {children?: React.ReactNode}) => <p className="mb-4">{children}</p>,
+                h1: ({children}: {children?: React.ReactNode}) => <h1 className="text-3xl font-bold mb-4 mt-8">{children}</h1>,
+                h2: ({children}: {children?: React.ReactNode}) => <h2 className="text-2xl font-bold mb-4 mt-6">{children}</h2>,
+                h3: ({children}: {children?: React.ReactNode}) => <h3 className="text-xl font-bold mb-3 mt-4">{children}</h3>,
+                h4: ({children}: {children?: React.ReactNode}) => <h4 className="text-lg font-bold mb-2 mt-3">{children}</h4>,
+                blockquote: ({children}: {children?: React.ReactNode}) => (
+                  <blockquote className="italic border-l-4 border-gray-300 pl-4 my-4">{children}</blockquote>
+                ),
+              },
+            }}
+          />
         </div>
 
         {/* Author Bio */}

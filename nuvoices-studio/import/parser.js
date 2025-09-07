@@ -107,6 +107,18 @@ class WordPressParser {
           });
         }
 
+        // Extract featured image ID from postmeta
+        let featuredImageId = null;
+        if (item['wp:postmeta']) {
+          const postmeta = Array.isArray(item['wp:postmeta']) ? item['wp:postmeta'] : [item['wp:postmeta']];
+          const thumbnailMeta = postmeta.find(meta => 
+            meta['wp:meta_key'] && meta['wp:meta_key'] === '_thumbnail_id'
+          );
+          if (thumbnailMeta && thumbnailMeta['wp:meta_value']) {
+            featuredImageId = parseInt(thumbnailMeta['wp:meta_value']);
+          }
+        }
+
         return {
           wpPostId: parseInt(item['wp:post_id']),
           title: item.title,
@@ -118,6 +130,7 @@ class WordPressParser {
           status: item['wp:status'],
           categories,
           tags,
+          featuredImageId,
         };
       });
   }
@@ -135,6 +148,7 @@ class WordPressParser {
       .filter(item => item['wp:post_type'] === 'attachment')
       .map(item => ({
         wpPostId: parseInt(item['wp:post_id']),
+        wpPostParent: item['wp:post_parent'] ? parseInt(item['wp:post_parent']) : null,
         title: item.title,
         url: item['wp:attachment_url'],
         fileName: item['wp:post_name'],

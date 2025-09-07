@@ -8,6 +8,8 @@
     "import:authors": "node import.js --authors",
     "import:taxonomies": "node import.js --taxonomies",
     "import:posts": "node import.js --posts",
+    "import:posts-no-images": "node import.js --posts --skip-images",
+    "import:posts-update": "node import.js --posts --update",
     "help": "node import.js --help"
   },
   "dependencies": {

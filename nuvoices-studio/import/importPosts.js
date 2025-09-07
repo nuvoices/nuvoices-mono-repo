@@ -4,6 +4,8 @@ const http = require('http');
 const { URL } = require('url');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
+const dotenv = require('dotenv');
+dotenv.config();
 
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');
@@ -17,23 +19,68 @@ const client = createClient({
   apiVersion: '2023-05-03'
 });
 
-// Helper function to download image from URL
-function downloadImage(url) {
+// Helper function to download image from URL with retry logic
+function downloadImage(url, retries = 3) {
   return new Promise((resolve, reject) => {
-    const urlObj = new URL(url);
-    const client = urlObj.protocol === 'https:' ? https : http;
-    
-    client.get(url, (response) => {
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to download image: ${response.statusCode}`));
-        return;
-      }
+    const attemptDownload = (attemptNumber) => {
+      const urlObj = new URL(url);
+      const client = urlObj.protocol === 'https:' ? https : http;
       
-      const chunks = [];
-      response.on('data', (chunk) => chunks.push(chunk));
-      response.on('end', () => resolve(Buffer.concat(chunks)));
-      response.on('error', reject);
-    }).on('error', reject);
+      const request = client.get(url, { timeout: 10000 }, (response) => {
+        if (response.statusCode === 301 || response.statusCode === 302) {
+          // Handle redirects
+          const redirectUrl = response.headers.location;
+          if (redirectUrl) {
+            console.log(`  Following redirect to: ${redirectUrl}`);
+            downloadImage(redirectUrl, retries).then(resolve).catch(reject);
+            return;
+          }
+        }
+        
+        if (response.statusCode !== 200) {
+          if (attemptNumber < retries) {
+            console.log(`  Retry ${attemptNumber}/${retries} for image download...`);
+            setTimeout(() => attemptDownload(attemptNumber + 1), 1000 * attemptNumber);
+            return;
+          }
+          reject(new Error(`Failed to download image after ${retries} attempts: ${response.statusCode}`));
+          return;
+        }
+        
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => resolve(Buffer.concat(chunks)));
+        response.on('error', (err) => {
+          if (attemptNumber < retries) {
+            console.log(`  Retry ${attemptNumber}/${retries} after error: ${err.message}`);
+            setTimeout(() => attemptDownload(attemptNumber + 1), 1000 * attemptNumber);
+          } else {
+            reject(err);
+          }
+        });
+      });
+      
+      request.on('error', (err) => {
+        if (attemptNumber < retries) {
+          console.log(`  Retry ${attemptNumber}/${retries} after request error: ${err.message}`);
+          setTimeout(() => attemptDownload(attemptNumber + 1), 1000 * attemptNumber);
+        } else {
+          reject(err);
+        }
+      });
+      
+      request.on('timeout', () => {
+        request.destroy();
+        if (attemptNumber < retries) {
+          console.log(`  Retry ${attemptNumber}/${retries} after timeout`);
+          setTimeout(() => attemptDownload(attemptNumber + 1), 1000 * attemptNumber);
+        } else {
+          reject(new Error('Request timeout'));
+        }
+      });
+    };
+    
+    attemptDownload(1);
   });
 }
 
@@ -96,11 +143,35 @@ async function uploadImageToSanity(client, imageUrl, postTitle, cache) {
       return existingAssetId;
     }
     
-    console.log(`  Downloading image: ${imageUrl}`);
-    const imageBuffer = await downloadImage(imageUrl);
+    // Try to download from original URL first
+    let imageBuffer;
+    let successfulUrl = imageUrl;
+    
+    try {
+      console.log(`  Downloading image: ${imageUrl}`);
+      imageBuffer = await downloadImage(imageUrl);
+    } catch (error) {
+      // If download fails and it's from the old Linode server, try WP Engine URL
+      if (imageUrl.includes('li1584-232.members.linode.com')) {
+        const wpEngineUrl = imageUrl.replace(
+          'http://li1584-232.members.linode.com',
+          'https://nuvoicesprod.wpenginepowered.com'
+        );
+        console.log(`  Retrying with WP Engine URL: ${wpEngineUrl}`);
+        try {
+          imageBuffer = await downloadImage(wpEngineUrl);
+          successfulUrl = wpEngineUrl;
+        } catch (wpEngineError) {
+          console.error(`  Failed to download from WP Engine: ${wpEngineError.message}`);
+          throw error; // Throw original error if both fail
+        }
+      } else {
+        throw error;
+      }
+    }
     
     // Extract filename from URL
-    const urlParts = imageUrl.split('/');
+    const urlParts = successfulUrl.split('/');
     const filename = urlParts[urlParts.length - 1] || 'image.jpg';
     
     console.log(`  Uploading new image to Sanity: ${filename}`);
@@ -108,7 +179,8 @@ async function uploadImageToSanity(client, imageUrl, postTitle, cache) {
       filename: filename,
       source: {
         name: 'wordpress-import',
-        url: imageUrl
+        id: successfulUrl,  // Use URL as the sourceId
+        url: successfulUrl
       }
     });
     
@@ -118,15 +190,24 @@ async function uploadImageToSanity(client, imageUrl, postTitle, cache) {
     return asset._id;
   } catch (error) {
     console.error(`  Failed to upload image ${imageUrl}:`, error.message);
+    if (error.response && error.response.body) {
+      console.error(`  Error details:`, JSON.stringify(error.response.body, null, 2));
+    }
     return null;
   }
 }
 
 // Helper function to replace image URLs in content with Sanity references
 async function processImagesInContent(client, html, postTitle, globalCache) {
-  if (!html) return html;
+  if (!html) return { processedHtml: html, imageAssetMap: new Map() };
   
-  const imageUrls = extractImageUrls(html);
+  // First, replace all old Linode URLs with WP Engine URLs in the HTML
+  let processedHtml = html.replace(
+    /http:\/\/li1584-232\.members\.linode\.com/g,
+    'https://nuvoicesprod.wpenginepowered.com'
+  );
+  
+  const imageUrls = extractImageUrls(processedHtml);
   const imageAssetMap = new Map();
   
   if (imageUrls.length > 0) {
@@ -134,19 +215,29 @@ async function processImagesInContent(client, html, postTitle, globalCache) {
     
     for (const imageUrl of imageUrls) {
       if (!imageAssetMap.has(imageUrl)) {
-        const assetId = await uploadImageToSanity(client, imageUrl, postTitle, globalCache);
-        if (assetId) {
-          imageAssetMap.set(imageUrl, assetId);
+        try {
+          const assetId = await uploadImageToSanity(client, imageUrl, postTitle, globalCache);
+          if (assetId) {
+            imageAssetMap.set(imageUrl, assetId);
+          } else {
+            console.warn(`  Skipping image that couldn't be uploaded: ${imageUrl}`);
+            // Remove the image from HTML to prevent broken references
+            processedHtml = processedHtml.replace(new RegExp(`<img[^>]*src=["']${imageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'), '');
+          }
+        } catch (error) {
+          console.error(`  Error processing image ${imageUrl}: ${error.message}`);
+          // Remove the image from HTML to prevent broken references
+          processedHtml = processedHtml.replace(new RegExp(`<img[^>]*src=["']${imageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'), '');
         }
       }
     }
   }
   
-  return { processedHtml: html, imageAssetMap };
+  return { processedHtml, imageAssetMap };
 }
 
 async function importPosts(options = {}) {
-  const { updateExisting = false } = options;
+  const { updateExisting = false, skipImages = false } = options;
   
   try {
     console.log(`Starting post import... (updateExisting: ${updateExisting})`);
@@ -155,10 +246,18 @@ async function importPosts(options = {}) {
     await parser.parseXML();
     
     const wpPosts = parser.getPosts();
+    const wpAttachments = parser.getAttachments();
     console.log(`Found ${wpPosts.length} posts to import`);
+    console.log(`Found ${wpAttachments.length} attachments`);
     
     // Global cache for image assets across all posts
     const globalImageAssetCache = new Map();
+
+    // Create attachment lookup map
+    const attachmentMap = new Map();
+    wpAttachments.forEach(att => {
+      attachmentMap.set(att.wpPostId, att);
+    });
 
     // Build lookup maps for references
     const authors = await client.fetch('*[_type == "author"]{ _id, wpAuthorId, name }');
@@ -214,13 +313,56 @@ async function importPosts(options = {}) {
           continue;
         }
 
-        // Process images in content
-        const { processedHtml, imageAssetMap } = await processImagesInContent(
-          client,
-          wpPost.content,
-          wpPost.title,
-          globalImageAssetCache
+        // Process featured image first
+        let featuredImageAsset = null;
+        if (!skipImages && wpPost.featuredImageId) {
+          const featuredAttachment = attachmentMap.get(wpPost.featuredImageId);
+          if (featuredAttachment && featuredAttachment.url) {
+            console.log(`  Processing featured image for post "${wpPost.title}"`);
+            const assetId = await uploadImageToSanity(client, featuredAttachment.url, wpPost.title, globalImageAssetCache);
+            if (assetId) {
+              featuredImageAsset = {
+                _type: 'image',
+                asset: {
+                  _type: 'reference',
+                  _ref: assetId
+                }
+              };
+            }
+          }
+        }
+
+        // Check for gallery attachments (posts with child attachments)
+        let galleryHtml = '';
+        const galleryAttachments = wpAttachments.filter(
+          att => att.wpPostParent === wpPost.wpPostId && 
+                 att.url && 
+                 (att.url.includes('.jpg') || att.url.includes('.jpeg') || att.url.includes('.png') || att.url.includes('.gif'))
         );
+        if (galleryAttachments.length > 0) {
+          console.log(`  Found ${galleryAttachments.length} gallery images for post "${wpPost.title}"`);
+          galleryAttachments.forEach(att => {
+            galleryHtml += `<img src="${att.url}" alt="${att.title || ''}" />`;
+          });
+        }
+
+        // Process images in content (including gallery) unless skipping
+        let processedHtml = wpPost.content + galleryHtml;
+        let imageAssetMap = new Map();
+        
+        if (!skipImages) {
+          const result = await processImagesInContent(
+            client,
+            processedHtml,
+            wpPost.title,
+            globalImageAssetCache
+          );
+          processedHtml = result.processedHtml;
+          imageAssetMap = result.imageAssetMap;
+        } else {
+          // Remove all images from HTML when skipping
+          processedHtml = wpPost.content.replace(/<img[^>]*>/gi, '');
+        }
         
         // Convert HTML content to Portable Text with proper image references
         const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap);
@@ -236,6 +378,95 @@ async function importPosts(options = {}) {
           .map(tagNicename => tagMap.get(tagNicename))
           .filter(Boolean)
           .map(id => ({ _type: 'reference', _ref: id }));
+
+        // Check if this is a magazine post with images
+        const isMagazinePost = wpPost.categories.some(cat => 
+          cat.toLowerCase().includes('magazine') || 
+          cat.toLowerCase().includes('nustories') ||
+          cat.toLowerCase().includes('opinion') ||
+          cat.toLowerCase().includes('personal-essay') ||
+          cat.toLowerCase().includes('photography') ||
+          cat.toLowerCase().includes('profiles') ||
+          cat.toLowerCase().includes('q-a')
+        );
+        
+        const hasImages = imageAssetMap.size > 0;
+        
+        if (isMagazinePost && hasImages && options.stopOnMagazineImage) {
+          console.log('\n🛑 FOUND MAGAZINE POST WITH IMAGES:');
+          console.log(`   Title: ${wpPost.title}`);
+          console.log(`   Slug: ${wpPost.slug}`);
+          console.log(`   Categories: ${wpPost.categories.join(', ')}`);
+          console.log(`   Number of images: ${imageAssetMap.size}`);
+          console.log(`\n   Check it at: http://localhost:3000/magazine/${wpPost.slug}`);
+          console.log('\n   Stopping import as requested...\n');
+          
+          // Still create/update this post before stopping
+          const postDoc = {
+            _type: 'post',
+            _id: `post-wp-${wpPost.wpPostId}`,
+            title: wpPost.title,
+            slug: {
+              _type: 'slug',
+              current: ContentTransformer.createSlug(wpPost.slug || wpPost.title)
+            },
+            author: {
+              _type: 'reference',
+              _ref: author._id
+            },
+            publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
+            excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
+            body: portableTextBody,
+            categories: categoryRefs,
+            tags: tagRefs,
+            status: 'published',
+            wpPostId: wpPost.wpPostId,
+            wpPostName: wpPost.slug,
+            ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
+            seo: {
+              metaTitle: wpPost.title.length <= 60 ? wpPost.title : wpPost.title.substring(0, 57) + '...',
+              metaDescription: ContentTransformer.cleanExcerpt(wpPost.excerpt).substring(0, 160)
+            }
+          };
+
+          if (existingPost) {
+            await client.patch(existingPost._id)
+              .set({
+                title: postDoc.title,
+                slug: postDoc.slug,
+                author: postDoc.author,
+                publishedAt: postDoc.publishedAt,
+                excerpt: postDoc.excerpt,
+                body: postDoc.body,
+                categories: postDoc.categories,
+                tags: postDoc.tags,
+                status: postDoc.status,
+                wpPostName: postDoc.wpPostName,
+                ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
+                seo: postDoc.seo
+              })
+              .commit();
+            console.log(`Updated magazine post: ${postDoc.title}`);
+            updatedCount++;
+          } else {
+            await client.create(postDoc);
+            console.log(`Imported magazine post: ${postDoc.title}`);
+            importedCount++;
+          }
+          
+          // Return early with the slug information
+          return { 
+            importedCount, 
+            updatedCount, 
+            skippedCount,
+            stoppedOnPost: {
+              title: wpPost.title,
+              slug: wpPost.slug,
+              categories: wpPost.categories,
+              imageCount: imageAssetMap.size
+            }
+          };
+        }
 
         const postDoc = {
           _type: 'post',
@@ -257,6 +488,7 @@ async function importPosts(options = {}) {
           status: 'published',
           wpPostId: wpPost.wpPostId,
           wpPostName: wpPost.slug,
+          ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
           seo: {
             metaTitle: wpPost.title.length <= 60 ? wpPost.title : wpPost.title.substring(0, 57) + '...',
             metaDescription: ContentTransformer.cleanExcerpt(wpPost.excerpt).substring(0, 160)
@@ -278,6 +510,7 @@ async function importPosts(options = {}) {
               tags: postDoc.tags,
               status: postDoc.status,
               wpPostName: postDoc.wpPostName,
+              ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
               seo: postDoc.seo
             })
             .commit();
@@ -313,10 +546,19 @@ if (require.main === module) {
   // Parse command line arguments
   const args = process.argv.slice(2);
   const updateExisting = args.includes('--update');
+  const skipImages = args.includes('--skip-images');
+  const stopOnMagazineImage = args.includes('--stop-on-magazine-image');
   
-  importPosts({ updateExisting })
+  importPosts({ updateExisting, skipImages, stopOnMagazineImage })
     .then((result) => {
-      console.log(`Post import completed successfully: ${result.importedCount} imported, ${result.updatedCount} updated, ${result.skippedCount} skipped`);
+      if (result.stoppedOnPost) {
+        console.log(`\n✅ Import stopped on magazine post with images:`);
+        console.log(`   Title: ${result.stoppedOnPost.title}`);
+        console.log(`   Slug: ${result.stoppedOnPost.slug}`);
+        console.log(`   URL: http://localhost:3000/magazine/${result.stoppedOnPost.slug}`);
+      } else {
+        console.log(`Post import completed successfully: ${result.importedCount} imported, ${result.updatedCount} updated, ${result.skippedCount} skipped`);
+      }
       process.exit(0);
     })
     .catch((error) => {
