@@ -1,236 +1,275 @@
-import Image from "next/image";
+const imgTempImagewflfZt1 = "http://localhost:3845/assets/1f87e050f6dd3f83d65ae95315563b29fd0838e0.png";
+const img2062PxEthelWatersWilliamP1 = "http://localhost:3845/assets/42a7a20f92a56bf377430eb95431e26b7160bead.png";
+const img2062PxEthelWatersWilliamP2 = "http://localhost:3845/assets/63f13d78f275b71f202c2244f752e22cc2cb5093.png";
+const img847PxCabCallowayGottlieb14 = "http://localhost:3845/assets/0a8e610601c791faa431b7506868610b224a6101.png";
+const img847PxCabCallowayGottlieb15 = "http://localhost:3845/assets/0e76be374e03c475c38f45121b56a5e1cbf7a9ee.png";
+const img2062PxEthelWatersWilliamP3 = "http://localhost:3845/assets/39856c3f6ce58a506f2b1db8bea1b7e1162b44fd.png";
+const img847PxCabCallowayGottlieb16 = "http://localhost:3845/assets/f7b8812df0596ce7582f36b2382cd28596fa37f8.png";
+const img847PxCabCallowayGottlieb17 = "http://localhost:3845/assets/d46c2f820647e4d121f6e377731a54335fc301fe.png";
+const img2062PxEthelWatersWilliamP4 = "http://localhost:3845/assets/ed4b63a872fe5c274cadc8e98c5773640f829db5.png";
+const img847PxCabCallowayGottlieb18 = "http://localhost:3845/assets/dea6d5963562ca3f7428c30f3d53593f4e6a4f41.png";
+const img847PxCabCallowayGottlieb19 = "http://localhost:3845/assets/6b3cef217f04cde54161c430dbaa4803a7dbdebe.png";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with gradient background */}
-      <section className="relative bg-gradient-to-b from-pink-100 via-pink-50 to-white pt-16 pb-16">
-        <div className="container mx-auto px-6 text-center">
-          {/* Logo */}
-          <Image src="/nuvoices.jpg" alt="Nuvoices" width={226} height={292} />
+    <div className="bg-[#f4ecea] flex flex-col gap-[1.563rem] items-center min-h-screen">
+      {/* Hero Section */}
+      <div className="relative w-full max-w-[45rem] mx-auto">
+        <div className="flex flex-col items-center gap-[1.563rem] pt-[1.563rem]">
+          {/* Logo placeholder - 270px x 354px */}
+          <div className="w-[8.438rem] h-[11.063rem] relative">
+            <img
+              src={imgTempImagewflfZt1}
+              alt="NüVoices Logo"
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-          {/* Tagline */}
-          <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-12 max-w-3xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
+          {/* Tagline - 110px = 3.438rem */}
+          <p className="font-serif text-[3.438rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]">
             Amplifying the voices of women and minority experts on China
-          </h2>
+          </p>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <a href="/join" className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition inline-block">
-              JOIN
+          {/* Buttons - 252px x 99px, 35px text */}
+          <div className="flex gap-[0.938rem]">
+            <a href="/join" className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center">
+              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">JOIN</span>
             </a>
-            <button className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition">
-              DONATE
+            <button className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center">
+              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">DONATE</span>
             </button>
-            <button className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition">
-              EXPLORE
-            </button>
+            <a href="/explore" className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center">
+              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">EXPLORE</span>
+            </a>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Featured Content Section */}
-      <section className="container mx-auto px-6 py-8">
-        <h3 className="text-2xl font-semibold text-center mb-8">Featured Content</h3>
-        
-        {/* Mother Tongue Feature */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <div className="relative h-96 bg-gray-200 mb-4">
-            {/* Placeholder for Mother Tongue image */}
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-              [Mother Tongue Feature Image]
-            </div>
-          </div>
-          <h4 className="text-3xl font-serif text-center mb-2">Mother Tongue</h4>
-          <p className="text-center text-gray-600">June 1, 2025</p>
+      {/* Featured Section */}
+      <div className="flex flex-col gap-[0.938rem] items-center w-full">
+        <div className="font-sans font-semibold text-[1.25rem] text-black text-center">
+          Featured Content
         </div>
-      </section>
+        <div className="flex flex-col gap-[0.625rem] items-center w-full max-w-[45rem]">
+          <div className="h-[18.75rem] w-full relative">
+            <img
+              src={img2062PxEthelWatersWilliamP1}
+              alt="Mother Tongue"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="font-serif text-[1.875rem] text-[#3c2e24] text-center tracking-[-0.056rem]">
+            Mother Tongue
+          </div>
+          <div className="font-serif italic text-[0.938rem] text-[#3c2e24] text-center">
+            June 1, 2025
+          </div>
+        </div>
+      </div>
 
       {/* Magazine Section */}
-      <section className="container mx-auto px-6 py-8">
-        <h3 className="text-2xl font-semibold text-center mb-8">Magazine</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="flex flex-col gap-[0.938rem] items-center w-full">
+        <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+          Magazine
+        </div>
+        <div className="flex gap-[0.313rem] w-full max-w-[45.188rem] px-3">
           {/* Article 1 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Supermarket Image]
-              </div>
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[12.906rem] h-[10.219rem] relative rotate-[-2deg]">
+              <img
+                src={img2062PxEthelWatersWilliamP2}
+                alt="A Trip to the Supermarket"
+                className="w-full h-full object-cover"
+              />
             </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              A Trip to the Supermarket
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              One writer shares the little joys she found living in China
-            </p>
-            <p className="text-xs text-gray-500">June 1, 2025</p>
-          </article>
-
-          {/* Article 2 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Film Festival Image]
-              </div>
+            <div className="font-serif text-[1.563rem] text-[#3c2e24] text-center tracking-[-0.047rem] w-[11.906rem] leading-[1.1]">
+              A Trip to the<br />Supermarket
             </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Beijing International Film Festival
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              One of our writers shares her thoughts on Chinese films in a global audience
-            </p>
-            <p className="text-xs text-gray-500">May 21, 2025</p>
-          </article>
-
-          {/* Article 3 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Diaspora Image]
-              </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[11.625rem] leading-[1.1]">
+              There's a burden you feel when you don't know how to write your own name
             </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              In Queer Diaspora, My Fear Leaks Through
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Maybe this is another story of finding both inside and outside of China
-            </p>
-            <p className="text-xs text-gray-500">June 1, 2025</p>
-          </article>
-        </div>
-      </section>
-
-      {/* Podcast Section */}
-      <section className="container mx-auto px-6 py-8">
-        <h3 className="text-2xl font-semibold text-center mb-8">Podcast</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Podcast 1 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Podcast Image 1]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Diplomacy, Influence & Impact
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Xiaoqiu Yu discusses the &quot;soft power&quot; of US-China Taiwan landscape
-            </p>
-            <p className="text-xs text-gray-500">May 15, 2025</p>
-          </article>
-
-          {/* Podcast 2 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Podcast Image 2]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              How I Stopped Being a Model Minority
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Anne shares how realizing she needed to pause to live firsthand as an Asian American woman
-            </p>
-            <p className="text-xs text-gray-500">April 16, 2025</p>
-          </article>
-
-          {/* Podcast 3 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Podcast Image 3]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Let Only Red Flowers Bloom
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              A conversation with Emily Feng about her new book
-            </p>
-            <p className="text-xs text-gray-500">March 12, 2025</p>
-          </article>
-        </div>
-      </section>
-
-      {/* Events Section */}
-      <section className="container mx-auto px-6 py-8 pb-16">
-        <h3 className="text-2xl font-semibold text-center mb-8">Events</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Event 1 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Event Image 1]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Transforming Memory into Story
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Join us for a nonfiction writing course inspired by personal archives
-            </p>
-            <p className="text-xs text-gray-500">March 29, 2025</p>
-          </article>
-
-          {/* Event 2 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Event Image 2]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              2025 NüStories Essay Contest
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Our first non-fiction personal essay contest focusing on the theme of Chinese identity
-            </p>
-            <p className="text-xs text-gray-500">January 1, 2025</p>
-          </article>
-
-          {/* Event 3 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Event Image 3]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Freelance Writing and Pitching
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Learn the essentials of freelance writing, everything that goes into a stand out pitch
-            </p>
-            <p className="text-xs text-gray-500">June 1, 2025</p>
-          </article>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-pink-100 py-8">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-sm text-gray-700">
-                <strong>Nuvoices</strong> is an international editorial collective of women and other underrepresented communities working on the subject of China.
-              </p>
-            </div>
-            <div className="flex gap-6 text-sm">
-              <a href="/about" className="hover:underline">About</a>
-              <a href="/join" className="hover:underline">Join</a>
-              <a href="/donate" className="hover:underline">Donate</a>
-              <a href="/submit" className="hover:underline">Submit</a>
-              <a href="/contact" className="hover:underline">Contact</a>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              June 1, 2025
             </div>
           </div>
-          <p className="text-xs text-gray-600 mt-4">Powered by WordPress</p>
+
+          {/* Article 2 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[13.25rem] h-[10.188rem] relative rotate-[2deg]">
+              <img
+                src={img847PxCabCallowayGottlieb14}
+                alt="Beijing International Film Festival"
+                className="w-full h-full object-cover mix-blend-multiply"
+              />
+            </div>
+            <div className="font-serif text-[1.563rem] text-[#3c2e24] text-center tracking-[-0.047rem] w-[13.625rem] leading-[1.1]">
+              Beijing International Film Festival
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[13.625rem] leading-[1.1]">
+              The special screening event in London brought Chinese films to a global audience
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              May 21, 2025
+            </div>
+          </div>
+
+          {/* Article 3 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[13.25rem] h-[10.188rem] relative rotate-[-2deg]">
+              <img
+                src={img847PxCabCallowayGottlieb15}
+                alt="In Queer Diaspora"
+                className="w-full h-full object-cover mix-blend-multiply"
+              />
+            </div>
+            <div className="font-serif text-[1.406rem] text-[#3c2e24] text-center tracking-[-0.042rem] w-[13.625rem] leading-[1.1]">
+              In Queer Diaspora, My Fear Leaks Through
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[12.344rem] leading-[1.1]">
+              Maybe this is another story of feeling both inside and outside of China
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              June 1, 2025
+            </div>
+          </div>
         </div>
-      </footer>
+      </div>
+
+      {/* Podcast Section */}
+      <div className="flex flex-col gap-[0.938rem] items-center w-full">
+        <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+          Podcast
+        </div>
+        <div className="flex gap-[0.313rem] w-full max-w-[45.188rem] px-3">
+          {/* Podcast 1 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[12.906rem] h-[10.219rem] relative rotate-[-2deg]">
+              <img
+                src={img2062PxEthelWatersWilliamP3}
+                alt="Diplomacy, Influence & Impact"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="font-serif text-[1.406rem] text-[#3c2e24] text-center tracking-[-0.042rem] w-[11.906rem] leading-[1.1]">
+              Diplomacy, Influence & Impact
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[11.625rem] leading-[1.1]">
+              Wenchi Yu talks about working in the US-China-Taiwan landscape
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              May 13, 2025
+            </div>
+          </div>
+
+          {/* Podcast 2 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[13.25rem] h-[10.188rem] relative rotate-[2deg]">
+              <img
+                src={img847PxCabCallowayGottlieb16}
+                alt="How I Stopped Being a Model Minority"
+                className="w-full h-full object-contain mix-blend-multiply"
+              />
+            </div>
+            <div className="font-serif text-[1.406rem] text-[#3c2e24] text-center tracking-[-0.042rem] w-[13.625rem] leading-[1.1]">
+              How I Stopped Being a Model Minority
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[13.625rem] leading-[1.1]">
+              Anne Anlin Cheng discusses what it means to live firsthand as an Asian American woman
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              April 16, 2025
+            </div>
+          </div>
+
+          {/* Podcast 3 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[13.25rem] h-[10.188rem] relative rotate-[-2deg]">
+              <img
+                src={img847PxCabCallowayGottlieb17}
+                alt="Let Only Red Flowers Bloom"
+                className="w-full h-full object-cover mix-blend-multiply"
+              />
+            </div>
+            <div className="font-serif text-[1.406rem] text-[#3c2e24] text-center tracking-[-0.042rem] w-[13.625rem] leading-[1.1]">
+              Let Only Red Flowers Bloom
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[12.344rem] leading-[1.1]">
+              A Conversation with Emily Feng about her new book
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              March 12, 2025
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Events Section */}
+      <div className="flex flex-col gap-[0.938rem] items-center w-full pb-[1.563rem]">
+        <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+          Events
+        </div>
+        <div className="flex gap-[0.313rem] w-full max-w-[45.188rem] px-3">
+          {/* Event 1 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[12.906rem] h-[10.219rem] relative rotate-[-2deg]">
+              <img
+                src={img2062PxEthelWatersWilliamP4}
+                alt="Transforming Memory into Story"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="font-serif text-[1.406rem] text-[#3c2e24] text-center tracking-[-0.042rem] w-[11.906rem] leading-[1.1]">
+              Transforming Memory into Story
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[11.625rem] leading-[1.1]">
+              Karen Cheung on drawing from raw material in personal archives
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              March 29, 2025
+            </div>
+          </div>
+
+          {/* Event 2 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[13.25rem] h-[10.188rem] relative rotate-[2deg]">
+              <img
+                src={img847PxCabCallowayGottlieb18}
+                alt="2025 NüStories Essay Contest"
+                className="w-full h-full object-cover mix-blend-multiply"
+              />
+            </div>
+            <div className="font-serif text-[1.563rem] text-[#3c2e24] text-center tracking-[-0.047rem] w-[13.625rem] leading-[1.1]">
+              2025 NüStories<br />Essay Contest
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[13.625rem] leading-[1.1]">
+              Our first non-fiction personal essay contest focuses on the theme of Chinese identity
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              January 22, 2025
+            </div>
+          </div>
+
+          {/* Event 3 */}
+          <div className="flex flex-col gap-[0.313rem] items-center w-[14.813rem]">
+            <div className="w-[13.25rem] h-[10.188rem] relative rotate-[-2deg]">
+              <img
+                src={img847PxCabCallowayGottlieb19}
+                alt="Freelance Writing and Pitching"
+                className="w-full h-full object-cover mix-blend-multiply"
+              />
+            </div>
+            <div className="font-serif text-[1.406rem] text-[#3c2e24] text-center tracking-[-0.042rem] w-[13.625rem] leading-[1.1]">
+              Freelance Writing and Pitching
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24] text-center w-[12.344rem] leading-[1.1]">
+              Suyin Haynes and Jessie Lau cover everything that goes into a stand-out pitch
+            </div>
+            <div className="font-serif italic text-[0.688rem] text-[#3c2e24]">
+              June 1, 2025
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
