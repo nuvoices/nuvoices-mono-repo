@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-raleway)', 'sans-serif'],
-        serif: ['var(--font-source-serif)', 'serif'],
+        serif: ['Arial', 'serif'],
       },
     },
   },

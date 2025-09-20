@@ -10,5 +10,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-raleway), Arial, Helvetica, sans-serif;
+}
+
+@theme {
+  --font-sans: Raleway, sans-serif;
+  --font-serif: "Source Serif 4", serif;
+  --font-weight-extrabold: 800;
+  --font-weight-semibold: 600;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
 }

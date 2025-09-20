@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${raleway.variable} ${sourceSerif.variable} antialiased font-sans`}
+        className={`${raleway.variable} ${sourceSerif.variable} antialiased font-serif`}
       >
         <Header />
         {children}
