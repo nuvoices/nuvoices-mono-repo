@@ -4,8 +4,16 @@ import { client } from '@/sanity/client'
 import { groq } from 'next-sanity'
 import { PortableText } from '@portabletext/react'
 import { notFound } from 'next/navigation'
+import imageUrlBuilder from "@sanity/image-url";
 
 export const runtime = "edge";
+
+// Configure the image URL builder
+const builder = imageUrlBuilder(client);
+
+function urlFor(source: { _type?: string; asset?: { _ref?: string; _type?: string } }) {
+  return builder.image(source);
+}
 
 interface PodcastEpisode {
   _id: string
@@ -101,124 +109,185 @@ export default async function PodcastEpisodePage({ params }: { params: Promise<{
   }>(NAVIGATION_QUERY, { publishedAt: episode.publishedAt })
 
   return (
-    <div className="min-h-screen bg-pink-50">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        {/* Episode Image */}
-        <div className="aspect-[4/3] bg-gray-200 mb-8 overflow-hidden relative max-w-2xl mx-auto">
-          {episode.featuredImage?.asset?.url ? (
-            <Image
-              src={episode.featuredImage.asset.url}
-              alt={episode.title}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-              [Episode Featured Image]
-            </div>
-          )}
+    <div className="min-h-screen bg-[#f4ecea]">
+      {/* Hero Section with Featured Image */}
+      {episode.featuredImage?.asset?.url && (
+        <div className="relative h-[28.25rem] bg-[#f4ecea] max-w-[45rem] mx-auto">
+          <Image
+            src={episode.featuredImage.asset.url}
+            alt={episode.title}
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
+      )}
 
-        {/* Episode Title */}
-        <h1 className="text-4xl md:text-5xl font-serif text-center mb-6 leading-tight">
+      {/* Article Content */}
+      <article className="max-w-[35.71875rem] mx-auto px-6 py-[1.5625rem]">
+        {/* Article Title */}
+        <h1 className="text-center text-[2.96875rem] leading-[1.1] tracking-[-0.089rem] font-serif text-[#3c2e24] mb-[1.25rem]">
           {episode.title}
         </h1>
 
-        {/* Episode Date */}
-        <p className="text-center text-gray-600 mb-12">
-          {new Date(episode.publishedAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </p>
-
-        {/* Episode Info */}
-        <div className="mb-8">
-          {episode.excerpt && (
-            <p className="text-lg italic text-gray-700 mb-8">{episode.excerpt}</p>
+        {/* Article Meta */}
+        <div className="text-center mb-[2.5rem]">
+          {episode.author && (
+            <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif">
+              {episode.author.name}
+            </div>
           )}
-          
-          {/* Episode Body Content */}
-          <div className="prose prose-lg max-w-none">
-            <PortableText 
-              value={episode.body}
-              components={{
-                marks: {
-                  link: ({children, value}) => {
-                    const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined
-                    return (
-                      <a href={value.href} rel={rel} className="underline">
-                        {children}
-                      </a>
-                    )
-                  },
-                },
-                block: {
-                  normal: ({children}) => <p className="mb-4">{children}</p>,
-                  h1: ({children}) => <h1 className="text-3xl font-bold mb-4 mt-8">{children}</h1>,
-                  h2: ({children}) => <h2 className="text-2xl font-bold mb-4 mt-6">{children}</h2>,
-                  h3: ({children}) => <h3 className="text-xl font-bold mb-3 mt-4">{children}</h3>,
-                  blockquote: ({children}) => <blockquote className="italic border-l-4 border-gray-300 pl-4 my-4">{children}</blockquote>,
-                },
-              }}
-            />
+          <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif">
+            {new Date(episode.publishedAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </div>
         </div>
 
-        {/* Divider */}
-        <hr className="border-gray-300 my-12" />
-
-        {/* About Author Section */}
-        {episode.author.bio && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-4">About the Author</h2>
-            <p className="text-gray-700">{episode.author.bio}</p>
-          </section>
+        {/* Excerpt if exists */}
+        {episode.excerpt && (
+          <div className="text-center mb-[2.5rem]">
+            <p className="text-[0.9375rem] italic text-black font-serif leading-[1.6] max-w-[35.875rem] mx-auto">
+              {episode.excerpt}
+            </p>
+          </div>
         )}
 
-        {/* Navigation */}
-        <div className="border-t border-gray-300 pt-8 mt-12">
-          <div className="flex justify-between items-start gap-4">
+        {/* Article Body */}
+        <div className="max-w-none">
+          <PortableText
+            value={episode.body}
+            components={{
+              types: {
+                image: ({value}: {value: { asset?: { _ref?: string; _type?: string }; alt?: string; caption?: string }}) => {
+                  if (!value?.asset) {
+                    return null;
+                  }
+
+                  // Use the image URL builder to construct the proper URL
+                  const imageUrl = urlFor(value).width(1200).url();
+
+                  if (!imageUrl) {
+                    return null;
+                  }
+
+                  return (
+                    <div className="my-[1.5rem]">
+                      <Image
+                        src={imageUrl}
+                        alt={value.alt || ''}
+                        width={1143}
+                        height={800}
+                        className="w-full h-auto"
+                        style={{ objectFit: 'cover' }}
+                      />
+                      {(value.caption || value.alt) && (
+                        <p className="text-[0.875rem] text-[#3c2e24] mt-2 text-center italic font-serif">
+                          {value.caption || value.alt}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+              },
+              marks: {
+                link: ({children, value}: {children: React.ReactNode; value?: {href?: string}}) => {
+                  const rel = value?.href && !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+                  return (
+                    <a href={value?.href || '#'} rel={rel} className="text-[#3c2e24] underline hover:text-amber-700">
+                      {children}
+                    </a>
+                  );
+                },
+              },
+              block: {
+                normal: ({children}: {children?: React.ReactNode}) => (
+                  <p className="text-[0.9375rem] leading-[1.6] mb-[0.9375rem] text-black font-serif">{children}</p>
+                ),
+                h1: ({children}: {children?: React.ReactNode}) => (
+                  <h1 className="text-[1.5rem] font-bold mb-[0.9375rem] mt-[1.5rem] text-[#3c2e24] font-serif">{children}</h1>
+                ),
+                h2: ({children}: {children?: React.ReactNode}) => (
+                  <h2 className="text-[1.25rem] font-bold mb-[0.9375rem] mt-[1.25rem] text-[#3c2e24] font-serif">{children}</h2>
+                ),
+                h3: ({children}: {children?: React.ReactNode}) => (
+                  <h3 className="text-[1.125rem] font-bold mb-[0.75rem] mt-[1rem] text-[#3c2e24] font-serif">{children}</h3>
+                ),
+                h4: ({children}: {children?: React.ReactNode}) => (
+                  <h4 className="text-[1rem] font-bold mb-[0.625rem] mt-[0.75rem] text-[#3c2e24] font-serif">{children}</h4>
+                ),
+                blockquote: ({children}: {children?: React.ReactNode}) => (
+                  <blockquote className="italic border-l-4 border-[#dd9ca1] pl-4 my-[0.9375rem] text-[0.9375rem] text-[#3c2e24] font-serif">{children}</blockquote>
+                ),
+              },
+            }}
+          />
+        </div>
+
+        {/* Author Bio */}
+        {episode.author && episode.author.bio && (
+          <div className="mt-[2.5rem] pt-[1.5rem] border-t border-[#dd9ca1]">
+            <div className="text-[0.9375rem] leading-[1.6] text-black font-serif italic">
+              <p>{episode.author.bio}</p>
+            </div>
+          </div>
+        )}
+      </article>
+
+      {/* Previous/Next Navigation */}
+      <div className="max-w-[35.71875rem] mx-auto px-6 py-[3rem]">
+        <div className="flex justify-between gap-[2.25rem]">
+          {/* Previous Article */}
+          <div className="flex-1">
             {navigation.previous ? (
-              <Link href={`/podcast/${navigation.previous.slug.current}`} className="flex-1 text-left">
-                <p className="text-sm text-gray-500 mb-1">← Previous</p>
-                <p className="text-sm hover:underline">
-                  {navigation.previous.title}
-                </p>
+              <Link href={`/podcast/${navigation.previous.slug.current}`} className="group block no-underline">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem]">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    ← Previous
+                  </div>
+                  <div className="text-[0.6875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
+                    {navigation.previous.title}
+                  </div>
+                </div>
               </Link>
             ) : (
-              <div className="flex-1" />
+              <div className="opacity-0 pointer-events-none">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem]">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    ← Previous
+                  </div>
+                </div>
+              </div>
             )}
+          </div>
+
+          {/* Next Article */}
+          <div className="flex-1">
             {navigation.next ? (
-              <Link href={`/podcast/${navigation.next.slug.current}`} className="flex-1 text-right">
-                <p className="text-sm text-gray-500 mb-1">Next →</p>
-                <p className="text-sm hover:underline">
-                  {navigation.next.title}
-                </p>
+              <Link href={`/podcast/${navigation.next.slug.current}`} className="group block no-underline">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem] text-right">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    Next →
+                  </div>
+                  <div className="text-[0.6875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
+                    {navigation.next.title}
+                  </div>
+                </div>
               </Link>
             ) : (
-              <div className="flex-1" />
+              <div className="opacity-0 pointer-events-none">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem] text-right">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    Next →
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-pink-200 py-8 mt-16">
-        <div className="container mx-auto px-6">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-700">Powered by WordPress</p>
-            <nav className="flex gap-6 text-sm">
-              <a href="/about" className="hover:underline">About</a>
-              <a href="/join" className="hover:underline">Join</a>
-              <a href="/donate" className="hover:underline">Donate</a>
-              <a href="/submit" className="hover:underline">Submit</a>
-              <a href="/contact" className="hover:underline">Contact</a>
-            </nav>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

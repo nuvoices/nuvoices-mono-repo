@@ -1,236 +1,273 @@
-import Image from "next/image";
+import { client } from "@/sanity/client";
+import { groq } from "next-sanity";
+import {
+  Grid,
+  GridRow,
+  Article,
+  ArticleContent,
+  ArticleImage,
+  ArticleTitle,
+  ArticleExcerpt,
+  ArticleDate
+} from '@/components/ui/grid';
 
-export default function Home() {
+interface Post {
+  _id: string;
+  title: string;
+  slug: {
+    current: string;
+  };
+  excerpt?: string;
+  publishedAt: string;
+  featuredImage?: {
+    asset?: {
+      _id: string;
+      url: string;
+    };
+    alt?: string;
+  };
+  author?: {
+    name: string;
+  };
+}
+
+// Query to get latest 3 magazine posts
+const magazinePostsQuery = groq`
+  *[_type == "post" && status == "published" && "featuredstories" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      name
+    }
+  }
+`;
+
+// Query to get latest 3 podcast posts
+const podcastPostsQuery = groq`
+  *[_type == "post" && status == "published" && "podcast" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      name
+    }
+  }
+`;
+
+// Query to get the most recent featured post
+const featuredPostQuery = groq`
+  *[_type == "post" && status == "published"] | order(publishedAt desc) [0] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      name
+    }
+  }
+`;
+
+// Query to get latest 3 news/events posts
+const newsPostsQuery = groq`
+  *[_type == "post" && status == "published" && "events" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      name
+    }
+  }
+`;
+
+
+export default async function Home() {
+  // Fetch posts from Sanity
+  const [magazinePosts, podcastPosts, featuredPost, newsPosts] = await Promise.all([
+    client.fetch<Post[]>(magazinePostsQuery),
+    client.fetch<Post[]>(podcastPostsQuery),
+    client.fetch<Post | null>(featuredPostQuery),
+    client.fetch<Post[]>(newsPostsQuery)
+  ]);
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with gradient background */}
-      <section className="relative bg-gradient-to-b from-pink-100 via-pink-50 to-white pt-16 pb-16">
-        <div className="container mx-auto px-6 text-center">
-          {/* Logo */}
-          <Image src="/nuvoices.jpg" alt="Nuvoices" width={226} height={292} />
+    <div className="bg-[#f4ecea] flex flex-col gap-[1.563rem] items-center min-h-screen">
+      {/* Hero Section */}
+      <div className="relative w-full max-w-[45rem] mx-auto">
+        <div className="flex flex-col items-center gap-[1.563rem] pt-[1.563rem]">
+          {/* Logo placeholder - 270px x 354px */}
+          <div className="w-[8.438rem] h-[11.063rem] relative">
+            <img
+              src="/nuvoices-logo.png"
+              alt="NüVoices Logo"
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-          {/* Tagline */}
-          <h2 className="text-4xl md:text-5xl font-serif text-gray-900 mb-12 max-w-3xl mx-auto leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
+          {/* Tagline - 110px = 3.438rem */}
+          <div className="font-serif text-[3.438rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]">
             Amplifying the voices of women and minority experts on China
-          </h2>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <a href="/join" className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition inline-block">
-              JOIN
+          {/* Buttons - 252px x 99px, 35px text */}
+          <div className="flex gap-[0.938rem]">
+            <a href="/join" className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center transition-all duration-200 hover:bg-[#5a4638] hover:scale-105 hover:shadow-lg no-underline hover:no-underline border-0">
+              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">JOIN</span>
             </a>
-            <button className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition">
-              DONATE
+            <button className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center transition-all duration-200 hover:bg-[#5a4638] hover:scale-105 hover:shadow-lg border-0">
+              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">DONATE</span>
             </button>
-            <button className="px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition">
-              EXPLORE
-            </button>
+            <a href="/explore" className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center transition-all duration-200 hover:bg-[#5a4638] hover:scale-105 hover:shadow-lg no-underline hover:no-underline border-0">
+              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">EXPLORE</span>
+            </a>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Featured Content Section */}
-      <section className="container mx-auto px-6 py-8">
-        <h3 className="text-2xl font-semibold text-center mb-8">Featured Content</h3>
-        
-        {/* Mother Tongue Feature */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <div className="relative h-96 bg-gray-200 mb-4">
-            {/* Placeholder for Mother Tongue image */}
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-              [Mother Tongue Feature Image]
-            </div>
+      {/* Featured Section */}
+      {featuredPost && (
+        <div className="flex flex-col gap-[0.938rem] items-center w-full">
+          <div className="font-sans font-semibold text-[1.25rem] text-black text-center">
+            Featured Content
           </div>
-          <h4 className="text-3xl font-serif text-center mb-2">Mother Tongue</h4>
-          <p className="text-center text-gray-600">June 1, 2025</p>
+          <a href={`/magazine/${featuredPost.slug.current}`} className="flex flex-col gap-[0.625rem] items-center w-full max-w-[45rem] no-underline hover:no-underline">
+            {featuredPost.featuredImage?.asset?.url && (
+              <div className="h-[18.75rem] w-full relative">
+                <img
+                  src={featuredPost.featuredImage.asset.url}
+                  alt={featuredPost.featuredImage.alt || featuredPost.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <div className="font-serif text-[1.875rem] text-[#3c2e24] text-center tracking-[-0.056rem]">
+              {featuredPost.title}
+            </div>
+            <div className="font-serif italic text-[0.938rem] text-[#3c2e24] text-center">
+              {new Date(featuredPost.publishedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+          </a>
         </div>
-      </section>
+      )}
 
       {/* Magazine Section */}
-      <section className="container mx-auto px-6 py-8">
-        <h3 className="text-2xl font-semibold text-center mb-8">Magazine</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Article 1 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Supermarket Image]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              A Trip to the Supermarket
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              One writer shares the little joys she found living in China
-            </p>
-            <p className="text-xs text-gray-500">June 1, 2025</p>
-          </article>
-
-          {/* Article 2 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Film Festival Image]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Beijing International Film Festival
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              One of our writers shares her thoughts on Chinese films in a global audience
-            </p>
-            <p className="text-xs text-gray-500">May 21, 2025</p>
-          </article>
-
-          {/* Article 3 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Diaspora Image]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              In Queer Diaspora, My Fear Leaks Through
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Maybe this is another story of finding both inside and outside of China
-            </p>
-            <p className="text-xs text-gray-500">June 1, 2025</p>
-          </article>
+      {magazinePosts.length > 0 && (
+        <div className="flex flex-col gap-[0.938rem] items-center w-full">
+          <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+            Magazine
+          </div>
+          <Grid className="w-full max-w-[45.188rem] px-3">
+            <GridRow>
+              {magazinePosts.map((post, index) => (
+                <Article key={post._id} href={`/magazine/${post.slug.current}`}>
+                  <ArticleImage
+                    src={post.featuredImage?.asset?.url}
+                    alt={post.featuredImage?.alt || post.title}
+                    rotation={index % 2 === 0 ? 'left' : 'right'}
+                  />
+                  <ArticleContent>
+                    <ArticleTitle>{post.title}</ArticleTitle>
+                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                    <ArticleDate date={post.publishedAt} />
+                  </ArticleContent>
+                </Article>
+              ))}
+            </GridRow>
+          </Grid>
         </div>
-      </section>
+      )}
 
       {/* Podcast Section */}
-      <section className="container mx-auto px-6 py-8">
-        <h3 className="text-2xl font-semibold text-center mb-8">Podcast</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Podcast 1 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Podcast Image 1]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Diplomacy, Influence & Impact
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Xiaoqiu Yu discusses the &quot;soft power&quot; of US-China Taiwan landscape
-            </p>
-            <p className="text-xs text-gray-500">May 15, 2025</p>
-          </article>
-
-          {/* Podcast 2 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Podcast Image 2]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              How I Stopped Being a Model Minority
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Anne shares how realizing she needed to pause to live firsthand as an Asian American woman
-            </p>
-            <p className="text-xs text-gray-500">April 16, 2025</p>
-          </article>
-
-          {/* Podcast 3 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Podcast Image 3]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Let Only Red Flowers Bloom
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              A conversation with Emily Feng about her new book
-            </p>
-            <p className="text-xs text-gray-500">March 12, 2025</p>
-          </article>
-        </div>
-      </section>
-
-      {/* Events Section */}
-      <section className="container mx-auto px-6 py-8 pb-16">
-        <h3 className="text-2xl font-semibold text-center mb-8">Events</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Event 1 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Event Image 1]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Transforming Memory into Story
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Join us for a nonfiction writing course inspired by personal archives
-            </p>
-            <p className="text-xs text-gray-500">March 29, 2025</p>
-          </article>
-
-          {/* Event 2 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Event Image 2]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              2025 NüStories Essay Contest
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Our first non-fiction personal essay contest focusing on the theme of Chinese identity
-            </p>
-            <p className="text-xs text-gray-500">January 1, 2025</p>
-          </article>
-
-          {/* Event 3 */}
-          <article className="group cursor-pointer">
-            <div className="h-48 bg-gray-200 mb-4 overflow-hidden">
-              <div className="h-full flex items-center justify-center text-gray-500">
-                [Event Image 3]
-              </div>
-            </div>
-            <h4 className="font-semibold text-lg mb-2 group-hover:underline">
-              Freelance Writing and Pitching
-            </h4>
-            <p className="text-sm text-gray-600 mb-1">
-              Learn the essentials of freelance writing, everything that goes into a stand out pitch
-            </p>
-            <p className="text-xs text-gray-500">June 1, 2025</p>
-          </article>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-pink-100 py-8">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <p className="text-sm text-gray-700">
-                <strong>Nuvoices</strong> is an international editorial collective of women and other underrepresented communities working on the subject of China.
-              </p>
-            </div>
-            <div className="flex gap-6 text-sm">
-              <a href="/about" className="hover:underline">About</a>
-              <a href="/join" className="hover:underline">Join</a>
-              <a href="/donate" className="hover:underline">Donate</a>
-              <a href="/submit" className="hover:underline">Submit</a>
-              <a href="/contact" className="hover:underline">Contact</a>
-            </div>
+      {podcastPosts.length > 0 && (
+        <div className="flex flex-col gap-[0.938rem] items-center w-full">
+          <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+            Podcast
           </div>
-          <p className="text-xs text-gray-600 mt-4">Powered by WordPress</p>
+          <Grid className="w-full max-w-[45.188rem] px-3">
+            <GridRow>
+              {podcastPosts.map((post, index) => (
+                <Article key={post._id} href={`/podcast/${post.slug.current}`}>
+                  <ArticleImage
+                    src={post.featuredImage?.asset?.url}
+                    alt={post.featuredImage?.alt || post.title}
+                    rotation={index % 2 === 0 ? 'left' : 'right'}
+                  />
+                  <ArticleContent>
+                    <ArticleTitle>{post.title}</ArticleTitle>
+                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                    <ArticleDate date={post.publishedAt} />
+                  </ArticleContent>
+                </Article>
+              ))}
+            </GridRow>
+          </Grid>
         </div>
-      </footer>
+      )}
+
+      {/* News Section */}
+      {newsPosts.length > 0 && (
+        <div className="flex flex-col gap-[0.938rem] items-center w-full pb-[1.563rem]">
+          <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+            News
+          </div>
+          <Grid className="w-full max-w-[45.188rem] px-3">
+            <GridRow>
+              {newsPosts.map((post, index) => (
+                <Article key={post._id} href={`/news/${post.slug.current}`}>
+                  <ArticleImage
+                    src={post.featuredImage?.asset?.url}
+                    alt={post.featuredImage?.alt || post.title}
+                    rotation={index % 2 === 0 ? 'left' : 'right'}
+                  />
+                  <ArticleContent>
+                    <ArticleTitle>{post.title}</ArticleTitle>
+                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                    <ArticleDate date={post.publishedAt} />
+                  </ArticleContent>
+                </Article>
+              ))}
+            </GridRow>
+          </Grid>
+        </div>
+      )}
     </div>
   );
 }

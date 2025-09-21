@@ -1,98 +1,106 @@
-import Link from "next/link";
-import Image from "next/image";
+import { client } from "@/sanity/client";
+import { groq } from "next-sanity";
+import {
+  Grid,
+  GridRow,
+  Article,
+  ArticleContent,
+  ArticleImage,
+  ArticleTitle,
+  ArticleExcerpt,
+  ArticleDate,
+} from "@/components/ui/grid";
 
-interface NewsItem {
+interface NewsPost {
   _id: string;
   title: string;
-  slug: string;
-  excerpt: string;
-  thumbnail: string;
-  submitBy?: string;
+  slug: {
+    current: string;
+  };
+  excerpt?: string;
   publishedAt: string;
+  featuredImage?: {
+    asset?: {
+      _id: string;
+      url: string;
+    };
+    alt?: string;
+  };
+  author?: {
+    name: string;
+  };
 }
 
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
-}
-
-// Static data for now
-const newsItems: NewsItem[] = [
-  {
-    _id: "1",
-    title: "Transforming Memory into Story",
-    slug: "transforming-memory-into-story",
-    excerpt: "Karen Cheung on drawing from raw material in personal archives",
-    thumbnail: "/placeholder-news-1.jpg",
-    publishedAt: "2023-03-29",
-  },
-  {
-    _id: "2", 
-    title: "2025 NüStories Essay Contest",
-    slug: "2025-nustories-essay-contest",
-    excerpt: "Our first non-fiction personal essay contest focuses on the theme of Chinese identity",
-    thumbnail: "/placeholder-news-2.jpg",
-    submitBy: "2025-01-22",
-    publishedAt: "2023-01-22",
-  },
-  {
-    _id: "3",
-    title: "Freelance Writing and Pitching",
-    slug: "freelance-writing-and-pitching",
-    excerpt: "Suyin Haynes and Jessie Lau cover everything that goes into a stand-out pitch",
-    thumbnail: "/placeholder-news-3.jpg",
-    publishedAt: "2023-06-01",
-  },
-];
+const newsPostsQuery = groq`
+  *[_type == "post" && status == "published" && "events" in categories[]->slug.current] | order(publishedAt desc) {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      name
+    }
+  }
+`;
 
 export default async function NewsPage() {
+  const newsPosts = await client.fetch<NewsPost[]>(newsPostsQuery);
+  console.log(newsPosts)
 
   return (
-    <main className="min-h-screen bg-[#F8F5F1]">
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="text-5xl font-serif text-center mb-4">News</h1>
-        <p className="text-xl italic text-center mb-12">
-          Events, highlights and latest developments in this space
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {newsItems.map((item) => (
-            <article key={item._id} className="group">
-              <Link href={`/news/${item.slug}`}>
-                <div className="relative aspect-[4/3] mb-4 overflow-hidden rounded-lg bg-gray-200">
-                  <Image
-                    src={item.thumbnail}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform group-hover:scale-105"
-                  />
-                  {item.submitBy && (
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2">
-                      <p className="text-xs text-gray-600 uppercase font-medium">Submit By</p>
-                      <p className="text-sm font-medium">
-                        {formatDate(item.submitBy).replace(/,/g, '').split(' ').slice(0, 2).join(' ')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <h2 className="text-2xl font-serif mb-2 group-hover:text-pink-600 transition-colors">
-                  {item.title}
-                </h2>
-                <p className="text-gray-700 italic mb-2">
-                  {item.excerpt}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {formatDate(item.publishedAt)}
-                </p>
-              </Link>
-            </article>
-          ))}
+    <div className="min-h-screen bg-[#f4ecea]">
+      {/* Main content */}
+      <main className="flex flex-col items-center gap-[1.5625rem] pb-[3rem]">
+        {/* Title section - matching magazine page dimensions */}
+        <div className="flex flex-col items-center justify-center h-[11.531rem] w-full max-w-[38.5625rem] text-center">
+          <h1 className="text-[2.5rem] font-serif leading-[1.1] tracking-[-0.075rem] text-black mb-[0.5rem]">
+            News
+          </h1>
+          <p className="text-[1.5625rem] font-serif italic leading-[1.1] tracking-[-0.047rem] text-black">
+            Events, highlights and latest developments in this space
+          </p>
         </div>
-      </div>
-    </main>
+
+        {/* Articles Grid - using grid components */}
+        <div className="w-full max-w-[45.1875rem] px-6">
+          {newsPosts.length > 0 ? (
+            <Grid>
+              {/* Group news items into rows of 3 */}
+              {Array.from({ length: Math.ceil(newsPosts.length / 3) }, (_, rowIndex) => (
+                <GridRow key={rowIndex}>
+                  {newsPosts.slice(rowIndex * 3, (rowIndex + 1) * 3).map((post, indexInRow) => (
+                    <Article key={post._id} href={`/news/${post.slug.current}`}>
+                      <ArticleImage
+                        src={post.featuredImage?.asset?.url}
+                        alt={post.featuredImage?.alt || post.title}
+                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
+                      />
+                      <ArticleContent>
+                        <ArticleTitle>{post.title}</ArticleTitle>
+                        {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                        <ArticleDate date={post.publishedAt} />
+                      </ArticleContent>
+                    </Article>
+                  ))}
+                </GridRow>
+              ))}
+            </Grid>
+          ) : (
+            <div className="text-center py-[6rem]">
+              <p className="text-[#3c2e24] text-[1.5rem] font-serif mb-[1rem]">No news articles found.</p>
+              <p className="text-[1rem] text-[#3c2e24] opacity-75">Make sure to create posts with the &quot;news&quot; category in Sanity Studio.</p>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

@@ -22,16 +22,23 @@ async function runFullImport() {
 
     // Step 3: Import Posts
     console.log('📰 Step 3: Importing posts...');
-    const postResult = await importPosts();
+    const updateExisting = args.includes('--update');
+    const skipImages = args.includes('--skip-images');
+    const postResult = await importPosts({ updateExisting, skipImages });
     console.log('✅ Posts imported successfully\n');
 
     console.log('🎉 Migration completed successfully!');
     console.log(`📊 Summary:`);
     console.log(`   - Posts imported: ${postResult.importedCount}`);
+    console.log(`   - Posts updated: ${postResult.updatedCount}`);
     console.log(`   - Posts skipped: ${postResult.skippedCount}`);
     console.log('\n💡 Next steps:');
     console.log('   1. Review imported content in Sanity Studio');
-    console.log('   2. Upload and link media assets manually');
+    if (args.includes('--skip-images')) {
+      console.log('   2. Upload and link media assets manually (images were skipped)');
+    } else {
+      console.log('   2. Verify uploaded images and re-upload any that failed');
+    }
     console.log('   3. Verify content formatting and make adjustments');
     console.log('   4. Update Next.js app to use new content structure');
 
@@ -55,6 +62,8 @@ Options:
   --authors     Import only authors
   --taxonomies  Import only categories and tags  
   --posts       Import only posts
+  --update      Update existing posts instead of skipping
+  --skip-images Skip image downloads (useful if source is unavailable)
   --help, -h    Show this help message
 
 Environment Variables Required:
@@ -67,6 +76,8 @@ Examples:
   node import.js --authors       # Import only authors
   node import.js --taxonomies    # Import only categories and tags
   node import.js --posts         # Import only posts
+  node import.js --posts --skip-images  # Import posts without images
+  node import.js --posts --update       # Update existing posts
 `);
   process.exit(0);
 }
@@ -96,8 +107,10 @@ async function main() {
       console.log('✅ Categories and tags imported successfully');
     } else if (args.includes('--posts')) {
       console.log('📰 Importing posts only...');
-      const result = await importPosts();
-      console.log(`✅ Posts imported successfully: ${result.importedCount} imported, ${result.skippedCount} skipped`);
+      const updateExisting = args.includes('--update');
+      const skipImages = args.includes('--skip-images');
+      const result = await importPosts({ updateExisting, skipImages });
+      console.log(`✅ Posts imported successfully: ${result.importedCount} imported, ${result.updatedCount} updated, ${result.skippedCount} skipped`);
     } else {
       // Run full import
       await runFullImport();

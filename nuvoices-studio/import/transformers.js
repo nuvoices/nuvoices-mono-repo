@@ -9,7 +9,7 @@ class ContentTransformer {
       .substring(0, 96);
   }
 
-  static htmlToPortableText(html) {
+  static htmlToPortableText(html, imageAssetMap = new Map()) {
     if (!html || html.trim() === '') {
       return [];
     }
@@ -19,7 +19,7 @@ class ContentTransformer {
       const document = dom.window.document;
       const body = document.body;
       
-      return this.parseElement(body);
+      return this.parseElement(body, imageAssetMap);
     } catch (error) {
       console.error('Error converting HTML to Portable Text:', error);
       // Fallback: return as a single text block
@@ -35,7 +35,7 @@ class ContentTransformer {
     }
   }
 
-  static parseElement(element) {
+  static parseElement(element, imageAssetMap = new Map()) {
     const blocks = [];
     
     for (const child of element.childNodes) {
@@ -53,7 +53,7 @@ class ContentTransformer {
           });
         }
       } else if (child.nodeType === 1) { // Element node
-        const block = this.convertElementToBlock(child);
+        const block = this.convertElementToBlock(child, imageAssetMap);
         if (block) {
           if (Array.isArray(block)) {
             blocks.push(...block);
@@ -75,7 +75,7 @@ class ContentTransformer {
     }];
   }
 
-  static convertElementToBlock(element) {
+  static convertElementToBlock(element, imageAssetMap = new Map()) {
     const tagName = element.tagName.toLowerCase();
     const textContent = element.textContent.trim();
 
@@ -117,15 +117,22 @@ class ContentTransformer {
           children: this.parseInlineElements(element)
         };
       case 'ul':
-        return this.parseList(element, 'bullet');
+        return this.parseList(element, 'bullet', imageAssetMap);
       case 'ol':
-        return this.parseList(element, 'number');
+        return this.parseList(element, 'number', imageAssetMap);
       case 'img':
+        const imgSrc = element.src || element.getAttribute('src');
+        const assetId = imageAssetMap.get(imgSrc);
+        if (!assetId) {
+          // Skip image if no asset was uploaded
+          console.warn(`Skipping image without uploaded asset: ${imgSrc}`);
+          return null;
+        }
         return {
           _type: 'image',
           asset: {
             _type: 'reference',
-            _ref: `image-${this.createSlug(element.src || 'unknown')}`
+            _ref: assetId
           },
           alt: element.alt || '',
           caption: element.title || ''
@@ -135,7 +142,7 @@ class ContentTransformer {
       case 'div':
       case 'span':
         // Handle as container, parse children
-        return this.parseElement(element);
+        return this.parseElement(element, imageAssetMap);
       default:
         if (textContent) {
           return {
@@ -222,7 +229,7 @@ class ContentTransformer {
     return this.parseInlineElements(element);
   }
 
-  static parseList(listElement, listType) {
+  static parseList(listElement, listType, imageAssetMap = null) {
     const items = [];
     
     for (const child of listElement.children) {
