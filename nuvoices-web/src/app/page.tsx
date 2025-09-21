@@ -94,16 +94,35 @@ const featuredPostQuery = groq`
   }
 `;
 
-const img847PxCabCallowayGottlieb18 = "http://localhost:3845/assets/dea6d5963562ca3f7428c30f3d53593f4e6a4f41.png";
-const img847PxCabCallowayGottlieb19 = "http://localhost:3845/assets/6b3cef217f04cde54161c430dbaa4803a7dbdebe.png";
-const img2062PxEthelWatersWilliamP4 = "http://localhost:3845/assets/ed4b63a872fe5c274cadc8e98c5773640f829db5.png";
+// Query to get latest 3 news/events posts
+const newsPostsQuery = groq`
+  *[_type == "post" && status == "published" && "events" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    publishedAt,
+    featuredImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      name
+    }
+  }
+`;
+
 
 export default async function Home() {
   // Fetch posts from Sanity
-  const [magazinePosts, podcastPosts, featuredPost] = await Promise.all([
+  const [magazinePosts, podcastPosts, featuredPost, newsPosts] = await Promise.all([
     client.fetch<Post[]>(magazinePostsQuery),
     client.fetch<Post[]>(podcastPostsQuery),
-    client.fetch<Post | null>(featuredPostQuery)
+    client.fetch<Post | null>(featuredPostQuery),
+    client.fetch<Post[]>(newsPostsQuery)
   ]);
   return (
     <div className="bg-[#f4ecea] flex flex-col gap-[1.563rem] items-center min-h-screen">
@@ -223,60 +242,32 @@ export default async function Home() {
         </div>
       )}
 
-      {/* Events Section */}
-      <div className="flex flex-col gap-[0.938rem] items-center w-full pb-[1.563rem]">
-        <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
-          Events
+      {/* News Section */}
+      {newsPosts.length > 0 && (
+        <div className="flex flex-col gap-[0.938rem] items-center w-full pb-[1.563rem]">
+          <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
+            News
+          </div>
+          <Grid className="w-full max-w-[45.188rem] px-3">
+            <GridRow>
+              {newsPosts.map((post, index) => (
+                <Article key={post._id} href={`/news/${post.slug.current}`}>
+                  <ArticleImage
+                    src={post.featuredImage?.asset?.url}
+                    alt={post.featuredImage?.alt || post.title}
+                    rotation={index % 2 === 0 ? 'left' : 'right'}
+                  />
+                  <ArticleContent>
+                    <ArticleTitle>{post.title}</ArticleTitle>
+                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                    <ArticleDate date={post.publishedAt} />
+                  </ArticleContent>
+                </Article>
+              ))}
+            </GridRow>
+          </Grid>
         </div>
-        <Grid className="w-full max-w-[45.188rem] px-3">
-          <GridRow>
-            <Article href="/events/transforming-memory">
-              <ArticleImage
-                src={img2062PxEthelWatersWilliamP4}
-                alt="Transforming Memory into Story"
-                rotation="left"
-              />
-              <ArticleContent>
-                <ArticleTitle>Transforming Memory into Story</ArticleTitle>
-                <ArticleExcerpt>
-                  Karen Cheung on drawing from raw material in personal archives
-                </ArticleExcerpt>
-                <ArticleDate date="March 29, 2025" />
-              </ArticleContent>
-            </Article>
-
-            <Article href="/events/essay-contest-2025">
-              <ArticleImage
-                src={img847PxCabCallowayGottlieb18}
-                alt="2025 NüStories Essay Contest"
-                rotation="right"
-              />
-              <ArticleContent>
-                <ArticleTitle>2025 NüStories Essay Contest</ArticleTitle>
-                <ArticleExcerpt>
-                  Our first non-fiction personal essay contest focuses on the theme of Chinese identity
-                </ArticleExcerpt>
-                <ArticleDate date="January 22, 2025" />
-              </ArticleContent>
-            </Article>
-
-            <Article href="/events/freelance-writing-pitching">
-              <ArticleImage
-                src={img847PxCabCallowayGottlieb19}
-                alt="Freelance Writing and Pitching"
-                rotation="left"
-              />
-              <ArticleContent>
-                <ArticleTitle>Freelance Writing and Pitching</ArticleTitle>
-                <ArticleExcerpt>
-                  Suyin Haynes and Jessie Lau cover everything that goes into a stand-out pitch
-                </ArticleExcerpt>
-                <ArticleDate date="June 1, 2025" />
-              </ArticleContent>
-            </Article>
-          </GridRow>
-        </Grid>
-      </div>
+      )}
     </div>
   );
 }
