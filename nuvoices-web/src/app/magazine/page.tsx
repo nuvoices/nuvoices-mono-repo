@@ -1,7 +1,15 @@
-import Image from "next/image";
-import Link from "next/link";
 import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
+import {
+  Grid,
+  GridRow,
+  Article,
+  ArticleContent,
+  ArticleImage,
+  ArticleTitle,
+  ArticleExcerpt,
+  ArticleDate,
+} from "@/components/ui/grid";
 
 interface Post {
   _id: string;
@@ -70,61 +78,27 @@ export default async function MagazinePage() {
         {/* Articles Grid - 1446px = 45.1875rem width, 606px = 18.9375rem height per row */}
         <div className="w-full max-w-[45.1875rem] px-6">
           {posts.length > 0 ? (
-            <div className="flex flex-col gap-[0.9375rem]">
+            <Grid>
               {/* Group posts into rows of 3 */}
               {Array.from({ length: Math.ceil(posts.length / 3) }, (_, rowIndex) => (
-                <div key={rowIndex} className="flex gap-[0.313rem] justify-center">
+                <GridRow key={rowIndex}>
                   {posts.slice(rowIndex * 3, (rowIndex + 1) * 3).map((post, indexInRow) => (
-                    <Link key={post._id} href={`/magazine/${post.slug.current}`} className="block no-underline" style={{ textDecoration: 'none' }}>
-                      <article className="group cursor-pointer w-[14.813rem] flex flex-col gap-[0.313rem]">
-                        {/* Image container - 424px = 13.25rem width, 326px = 10.188rem height */}
-                        <div className="relative w-[13.25rem] h-[10.188rem] flex items-center justify-center">
-                          <div className={`w-full h-full ${indexInRow % 2 === 0 ? '-rotate-2' : 'rotate-2'}`}>
-                            {post.featuredImage?.asset?.url ? (
-                              <Image
-                                src={post.featuredImage.asset.url}
-                                alt={post.featuredImage.alt || post.title}
-                                width={424}
-                                height={326}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
-                                <span className="text-[0.875rem]">[No Image]</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Title section */}
-                        <div className="flex flex-col gap-[0.313rem]">
-                          {/* Title - 45-50px = 1.406-1.5625rem */}
-                          <h3 className="text-[1.5625rem] font-serif leading-[1.1] tracking-[-0.047rem] text-[#3c2e24]" style={{ marginBlock: 0 }}>
-                            {post.title}
-                          </h3>
-
-                          {/* Excerpt - 22px = 0.688rem */}
-                          {post.excerpt && (
-                            <p className="text-[0.688rem] font-serif italic leading-[1.1] text-[#3c2e24] line-clamp-2">
-                              {post.excerpt}
-                            </p>
-                          )}
-
-                          {/* Date - 22px = 0.688rem */}
-                          <p className="text-[0.688rem] font-serif leading-[1.1] text-[#3c2e24]">
-                            {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      </article>
-                    </Link>
+                    <Article key={post._id} href={`/magazine/${post.slug.current}`}>
+                      <ArticleImage
+                        src={post.featuredImage?.asset?.url}
+                        alt={post.featuredImage?.alt || post.title}
+                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
+                      />
+                      <ArticleContent>
+                        <ArticleTitle>{post.title}</ArticleTitle>
+                        {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                        <ArticleDate date={post.publishedAt} />
+                      </ArticleContent>
+                    </Article>
                   ))}
-                </div>
+                </GridRow>
               ))}
-            </div>
+            </Grid>
           ) : (
             <div className="text-center py-[6rem]">
               <p className="text-[#3c2e24] text-[1.5rem] font-serif mb-[1rem]">No magazine articles found.</p>
