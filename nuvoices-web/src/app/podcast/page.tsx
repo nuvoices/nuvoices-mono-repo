@@ -1,7 +1,15 @@
-import Image from 'next/image'
-import Link from 'next/link'
 import { client } from '@/sanity/client'
 import { groq } from 'next-sanity'
+import {
+  Grid,
+  GridRow,
+  Article,
+  ArticleContent,
+  ArticleImage,
+  ArticleTitle,
+  ArticleExcerpt,
+  ArticleDate,
+} from '@/components/ui/grid'
 
 interface PodcastEpisode {
   _id: string
@@ -48,44 +56,30 @@ export default async function PodcastPage() {
           A show coordinated, produced and edited by the NüVoices board.
         </p>
 
-        {/* Episodes Grid */}
+        {/* Episodes Grid - using grid components */}
         {episodes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {episodes.map((episode) => (
-              <Link 
-                key={episode._id} 
-                href={`/podcast/${episode.slug.current}`}
-                className="group cursor-pointer"
-              >
-                <div className="aspect-square bg-gray-200 mb-4 overflow-hidden relative">
-                  {episode.featuredImage?.asset?.url ? (
-                    <Image
-                      src={episode.featuredImage.asset.url}
-                      alt={episode.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                      [Podcast Episode Image]
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-xl font-serif mb-2 group-hover:underline">
-                  {episode.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-2 italic">
-                  {episode.excerpt || episode.author.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {new Date(episode.publishedAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              </Link>
-            ))}
+          <div className="flex justify-center">
+            <Grid>
+              {/* Group episodes into rows of 3 */}
+              {Array.from({ length: Math.ceil(episodes.length / 3) }, (_, rowIndex) => (
+                <GridRow key={rowIndex}>
+                  {episodes.slice(rowIndex * 3, (rowIndex + 1) * 3).map((episode, indexInRow) => (
+                    <Article key={episode._id} href={`/podcast/${episode.slug.current}`}>
+                      <ArticleImage
+                        src={episode.featuredImage?.asset?.url}
+                        alt={episode.title}
+                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
+                      />
+                      <ArticleContent>
+                        <ArticleTitle>{episode.title}</ArticleTitle>
+                        {episode.excerpt && <ArticleExcerpt>{episode.excerpt}</ArticleExcerpt>}
+                        <ArticleDate date={episode.publishedAt} />
+                      </ArticleContent>
+                    </Article>
+                  ))}
+                </GridRow>
+              ))}
+            </Grid>
           </div>
         ) : (
           <div className="text-center py-12">
@@ -93,22 +87,6 @@ export default async function PodcastPage() {
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="bg-pink-200 py-8 mt-16">
-        <div className="container mx-auto px-6">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-700">Powered by WordPress</p>
-            <nav className="flex gap-6 text-sm">
-              <a href="/about" className="hover:underline">About</a>
-              <a href="/join" className="hover:underline">Join</a>
-              <a href="/donate" className="hover:underline">Donate</a>
-              <a href="/submit" className="hover:underline">Submit</a>
-              <a href="/contact" className="hover:underline">Contact</a>
-            </nav>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
