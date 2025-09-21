@@ -11,7 +11,7 @@ export const runtime = "edge";
 // Configure the image URL builder
 const builder = imageUrlBuilder(client);
 
-function urlFor(source: any) {
+function urlFor(source: { _type?: string; asset?: { _ref?: string; _type?: string } }) {
   return builder.image(source);
 }
 
@@ -66,6 +66,14 @@ interface Post {
   tags?: Tag[];
 }
 
+interface NavigationPost {
+  _id: string;
+  title: string;
+  slug: {
+    current: string;
+  };
+}
+
 const postQuery = groq`
   *[_type == "post" && slug.current == $slug][0] {
     _id,
@@ -113,6 +121,23 @@ const postQuery = groq`
   }
 `;
 
+// Queries to get previous and next posts
+const previousPostQuery = groq`
+  *[_type == "post" && publishedAt > $publishedAt] | order(publishedAt asc)[0] {
+    _id,
+    title,
+    slug
+  }
+`;
+
+const nextPostQuery = groq`
+  *[_type == "post" && publishedAt < $publishedAt] | order(publishedAt desc)[0] {
+    _id,
+    title,
+    slug
+  }
+`;
+
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function MagazineArticlePage({
@@ -123,14 +148,26 @@ export default async function MagazineArticlePage({
   const { slug } = await params;
   const post = await client.fetch<Post | null>(postQuery, { slug });
 
-  console.log('post', post);
-  
-  // Debug: Check if there are any image blocks in the body
-  const imageBlocks = post?.body?.filter((block: any) => block._type === 'image');
-  console.log('Image blocks found:', imageBlocks);
   if (!post) {
     notFound();
   }
+
+  // Fetch previous and next posts separately
+  const [previousPost, nextPost] = await Promise.all([
+    client.fetch<NavigationPost | null>(previousPostQuery, {
+      publishedAt: post.publishedAt
+    }),
+    client.fetch<NavigationPost | null>(nextPostQuery, {
+      publishedAt: post.publishedAt
+    })
+  ]);
+
+  console.log('post', post);
+  console.log('navigation', { previous: previousPost, next: nextPost });
+
+  // Debug: Check if there are any image blocks in the body
+  const imageBlocks = post?.body?.filter((block) => block._type === 'image');
+  console.log('Image blocks found:', imageBlocks);
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">
@@ -185,7 +222,7 @@ export default async function MagazineArticlePage({
             value={post.body}
             components={{
               types: {
-                image: ({value}: any) => {
+                image: ({value}: {value: { asset?: { _ref?: string; _type?: string }; alt?: string; caption?: string }}) => {
                   console.log('Rendering image block:', value);
                   
                   if (!value?.asset) {
@@ -265,6 +302,59 @@ export default async function MagazineArticlePage({
           </div>
         )}
       </article>
+
+      {/* Previous/Next Navigation */}
+      <div className="max-w-[35.71875rem] mx-auto px-6 py-[3rem]">
+        <div className="flex justify-between gap-[2.25rem]">
+          {/* Previous Article */}
+          <div className="flex-1">
+            {previousPost ? (
+              <Link href={`/magazine/${previousPost.slug.current}`} className="group block no-underline">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem]">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    ← Previous
+                  </div>
+                  <div className="text-[0.6875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
+                    {previousPost.title}
+                  </div>
+                </div>
+              </Link>
+            ) : (
+              <div className="opacity-0 pointer-events-none">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem]">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    ← Previous
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Next Article */}
+          <div className="flex-1">
+            {nextPost ? (
+              <Link href={`/magazine/${nextPost.slug.current}`} className="group block no-underline">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem] text-right">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    Next →
+                  </div>
+                  <div className="text-[0.6875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
+                    {nextPost.title}
+                  </div>
+                </div>
+              </Link>
+            ) : (
+              <div className="opacity-0 pointer-events-none">
+                <div className="border-t border-[#3c2e24] pt-[1.3125rem] text-right">
+                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                    Next →
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
