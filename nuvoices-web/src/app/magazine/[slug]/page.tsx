@@ -133,10 +133,10 @@ export default async function MagazineArticlePage({
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#f4ecea]">
       {/* Hero Section with Featured Image */}
       {post.featuredImage?.asset?.url && (
-        <div className="relative h-[70vh] bg-gray-200">
+        <div className="relative h-[28.25rem] bg-[#f4ecea] max-w-[45rem] mx-auto">
           <Image
             src={post.featuredImage.asset.url}
             alt={post.featuredImage.alt || post.title}
@@ -148,36 +148,39 @@ export default async function MagazineArticlePage({
       )}
 
       {/* Article Content */}
-      <article className="max-w-4xl mx-auto px-6 py-12">
+      <article className="max-w-[35.71875rem] mx-auto px-6 py-[1.5625rem]">
         {/* Article Title */}
-        <h1 className="text-5xl font-serif mb-8 text-gray-900">
+        <h1 className="text-center text-[2.96875rem] leading-[1.1] tracking-[-0.089rem] font-serif text-[#3c2e24] mb-[1.25rem]">
           {post.title}
         </h1>
 
         {/* Article Meta */}
-        <div className="text-sm text-gray-600 mb-12">
-          {post.excerpt && (
-            <p className="italic mb-2">
-              {post.excerpt}
-            </p>
+        <div className="text-center mb-[2.5rem]">
+          {post.author && (
+            <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif">
+              {post.author.name}
+            </div>
           )}
-          <div className="flex items-center gap-4">
-            {post.author && (
-              <span>By {post.author.name}</span>
-            )}
-            <span>•</span>
-            <time dateTime={post.publishedAt}>
-              {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </time>
+          <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif">
+            {new Date(post.publishedAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </div>
         </div>
 
+        {/* Excerpt if exists */}
+        {post.excerpt && (
+          <div className="text-center mb-[2.5rem]">
+            <p className="text-[0.9375rem] italic text-black font-serif leading-[1.6] max-w-[35.875rem] mx-auto">
+              {post.excerpt}
+            </p>
+          </div>
+        )}
+
         {/* Article Body */}
-        <div className="prose prose-lg max-w-none">
+        <div className="max-w-none">
           <PortableText 
             value={post.body}
             components={{
@@ -201,17 +204,17 @@ export default async function MagazineArticlePage({
                   console.log('Generated image URL:', imageUrl);
                   
                   return (
-                    <div className="my-8">
+                    <div className="my-[1.5rem]">
                       <Image
                         src={imageUrl}
                         alt={value.alt || ''}
-                        width={1200}
+                        width={1143}
                         height={800}
                         className="w-full h-auto"
                         style={{ objectFit: 'cover' }}
                       />
                       {(value.caption || value.alt) && (
-                        <p className="text-sm text-gray-600 mt-2 text-center italic">
+                        <p className="text-[0.875rem] text-[#3c2e24] mt-2 text-center italic font-serif">
                           {value.caption || value.alt}
                         </p>
                       )}
@@ -223,20 +226,30 @@ export default async function MagazineArticlePage({
                 link: ({children, value}: {children: React.ReactNode; value?: {href?: string}}) => {
                   const rel = value?.href && !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
                   return (
-                    <a href={value?.href || '#'} rel={rel} className="text-amber-900 underline hover:text-amber-700">
+                    <a href={value?.href || '#'} rel={rel} className="text-[#3c2e24] underline hover:text-amber-700">
                       {children}
                     </a>
                   );
                 },
               },
               block: {
-                normal: ({children}: {children?: React.ReactNode}) => <p className="mb-4">{children}</p>,
-                h1: ({children}: {children?: React.ReactNode}) => <h1 className="text-3xl font-bold mb-4 mt-8">{children}</h1>,
-                h2: ({children}: {children?: React.ReactNode}) => <h2 className="text-2xl font-bold mb-4 mt-6">{children}</h2>,
-                h3: ({children}: {children?: React.ReactNode}) => <h3 className="text-xl font-bold mb-3 mt-4">{children}</h3>,
-                h4: ({children}: {children?: React.ReactNode}) => <h4 className="text-lg font-bold mb-2 mt-3">{children}</h4>,
+                normal: ({children}: {children?: React.ReactNode}) => (
+                  <p className="text-[0.9375rem] leading-[1.6] mb-[0.9375rem] text-black font-serif">{children}</p>
+                ),
+                h1: ({children}: {children?: React.ReactNode}) => (
+                  <h1 className="text-[1.5rem] font-bold mb-[0.9375rem] mt-[1.5rem] text-[#3c2e24] font-serif">{children}</h1>
+                ),
+                h2: ({children}: {children?: React.ReactNode}) => (
+                  <h2 className="text-[1.25rem] font-bold mb-[0.9375rem] mt-[1.25rem] text-[#3c2e24] font-serif">{children}</h2>
+                ),
+                h3: ({children}: {children?: React.ReactNode}) => (
+                  <h3 className="text-[1.125rem] font-bold mb-[0.75rem] mt-[1rem] text-[#3c2e24] font-serif">{children}</h3>
+                ),
+                h4: ({children}: {children?: React.ReactNode}) => (
+                  <h4 className="text-[1rem] font-bold mb-[0.625rem] mt-[0.75rem] text-[#3c2e24] font-serif">{children}</h4>
+                ),
                 blockquote: ({children}: {children?: React.ReactNode}) => (
-                  <blockquote className="italic border-l-4 border-gray-300 pl-4 my-4">{children}</blockquote>
+                  <blockquote className="italic border-l-4 border-[#dd9ca1] pl-4 my-[0.9375rem] text-[0.9375rem] text-[#3c2e24] font-serif">{children}</blockquote>
                 ),
               },
             }}
@@ -244,76 +257,14 @@ export default async function MagazineArticlePage({
         </div>
 
         {/* Author Bio */}
-        {post.author && (
-          <div className="mt-16 pt-8 border-t border-gray-200">
-            <div className="flex items-start gap-4">
-              {post.author.image?.asset?.url && (
-                <Image
-                  src={post.author.image.asset.url}
-                  alt={post.author.name}
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
-              )}
-              <div>
-                <h3 className="font-semibold text-lg mb-2">About {post.author.name}</h3>
-                {post.author.bio && (
-                  <p className="text-gray-600">{post.author.bio}</p>
-                )}
-              </div>
+        {post.author && post.author.bio && (
+          <div className="mt-[2.5rem] pt-[1.5rem] border-t border-[#dd9ca1]">
+            <div className="text-[0.9375rem] leading-[1.6] text-black font-serif italic">
+              <p>{post.author.bio}</p>
             </div>
           </div>
         )}
-
-        {/* Categories and Tags */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          {post.categories && post.categories.length > 0 && (
-            <div className="mb-4">
-              <span className="font-semibold mr-2">Categories:</span>
-              {post.categories.map((category, index: number) => (
-                <span key={category._id}>
-                  <Link 
-                    href={`/category/${category.slug.current}`}
-                    className="text-amber-900 hover:underline"
-                  >
-                    {category.title}
-                  </Link>
-                  {index < post.categories!.length - 1 && ', '}
-                </span>
-              ))}
-            </div>
-          )}
-          {post.tags && post.tags.length > 0 && (
-            <div>
-              <span className="font-semibold mr-2">Tags:</span>
-              {post.tags.map((tag, index: number) => (
-                <span key={tag._id}>
-                  <Link 
-                    href={`/tag/${tag.slug.current}`}
-                    className="text-amber-900 hover:underline"
-                  >
-                    {tag.title}
-                  </Link>
-                  {index < post.tags!.length - 1 && ', '}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
       </article>
-
-      {/* Navigation */}
-      <div className="max-w-4xl mx-auto px-6 py-8 border-t border-gray-200">
-        <div className="flex justify-center">
-          <Link 
-            href="/magazine" 
-            className="inline-block px-8 py-3 bg-amber-900 text-white font-medium uppercase text-sm tracking-wider hover:bg-amber-800 transition"
-          >
-            Back to Magazine
-          </Link>
-        </div>
-      </div>
     </div>
   )
 }
