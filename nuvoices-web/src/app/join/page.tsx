@@ -2,70 +2,66 @@ import Image from "next/image";
 
 export default function JoinPage() {
   return (
-    <div className="min-h-screen bg-pink-50">
+    <div className="min-h-screen bg-[#f4ecea]">
       {/* Main content */}
-      <main className="pt-16 pb-16">
-        <div className="container mx-auto px-6 max-w-4xl">
-          {/* Page header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-serif mb-8">Join</h1>
-            <p className="text-xl leading-relaxed max-w-2xl mx-auto">
-              Come join our vibrant community to find out about opportunities, take part in discussions and meet like-minded people.
-            </p>
+      <main className="flex flex-col items-center px-6 py-[2.5rem]">
+        <div className="max-w-[25rem] w-full space-y-[1.25rem]">
+          {/* Page header - 80px = 2.5rem */}
+          <div className="mb-[1.25rem]">
+            <h1 className="text-[2.5rem] font-serif leading-[1.2] tracking-[-0.075rem] text-black">
+              Join
+            </h1>
           </div>
 
-          {/* Join a local chapter section */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-4">Join a local chapter</h2>
-            <p className="text-gray-700 leading-relaxed">
-              We have active chapters in various cities and regions. Email{" "}
-              <a href="mailto:nuvoices@protonmail.com" className="text-blue-600 hover:underline">
-                nuvoices@protonmail.com
-              </a>{" "}
-              with your WhatsApp number and/or WeChat handles to join a local group.
-            </p>
-          </section>
+          {/* Introduction - 40px = 1.25rem, 50px line height = 1.5625rem */}
+          <p className="text-[1.25rem] font-serif leading-[1.5625rem] text-black text-justify mb-[1.25rem]">
+            Come join our vibrant community to find out about opportunities, take part in discussions and meet like-minded people.
+          </p>
 
-          {/* Join our global community section */}
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-4">Join our global community</h2>
-            <p className="text-gray-700 leading-relaxed">
-              To be part of our wider NuVoices network, come join{" "}
-              <a href="#" className="text-blue-600 hover:underline">
-                our Facebook group
-              </a>
-              , where you can keep up with our updates and connect with others in this space.
-            </p>
-          </section>
-
-          {/* Community photo */}
-          <div className="mb-12">
-            <div className="relative h-96 bg-gray-300 overflow-hidden">
-              {/* Placeholder for community photo with red/burgundy tint overlay */}
-              <div className="absolute inset-0 bg-red-900/40"></div>
-              <div className="absolute inset-0 flex items-center justify-center text-white/50">
-                [Community Event Photo]
-              </div>
+          {/* Content sections - 30px = 0.9375rem */}
+          <div className="space-y-[1rem] text-[0.9375rem] font-serif leading-[1.6] text-black">
+            {/* Join a local chapter section */}
+            <div>
+              <h2 className="font-bold mb-[0.25rem]">Join a local chapter</h2>
+              <p>
+                We have active chapters in various cities and regions. Email{" "}
+                <a href="mailto:nuvoices@protonmail.com" className="text-black underline hover:bg-yellow-200 transition-colors">
+                  nuvoices@protonmail.com
+                </a>{" "}
+                with your WhatsApp number and/or WeChat handles to join a local group.
+              </p>
             </div>
+
+            {/* Join our global community section */}
+            <div>
+              <h2 className="font-bold mb-[0.25rem]">Join our global community</h2>
+              <p>
+                To be part of our wider NuVoices network, come join{" "}
+                <a
+                  href="https://www.facebook.com/groups/214309679373603/"
+                  className="text-black underline hover:bg-yellow-200 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  our Facebook group
+                </a>
+                , where you can keep up with our updates and connect with others in this space.
+              </p>
+            </div>
+          </div>
+
+          {/* Community photo - 800px = 25rem, 532px = 16.625rem */}
+          <div className="my-[1.25rem]">
+            <Image
+              src="/nuvoices-community.png"
+              alt="NüVoices community event"
+              width={800}
+              height={532}
+              className="w-full h-auto"
+            />
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-pink-200 py-8">
-        <div className="container mx-auto px-6">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-700">Powered by WordPress</p>
-            <nav className="flex gap-6 text-sm">
-              <a href="/about" className="hover:underline">About</a>
-              <a href="/join" className="hover:underline">Join</a>
-              <a href="/donate" className="hover:underline">Donate</a>
-              <a href="/submit" className="hover:underline">Submit</a>
-              <a href="/contact" className="hover:underline">Contact</a>
-            </nav>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
