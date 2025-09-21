@@ -1,9 +1,29 @@
 "use client";
 
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+
 export default function Header() {
+  const pathname = usePathname();
+  const isHomepage = pathname === '/';
+
   return (
     <header className="bg-[#f4ecea] h-[3.75rem] w-full relative">
-      <div className="absolute left-[1.906rem] top-[1.5rem] flex gap-[0.781rem]">
+      {/* NüVoices Logo - Show only when not on homepage */}
+      {!isHomepage && (
+        <Link href="/" className="absolute left-[1.438rem] top-[0.875rem]">
+          <Image
+            src="/nuvoices-logo-header.png"
+            alt="NüVoices"
+            width={57}
+            height={75}
+            className="w-[1.781rem] h-[2.344rem]"
+          />
+        </Link>
+      )}
+
+      <div className={`absolute ${!isHomepage ? 'left-[4.094rem]' : 'left-[1.906rem]'} top-[1.5rem] flex gap-[0.781rem]`}>
         {/* Social Icons */}
         <a href="#" aria-label="Twitter" className="w-[0.844rem] h-[0.844rem]">
           <img src="/icons/twitter.svg" alt="Twitter" className="w-full h-full" />
