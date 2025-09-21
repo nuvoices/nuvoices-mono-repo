@@ -94,7 +94,6 @@ const featuredPostQuery = groq`
   }
 `;
 
-const imgTempImagewflfZt1 = "http://localhost:3845/assets/1f87e050f6dd3f83d65ae95315563b29fd0838e0.png";
 const img847PxCabCallowayGottlieb18 = "http://localhost:3845/assets/dea6d5963562ca3f7428c30f3d53593f4e6a4f41.png";
 const img847PxCabCallowayGottlieb19 = "http://localhost:3845/assets/6b3cef217f04cde54161c430dbaa4803a7dbdebe.png";
 const img2062PxEthelWatersWilliamP4 = "http://localhost:3845/assets/ed4b63a872fe5c274cadc8e98c5773640f829db5.png";
@@ -114,7 +113,7 @@ export default async function Home() {
           {/* Logo placeholder - 270px x 354px */}
           <div className="w-[8.438rem] h-[11.063rem] relative">
             <img
-              src={imgTempImagewflfZt1}
+              src="/nuvoices-logo.png"
               alt="NüVoices Logo"
               className="w-full h-full object-cover"
             />

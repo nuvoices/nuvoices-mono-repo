@@ -17,8 +17,9 @@ body {
   --font-sans: Raleway, sans-serif;
   --font-serif: "Source Serif 4", serif;
   --font-weight-extrabold: 800;
-  --font-weight-semibold: 600;
-  --font-weight-regular: 400;
   --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-normal: 400;
+  --font-weight-regular: 400;
   --color-black: #000;
 }
