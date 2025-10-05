@@ -4,6 +4,10 @@ export type EmbedPlatform =
   | 'instagram'
   | 'tiktok'
   | 'twitter'
+  | 'art19'
+  | 'acast'
+  | 'buzzsprout'
+  | 'amazon'
   | 'unknown'
 
 export interface EmbedData {
@@ -35,6 +39,18 @@ export function detectPlatform(url: string): EmbedPlatform {
     }
     if (hostname.includes('twitter.com') || hostname.includes('x.com')) {
       return 'twitter'
+    }
+    if (hostname.includes('art19.com')) {
+      return 'art19'
+    }
+    if (hostname.includes('acast.com')) {
+      return 'acast'
+    }
+    if (hostname.includes('buzzsprout.com')) {
+      return 'buzzsprout'
+    }
+    if (hostname.includes('amazon.com') && urlObj.pathname.includes('/read/')) {
+      return 'amazon'
     }
 
     return 'unknown'
@@ -139,6 +155,62 @@ function extractTwitterId(url: string): string | null {
 }
 
 /**
+ * Extract Art19 episode ID from URL
+ * art19.com/shows/SHOW_NAME/episodes/EPISODE_ID/embed
+ */
+function extractArt19Id(url: string): string | null {
+  try {
+    const urlObj = new URL(url)
+    const match = urlObj.pathname.match(/\/episodes\/([^/?]+)/)
+    return match ? match[1] : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Extract Acast episode ID from URL
+ * embed.acast.com/SHOW_ID/EPISODE_ID
+ */
+function extractAcastId(url: string): string | null {
+  try {
+    const urlObj = new URL(url)
+    const parts = urlObj.pathname.split('/').filter(Boolean)
+    // Return the full path after the domain as the ID
+    return parts.join('/') || null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Extract Buzzsprout episode ID from URL
+ * buzzsprout.com/SHOW_ID/EPISODE_ID
+ */
+function extractBuzzsproutId(url: string): string | null {
+  try {
+    const urlObj = new URL(url)
+    const match = urlObj.pathname.match(/\/(\d+)\/(\d+)/)
+    return match ? `${match[1]}/${match[2]}` : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Extract Amazon Kindle ASIN from URL
+ * read.amazon.com/kp/embed?asin=ASIN&...
+ */
+function extractAmazonId(url: string): string | null {
+  try {
+    const urlObj = new URL(url)
+    return urlObj.searchParams.get('asin')
+  } catch {
+    return null
+  }
+}
+
+/**
  * Generate embed URL for a platform
  */
 function generateEmbedUrl(platform: EmbedPlatform, embedId: string): string | null {
@@ -154,6 +226,15 @@ function generateEmbedUrl(platform: EmbedPlatform, embedId: string): string | nu
       return null // Will use original URL
     case 'twitter':
       return null // Twitter embeds use oEmbed API
+    case 'art19':
+      // Art19 embeds - already includes show name in the episode ID path
+      return null // Will use original URL
+    case 'acast':
+      return `https://embed.acast.com/${embedId}`
+    case 'buzzsprout':
+      return null // Will use original URL (already has all params)
+    case 'amazon':
+      return null // Will use original URL
     default:
       return null
   }
@@ -182,6 +263,18 @@ export function parseEmbedUrl(url: string): EmbedData {
     case 'twitter':
       embedId = extractTwitterId(url)
       break
+    case 'art19':
+      embedId = extractArt19Id(url)
+      break
+    case 'acast':
+      embedId = extractAcastId(url)
+      break
+    case 'buzzsprout':
+      embedId = extractBuzzsproutId(url)
+      break
+    case 'amazon':
+      embedId = extractAmazonId(url)
+      break
   }
 
   const embedUrl = embedId ? generateEmbedUrl(platform, embedId) : null
@@ -204,6 +297,10 @@ export function getPlatformName(platform: EmbedPlatform): string {
     instagram: 'Instagram',
     tiktok: 'TikTok',
     twitter: 'Twitter/X',
+    art19: 'Art19 Podcast',
+    acast: 'Acast Podcast',
+    buzzsprout: 'Buzzsprout Podcast',
+    amazon: 'Amazon Kindle',
     unknown: 'Unknown',
   }
   return names[platform]

@@ -90,6 +90,57 @@ export function EmbedRenderer({ value }: { value: EmbedValue }) {
           </div>
         );
 
+      case 'art19':
+        return (
+          <div className="w-full">
+            <iframe
+              src={url}
+              className="w-full border-0"
+              height="200"
+              style={{ overflow: 'hidden' }}
+              title={caption || 'Art19 Podcast'}
+            />
+          </div>
+        );
+
+      case 'acast':
+        return (
+          <div className="w-full">
+            <iframe
+              src={url}
+              className="w-full border-0"
+              height="200"
+              style={{ overflow: 'hidden' }}
+              title={caption || 'Acast Podcast'}
+            />
+          </div>
+        );
+
+      case 'buzzsprout':
+        return (
+          <div className="w-full">
+            <iframe
+              src={url}
+              className="w-full border-0"
+              height="200"
+              style={{ overflow: 'hidden' }}
+              title={caption || 'Buzzsprout Podcast'}
+            />
+          </div>
+        );
+
+      case 'amazon':
+        return (
+          <div className="w-full max-w-[800px] mx-auto">
+            <iframe
+              src={url}
+              className="w-full border-0"
+              height="500"
+              title={caption || 'Amazon Kindle Preview'}
+            />
+          </div>
+        );
+
       default:
         // Fallback for unknown platforms - just show a link
         return (

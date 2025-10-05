@@ -10,7 +10,7 @@ export const embedType = defineType({
       name: 'url',
       title: 'URL',
       type: 'url',
-      description: 'Paste a URL from YouTube, Vimeo, Instagram, TikTok, or Twitter/X',
+      description: 'Paste a URL from YouTube, Vimeo, Instagram, TikTok, Twitter/X, Art19, Acast, Buzzsprout, or Amazon Kindle',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
