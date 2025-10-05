@@ -111,6 +111,9 @@ export const postType = defineType({
             },
           ],
         },
+        {
+          type: "embed",
+        },
       ],
     }),
     defineField({

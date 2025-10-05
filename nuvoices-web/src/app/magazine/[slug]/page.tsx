@@ -5,6 +5,7 @@ import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
 import { PortableText } from "@portabletext/react";
 import imageUrlBuilder from "@sanity/image-url";
+import { EmbedRenderer } from "@/components/EmbedRenderer";
 
 export const runtime = "edge";
 
@@ -257,6 +258,9 @@ export default async function MagazineArticlePage({
                       )}
                     </div>
                   );
+                },
+                embed: ({value}: {value: { url?: string; platform?: string; embedId?: string; caption?: string }}) => {
+                  return <EmbedRenderer value={value} />;
                 }
               },
               marks: {

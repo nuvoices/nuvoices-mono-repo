@@ -5,6 +5,7 @@ import { groq } from 'next-sanity'
 import { PortableText } from '@portabletext/react'
 import { notFound } from 'next/navigation'
 import imageUrlBuilder from "@sanity/image-url";
+import { EmbedRenderer } from "@/components/EmbedRenderer";
 
 export const runtime = "edge";
 
@@ -190,6 +191,9 @@ export default async function PodcastEpisodePage({ params }: { params: Promise<{
                       )}
                     </div>
                   );
+                },
+                embed: ({value}: {value: { url?: string; platform?: string; embedId?: string; caption?: string }}) => {
+                  return <EmbedRenderer value={value} />;
                 }
               },
               marks: {

@@ -3,6 +3,7 @@ import { authorType } from "./authorType";
 import { categoryType } from "./categoryType";
 import { tagType } from "./tagType";
 import { postType } from "./postType";
+import { embedType } from "./embedType";
 import news from "./news";
 
 export const schemaTypes = [
@@ -11,5 +12,6 @@ export const schemaTypes = [
   categoryType,
   tagType,
   postType,
+  embedType,
   news,
 ];
