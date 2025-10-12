@@ -1,0 +1,6 @@
+# Copy this file to .dev.vars and fill in your actual values
+# .dev.vars is gitignored and used for local development with wrangler dev
+
+ACCESS_TOKEN=your_airtable_access_token_here
+BASE_ID=your_airtable_base_id_here
+TABLE_NAME=your_airtable_table_name_here

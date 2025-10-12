@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.dev.vars
+
+# Build output
+dist/
+.wrangler/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/

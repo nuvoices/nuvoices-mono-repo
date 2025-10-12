@@ -1,0 +1,41 @@
+{
+  "name": "nuvoices-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for Airtable caching with D1",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "db:migrate": "wrangler d1 migrations apply airtable-cache --local",
+    "db:migrate:prod": "wrangler d1 migrations apply airtable-cache --remote",
+    "db:create:local": "wrangler d1 create airtable-cache-local",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "airtable",
+    "caching",
+    "d1"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "vitest": "^2.0.0",
+    "wrangler": "^3.88.0"
+  },
+  "dependencies": {
+    "hono": "^4.6.14"
+  }
+}

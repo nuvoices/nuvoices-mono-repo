@@ -1,0 +1,19 @@
+name = "nuvoices-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+node_compat = true
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "airtable-cache"
+database_id = "placeholder"  # Replace with actual database ID after creation
+
+# Environment variables (use .dev.vars for local development)
+# ACCESS_TOKEN, BASE_ID, TABLE_NAME should be set in Cloudflare dashboard for production
+
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "airtable-cache-production"
+database_id = "placeholder"  # Replace with production database ID
