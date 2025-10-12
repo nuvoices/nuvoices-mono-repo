@@ -1,3 +1,4 @@
 packages:
   - 'nuvoices-studio'
   - 'nuvoices-web'
+  - 'nuvoices-worker'
