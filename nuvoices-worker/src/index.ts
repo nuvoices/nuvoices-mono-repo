@@ -4,7 +4,6 @@ import { errorHandler, notFoundHandler } from "./middleware/error";
 import { logger } from "./middleware/logger";
 import { getRecordsHandler } from "./routes/records";
 import { getRecordHandler } from "./routes/record";
-import { webhookHandler } from "./routes/webhook";
 
 /**
  * Main Hono application
@@ -22,9 +21,18 @@ app.use("*", errorHandler);
  */
 app.get("/", (c) => {
   return c.json({
-    service: "Airtable Cache Worker",
+    service: "Google Sheets Cache Worker",
     status: "healthy",
-    version: "1.0.0",
+    version: "2.0.0",
+    description: "Cron-based sync from Google Sheets to D1 Database",
+    endpoints: {
+      records: "GET /records - List all records with filtering and pagination",
+      record: "GET /record/:id - Get a single record by ID",
+    },
+    sync: {
+      strategy: "cron-pull",
+      frequency: "every 2 minutes",
+    },
     timestamp: new Date().toISOString(),
   });
 });
@@ -36,11 +44,8 @@ app.get("/", (c) => {
 // GET /records - List all records with filtering, sorting, and pagination
 app.get("/records", getRecordsHandler);
 
-// GET /record/:id - Get a single record by Airtable ID
+// GET /record/:id - Get a single record by ID
 app.get("/record/:id", getRecordHandler);
-
-// POST /airtable - Webhook handler for Airtable updates
-app.post("/airtable", webhookHandler);
 
 /**
  * 404 handler
@@ -48,6 +53,11 @@ app.post("/airtable", webhookHandler);
 app.notFound(notFoundHandler);
 
 /**
- * Export the app as default for Cloudflare Workers
+ * Export the Hono app for HTTP requests and scheduled events
  */
 export default app;
+
+/**
+ * Export scheduled handler for cron triggers
+ */
+export { scheduled } from "./scheduled";

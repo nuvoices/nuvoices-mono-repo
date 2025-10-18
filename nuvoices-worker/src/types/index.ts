@@ -3,105 +3,10 @@
  */
 export interface Env {
   DB: D1Database;
-  ACCESS_TOKEN: string;
-  BASE_ID: string;
-  TABLE_NAME: string;
+  TIMESTAMP_URL: string;
+  CSV_URL: string;
 }
 
-/**
- * Airtable field types
- */
-export type AirtableFieldType =
-  | "singleLineText"
-  | "email"
-  | "url"
-  | "multilineText"
-  | "number"
-  | "percent"
-  | "currency"
-  | "singleSelect"
-  | "multipleSelects"
-  | "singleCollaborator"
-  | "multipleCollaborators"
-  | "multipleRecordLinks"
-  | "date"
-  | "dateTime"
-  | "phoneNumber"
-  | "multipleAttachments"
-  | "checkbox"
-  | "formula"
-  | "createdTime"
-  | "rollup"
-  | "count"
-  | "lookup"
-  | "multipleLookupValues"
-  | "autoNumber"
-  | "barcode"
-  | "rating"
-  | "richText"
-  | "duration"
-  | "lastModifiedTime"
-  | "button"
-  | "createdBy"
-  | "lastModifiedBy"
-  | "externalSyncSource";
-
-/**
- * Airtable field definition
- */
-export interface AirtableField {
-  id: string;
-  name: string;
-  type: AirtableFieldType;
-}
-
-/**
- * Airtable record structure
- */
-export interface AirtableRecord {
-  id: string;
-  createdTime: string;
-  fields: Record<string, any>;
-}
-
-/**
- * Airtable API response for list records
- */
-export interface AirtableListResponse {
-  records: AirtableRecord[];
-  offset?: string;
-}
-
-/**
- * Airtable API response for table schema
- */
-export interface AirtableTableSchema {
-  id: string;
-  name: string;
-  fields: AirtableField[];
-}
-
-/**
- * Airtable webhook payload for record updates
- */
-export interface AirtableWebhookPayload {
-  base: {
-    id: string;
-  };
-  webhook: {
-    id: string;
-  };
-  timestamp: string;
-  // Webhook can contain created, updated, or destroyed records
-  createdRecordsById?: Record<string, AirtableRecord>;
-  changedRecordsById?: Record<string, {
-    current: AirtableRecord;
-    previous?: AirtableRecord;
-    unchanged?: AirtableRecord;
-    changedFields?: string[];
-  }>;
-  destroyedRecordIds?: string[];
-}
 
 /**
  * Query parameters for GET /records endpoint
@@ -140,10 +45,9 @@ export interface PaginatedResponse<T> {
 export interface DBRecord {
   id: string;
   airtable_id: string;
-  created_time: string;
+  created_time?: string;
   last_modified_time?: string;
-  fields: string; // JSON string of all fields
-  [key: string]: any; // Dynamic fields from Airtable
+  [key: string]: any; // Dynamic fields from Google Sheets
 }
 
 /**

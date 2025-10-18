@@ -181,21 +181,18 @@ export function buildCountQuery(params: RecordsQueryParams): SQLQuery {
 export function buildCreateTableSQL(
   fields: Array<{ name: string; type: string }>
 ): string {
+  if (fields.length === 0) {
+    // No fields - create table with just base columns
+    return "CREATE TABLE IF NOT EXISTS records (id INTEGER PRIMARY KEY AUTOINCREMENT, airtable_id TEXT UNIQUE NOT NULL, created_time TEXT NOT NULL, last_modified_time TEXT)";
+  }
+
   const columnDefinitions = fields.map((field) => {
     const columnName = sanitizeColumnName(field.name);
     const sqlType = getSQLType(field.type);
     return `${columnName} ${sqlType}`;
   });
 
-  return `
-    CREATE TABLE IF NOT EXISTS records (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      airtable_id TEXT UNIQUE NOT NULL,
-      created_time TEXT NOT NULL,
-      last_modified_time TEXT,
-      ${columnDefinitions.join(",\n      ")}
-    )
-  `.trim();
+  return `CREATE TABLE IF NOT EXISTS records (id INTEGER PRIMARY KEY AUTOINCREMENT, airtable_id TEXT UNIQUE NOT NULL, created_time TEXT NOT NULL, last_modified_time TEXT, ${columnDefinitions.join(", ")})`;
 }
 
 /**

@@ -1,12 +1,14 @@
-# Nuvoices Worker - Airtable Caching Layer
+# Nuvoices Worker - Google Sheets Caching Layer
 
-A Cloudflare Worker that acts as a caching layer for Airtable tables using D1 database. Provides fast API access to Airtable data with filtering, sorting, and pagination capabilities.
+A Cloudflare Worker that acts as a caching layer for Google Sheets using D1 database. Provides fast API access to your data with filtering, sorting, and pagination capabilities.
 
 ## Features
 
+- **Google Sheets Integration**: Direct CSV-based sync from Google Sheets via Apps Script
 - **Persistent Caching**: Uses Cloudflare D1 (SQLite) for durable data storage
-- **Lazy Loading**: Automatically fetches from Airtable on first request
-- **Webhook Support**: Incremental updates via Airtable webhooks
+- **Cron-based Sync**: Automatically syncs every 2 minutes via Cloudflare Cron Triggers
+- **Full Table Replacement**: Simple, atomic sync strategy for small datasets (<1000 records)
+- **Timestamp Comparison**: Only syncs when Google Sheets data has changed
 - **Flexible Filtering**: Dynamic query parameters with operators (`>`, `<`, `>=`, `<=`, `!=`, `*`)
 - **Pagination**: Configurable page size with full metadata
 - **Type-Safe**: Full TypeScript implementation
@@ -18,29 +20,61 @@ A Cloudflare Worker that acts as a caching layer for Airtable tables using D1 da
 ```
 src/
 ├── index.ts                  # Main Hono app
+├── scheduled.ts              # Cron trigger handler
 ├── types/
 │   └── index.ts             # TypeScript types
 ├── services/
-│   ├── airtable.ts          # Airtable API client
+│   ├── sync.ts              # Google Sheets sync orchestration
 │   └── database.ts          # D1 database operations
 ├── routes/
 │   ├── records.ts           # GET /records
-│   ├── record.ts            # GET /record/:id
-│   └── webhook.ts           # POST /airtable
+│   └── record.ts            # GET /record/:id
 ├── middleware/
 │   ├── error.ts             # Error handling
 │   └── logger.ts            # Request logging
 └── utils/
+    ├── csv-parser.ts        # CSV parsing and schema inference
     ├── query-builder.ts     # SQL query construction
     └── pagination.ts        # Pagination helpers
 ```
+
+## How It Works
+
+### Sync Strategy
+
+1. **Cloudflare Cron Trigger** fires every 2 minutes
+2. Worker calls Google Apps Script **timestamp endpoint** to get last modified time
+3. Compares with last sync timestamp stored in D1 metadata table
+4. If unchanged, skips sync (efficient, no unnecessary work)
+5. If changed:
+   - Fetches full CSV data from Apps Script
+   - Parses CSV and infers schema
+   - **Atomically replaces entire table** (DROP → CREATE → INSERT)
+   - Updates last sync timestamp
+6. On error, keeps old data intact (resilient)
+
+### Apps Script Setup
+
+You need TWO Apps Script endpoints:
+
+#### 1. Timestamp Endpoint
+Returns when the sheet was last modified:
+```json
+{
+  "spreadsheetId": "1abc...",
+  "lastUpdated": "2025-10-12T11:41:50.166Z"
+}
+```
+
+#### 2. CSV Data Endpoint
+Returns full sheet data as CSV text (see `test/constants/mockSheetsCSV.txt` for format)
 
 ## Prerequisites
 
 - Node.js >= 18.0.0
 - pnpm >= 9.0.0
 - Cloudflare account (for deployment)
-- Airtable account with API access
+- Google Sheet with data (first row must be headers)
 
 ## Setup
 
@@ -55,10 +89,10 @@ pnpm install
 
 ```bash
 # Create local D1 database for development
-wrangler d1 create airtable-cache-local
+wrangler d1 create google-sheets-cache-local
 
 # Create production D1 database
-wrangler d1 create airtable-cache-production
+wrangler d1 create google-sheets-cache-production
 ```
 
 Copy the database IDs from the output and update `wrangler.toml`:
@@ -66,13 +100,13 @@ Copy the database IDs from the output and update `wrangler.toml`:
 ```toml
 [[d1_databases]]
 binding = "DB"
-database_name = "airtable-cache"
+database_name = "google-sheets-cache"
 database_id = "your-local-database-id"
 
 [env.production]
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "airtable-cache-production"
+database_name = "google-sheets-cache-production"
 database_id = "your-production-database-id"
 ```
 
@@ -80,31 +114,38 @@ database_id = "your-production-database-id"
 
 Create `.dev.vars` file for local development:
 
-```bash
-cp .dev.vars.example .dev.vars
-```
-
-Edit `.dev.vars` with your Airtable credentials:
-
 ```env
-ACCESS_TOKEN=your_airtable_personal_access_token
-BASE_ID=your_airtable_base_id
-TABLE_NAME=your_airtable_table_name
+TIMESTAMP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=timestamp
+CSV_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=csv
 ```
 
-**Getting Airtable Credentials:**
+**Setting up Apps Script URLs:**
 
-- **ACCESS_TOKEN**: Create at https://airtable.com/create/tokens
-- **BASE_ID**: Found in your Airtable URL: `https://airtable.com/BASE_ID/...`
-- **TABLE_NAME**: The name of your table (case-sensitive)
+1. Open your Google Sheet
+2. Go to **Extensions > Apps Script**
+3. Create a `doGet(e)` function that:
+   - Returns timestamp when `e.parameter.action === 'timestamp'`
+   - Returns CSV data when `e.parameter.action === 'csv'`
+4. Deploy as **Web App** (Execute as: Me, Access: Anyone)
+5. Copy the deployment URL and append `?action=timestamp` or `?action=csv`
 
-For production, set these as secrets:
+For production, set these as environment variables in Cloudflare dashboard or use secrets:
 
 ```bash
-wrangler secret put ACCESS_TOKEN
-wrangler secret put BASE_ID
-wrangler secret put TABLE_NAME
+wrangler secret put TIMESTAMP_URL
+wrangler secret put CSV_URL
 ```
+
+### 4. Configure Cron Trigger
+
+The `wrangler.toml` file already includes the cron configuration:
+
+```toml
+[triggers]
+crons = ["*/2 * * * *"]  # Every 2 minutes
+```
+
+You can adjust the frequency as needed (e.g., `*/5 * * * *` for every 5 minutes).
 
 ## Development
 
@@ -115,6 +156,10 @@ pnpm dev
 ```
 
 The worker will be available at `http://localhost:8787`
+
+**Note:** Cron triggers don't run in local development. To test sync:
+1. Call the sync function directly, OR
+2. Deploy to Cloudflare Workers (free tier supports cron triggers)
 
 ### Run Tests
 
@@ -144,10 +189,19 @@ Health check endpoint.
 **Response:**
 ```json
 {
-  "service": "Airtable Cache Worker",
+  "service": "Google Sheets Cache Worker",
   "status": "healthy",
-  "version": "1.0.0",
-  "timestamp": "2024-01-01T00:00:00.000Z"
+  "version": "2.0.0",
+  "description": "Cron-based sync from Google Sheets to D1 Database",
+  "endpoints": {
+    "records": "GET /records - List all records with filtering and pagination",
+    "record": "GET /record/:id - Get a single record by ID"
+  },
+  "sync": {
+    "strategy": "cron-pull",
+    "frequency": "every 2 minutes"
+  },
+  "timestamp": "2025-10-12T00:00:00.000Z"
 }
 ```
 
@@ -199,8 +253,7 @@ curl "http://localhost:8787/records?status=active&age=>18&sort=created_time&orde
   "data": [
     {
       "id": 1,
-      "airtable_id": "recABC123",
-      "created_time": "2024-01-01T00:00:00.000Z",
+      "airtable_id": "row_2",
       "name": "John Doe",
       "email": "john@example.com",
       ...
@@ -219,24 +272,23 @@ curl "http://localhost:8787/records?status=active&age=>18&sort=created_time&orde
 
 ### GET /record/:id
 
-Get a single record by Airtable ID.
+Get a single record by ID.
 
 **Parameters:**
 
-- `id` (string): Airtable record ID (e.g., `recABC123`)
+- `id` (string): Record ID (e.g., `row_2`, `row_3`)
 
 **Example:**
 
 ```bash
-curl http://localhost:8787/record/recABC123
+curl http://localhost:8787/record/row_2
 ```
 
 **Response:**
 ```json
 {
   "id": 1,
-  "airtable_id": "recABC123",
-  "created_time": "2024-01-01T00:00:00.000Z",
+  "airtable_id": "row_2",
   "name": "John Doe",
   "email": "john@example.com",
   ...
@@ -247,53 +299,11 @@ curl http://localhost:8787/record/recABC123
 ```json
 {
   "error": "Not Found",
-  "message": "Record not found: recABC123",
+  "message": "Record not found: row_2",
   "status": 404,
-  "timestamp": "2024-01-01T00:00:00.000Z"
+  "timestamp": "2025-10-12T00:00:00.000Z"
 }
 ```
-
-### POST /airtable
-
-Webhook endpoint for Airtable updates. Configure this in your Airtable base automation.
-
-**Webhook Payload:**
-
-```json
-{
-  "base": {
-    "id": "appXXXXXXXXXXXXXX"
-  },
-  "webhook": {
-    "id": "achXXXXXXXXXXXXXX"
-  },
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "createdRecordsById": { ... },
-  "changedRecordsById": { ... },
-  "destroyedRecordIds": [ ... ]
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Processed webhook: 2 created, 3 updated, 1 deleted",
-  "data": {
-    "created": 2,
-    "updated": 3,
-    "deleted": 1
-  }
-}
-```
-
-**Setting up Airtable Webhook:**
-
-1. Go to your Airtable base
-2. Click "Automations" in the top menu
-3. Create a new automation with trigger "When record is created/updated/deleted"
-4. Add action "Send webhook" with URL: `https://your-worker.workers.dev/airtable`
-5. Configure payload to include record data
 
 ## Deployment
 
@@ -307,49 +317,45 @@ pnpm deploy
 wrangler deploy --env staging
 ```
 
-### Set Production Secrets
+### Set Production Environment Variables
 
 ```bash
-wrangler secret put ACCESS_TOKEN
-wrangler secret put BASE_ID
-wrangler secret put TABLE_NAME
+wrangler secret put TIMESTAMP_URL
+wrangler secret put CSV_URL
 ```
-
-## How It Works
-
-### Initial Cache Population (Lazy Loading)
-
-1. When `GET /records` is called for the first time
-2. Worker checks if D1 database is initialized
-3. If empty, fetches all records from Airtable API
-4. Infers schema from records (field names and types)
-5. Creates D1 table with dynamic schema
-6. Bulk inserts all records
-7. Returns paginated results
-
-### Incremental Updates (Webhooks)
-
-1. Airtable sends webhook when records change
-2. Worker receives POST request at `/airtable`
-3. Validates base ID matches configuration
-4. Processes created, updated, and deleted records
-5. Updates D1 database incrementally
-6. Returns success response
-
-### Query Execution
-
-1. Parse query parameters (filters, sort, pagination)
-2. Build SQL query dynamically
-3. Execute against D1 database
-4. Return results with pagination metadata
 
 ## Performance Characteristics
 
-- **First Request**: Slower (fetches from Airtable, initializes DB)
-- **Subsequent Requests**: Fast (serves from D1 cache)
-- **Updates**: Near real-time via webhooks
-- **Pagination**: Efficient with SQL LIMIT/OFFSET
-- **Filtering**: Database-level filtering (fast)
+- **Sync Frequency**: Every 2 minutes
+- **Sync Duration**: ~2-5 seconds for 1000 records
+- **Query Performance**: Fast (serves from D1 cache)
+- **Atomicity**: No moment where table is empty (batch operation)
+- **Error Handling**: Old data remains intact if sync fails
+
+## CSV Format
+
+The CSV data from Apps Script must follow this format:
+
+```csv
+Name,Email,Phone,Country,Languages
+John Doe,john@example.com,+1-555-1234,USA,"English, Spanish"
+Jane Smith,jane@example.com,+1-555-5678,Canada,"English, French"
+```
+
+**Requirements:**
+- Row 1 must be headers
+- Quoted fields with commas are supported: `"English, Spanish"`
+- Record IDs are auto-generated: `row_2`, `row_3`, etc.
+
+See `test/constants/mockSheetsCSV.txt` for a complete example.
+
+## Schema Inference
+
+The worker automatically infers SQL types from CSV data:
+
+- **INTEGER**: Values matching `-?\\d+` (e.g., `123`, `-456`)
+- **REAL**: Values matching `-?\\d+\\.\\d+` (e.g., `123.45`, `-67.89`)
+- **TEXT**: Everything else (default)
 
 ## Error Handling
 
@@ -360,7 +366,7 @@ All errors return consistent JSON format:
   "error": "Error Type",
   "message": "Detailed error message",
   "status": 400,
-  "timestamp": "2024-01-01T00:00:00.000Z"
+  "timestamp": "2025-10-12T00:00:00.000Z"
 }
 ```
 
@@ -369,21 +375,22 @@ All errors return consistent JSON format:
 - `200`: Success
 - `400`: Bad Request (invalid parameters)
 - `404`: Not Found (record doesn't exist)
-- `500`: Internal Server Error (Airtable API failure, DB error)
+- `500`: Internal Server Error (Apps Script failure, DB error)
 
 ## Troubleshooting
 
-### Database Not Initializing
+### Sync Not Working
 
-- Check `.dev.vars` has correct Airtable credentials
-- Verify BASE_ID and TABLE_NAME are correct
-- Check Airtable API token has read permissions
+- Check `TIMESTAMP_URL` and `CSV_URL` are correct
+- Verify Apps Script is deployed as Web App
+- Check Apps Script permissions (Execute as: Me, Access: Anyone)
+- View logs: `wrangler tail` (production) or console (local)
 
-### Webhook Not Working
+### Database Issues
 
-- Verify webhook URL is publicly accessible
-- Check BASE_ID in webhook payload matches configuration
-- Ensure Airtable automation is enabled
+- Verify D1 database exists: `wrangler d1 list`
+- Check database ID in `wrangler.toml` is correct
+- Reset database: `wrangler d1 execute google-sheets-cache --command="DROP TABLE IF EXISTS records"`
 
 ### Tests Failing
 
@@ -397,30 +404,33 @@ All errors return consistent JSON format:
 
 ```bash
 # Local database
-wrangler d1 execute airtable-cache-local --local --command="SELECT * FROM records LIMIT 10"
+wrangler d1 execute google-sheets-cache-local --local --command="SELECT * FROM records LIMIT 10"
 
 # Production database
-wrangler d1 execute airtable-cache-production --command="SELECT COUNT(*) FROM records"
+wrangler d1 execute google-sheets-cache-production --command="SELECT COUNT(*) FROM records"
+
+# View last sync time
+wrangler d1 execute google-sheets-cache-production --command="SELECT * FROM _sync_metadata"
 ```
 
-### Testing Webhooks Locally
+### Testing Sync Manually
 
 ```bash
-curl -X POST http://localhost:8787/airtable \
-  -H "Content-Type: application/json" \
-  -d '{
-    "base": {"id": "your_base_id"},
-    "webhook": {"id": "test"},
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "createdRecordsById": {}
-  }'
+# View worker logs
+wrangler tail
+
+# Trigger sync by waiting for cron (every 2 minutes)
+# Or deploy and monitor logs
 ```
 
 ### Resetting Database
 
 ```bash
 # Drop table to force re-initialization
-wrangler d1 execute airtable-cache-local --local --command="DROP TABLE IF EXISTS records"
+wrangler d1 execute google-sheets-cache-local --local --command="DROP TABLE IF EXISTS records"
+
+# Clear sync metadata
+wrangler d1 execute google-sheets-cache-local --local --command="DELETE FROM _sync_metadata"
 ```
 
 ## License

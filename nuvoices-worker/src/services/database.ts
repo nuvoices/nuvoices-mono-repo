@@ -1,21 +1,33 @@
-import type { AirtableRecord, DBRecord, RecordsQueryParams } from "../types";
+import type { DBRecord, RecordsQueryParams } from "../types";
 import {
   buildSelectQuery,
   buildCountQuery,
   buildCreateTableSQL,
   buildCreateIndexSQL,
 } from "../utils/query-builder";
-import { prepareFieldValues } from "../utils/field-processor";
-import type { AirtableService } from "./airtable";
 
 /**
- * D1 Database service for managing cached Airtable records
+ * Convert value to appropriate type based on schema field type
+ * Note: We still pass strings to D1, but D1 will store them with proper types
+ * When queried back, D1 may return them as strings depending on the HTTP API serialization
+ */
+function convertValue(value: string, type: string): string | null {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  // Return as string - D1 will convert to appropriate SQL type based on column definition
+  return value;
+}
+
+/**
+ * D1 Database service for managing cached Google Sheets records
  */
 export class DatabaseService {
   constructor(private db: D1Database) {}
 
   /**
-   * Initialize database schema based on Airtable fields
+   * Initialize database schema based on Google Sheets fields
    */
   async initializeSchema(
     fields: Array<{ name: string; type: string }>
@@ -40,13 +52,7 @@ export class DatabaseService {
    */
   private async storeSchema(fields: Array<{ name: string; type: string }>): Promise<void> {
     // Create schema metadata table if it doesn't exist
-    await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS _schema_metadata (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        schema_json TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    `);
+    await this.db.exec("CREATE TABLE IF NOT EXISTS _schema_metadata (id INTEGER PRIMARY KEY CHECK (id = 1), schema_json TEXT NOT NULL, updated_at TEXT NOT NULL)");
 
     // Store schema as JSON
     await this.db
@@ -73,23 +79,6 @@ export class DatabaseService {
     } catch (error) {
       return null;
     }
-  }
-
-  /**
-   * Initialize database from Airtable (consolidates initialization logic)
-   */
-  async initializeFromAirtable(airtable: AirtableService): Promise<{ recordCount: number }> {
-    const records = await airtable.getAllRecords();
-
-    if (records.length === 0) {
-      throw new Error("No records available in Airtable for initialization");
-    }
-
-    const schema = await airtable.inferSchemaFromRecords(records);
-    await this.initializeSchema(schema.fields);
-    await this.bulkInsertRecords(records, schema.fields);
-
-    return { recordCount: records.length };
   }
 
   /**
@@ -163,125 +152,22 @@ export class DatabaseService {
   }
 
   /**
-   * Insert a single record from Airtable
+   * Get a single record by ID (generic, works for both Airtable ID and row ID)
    */
-  async insertRecord(record: AirtableRecord, fields: Array<{ name: string; type: string }>): Promise<void> {
-    const columns = ["airtable_id", "created_time"];
-    const values = [record.id, record.createdTime];
-    const placeholders = ["?", "?"];
+  async getRecordById(id: string): Promise<DBRecord | null> {
+    const result = await this.db
+      .prepare("SELECT * FROM records WHERE airtable_id = ?")
+      .bind(id)
+      .first<DBRecord>();
 
-    // Add dynamic field columns using helper
-    const processed = prepareFieldValues(record, fields);
-    columns.push(...processed.columns);
-    values.push(...processed.values);
-    placeholders.push(...processed.placeholders);
-
-    const sql = `
-      INSERT OR REPLACE INTO records (${columns.join(", ")})
-      VALUES (${placeholders.join(", ")})
-    `;
-
-    await this.db.prepare(sql).bind(...values).run();
+    return result || null;
   }
 
   /**
-   * Bulk insert records from Airtable (more efficient for initial sync)
-   * Handles large datasets by chunking into batches
+   * Drop the records table (for full sync)
    */
-  async bulkInsertRecords(
-    records: AirtableRecord[],
-    fields: Array<{ name: string; type: string }>
-  ): Promise<void> {
-    if (records.length === 0) return;
-
-    const BATCH_SIZE = 100; // D1 batch limit safety
-
-    // Process records in chunks
-    for (let i = 0; i < records.length; i += BATCH_SIZE) {
-      const chunk = records.slice(i, i + BATCH_SIZE);
-      const statements: D1PreparedStatement[] = [];
-
-      for (const record of chunk) {
-        const columns = ["airtable_id", "created_time"];
-        const values = [record.id, record.createdTime];
-        const placeholders = ["?", "?"];
-
-        // Add dynamic field columns using helper
-        const processed = prepareFieldValues(record, fields);
-        columns.push(...processed.columns);
-        values.push(...processed.values);
-        placeholders.push(...processed.placeholders);
-
-        const sql = `
-          INSERT OR REPLACE INTO records (${columns.join(", ")})
-          VALUES (${placeholders.join(", ")})
-        `;
-
-        statements.push(this.db.prepare(sql).bind(...values));
-      }
-
-      // Execute batch
-      await this.db.batch(statements);
-    }
-  }
-
-  /**
-   * Update an existing record
-   */
-  async updateRecord(
-    airtableId: string,
-    record: AirtableRecord,
-    fields: Array<{ name: string; type: string }>
-  ): Promise<void> {
-    const setClauses: string[] = ["last_modified_time = ?"];
-    const values = [new Date().toISOString()];
-
-    // Add dynamic field updates using helper
-    const processed = prepareFieldValues(record, fields);
-    for (let i = 0; i < processed.columns.length; i++) {
-      setClauses.push(`${processed.columns[i]} = ?`);
-      values.push(processed.values[i]);
-    }
-
-    values.push(airtableId);
-
-    const sql = `
-      UPDATE records
-      SET ${setClauses.join(", ")}
-      WHERE airtable_id = ?
-    `;
-
-    await this.db.prepare(sql).bind(...values).run();
-  }
-
-  /**
-   * Delete a record by Airtable ID
-   */
-  async deleteRecord(airtableId: string): Promise<void> {
-    await this.db
-      .prepare("DELETE FROM records WHERE airtable_id = ?")
-      .bind(airtableId)
-      .run();
-  }
-
-  /**
-   * Delete multiple records
-   */
-  async deleteRecords(airtableIds: string[]): Promise<void> {
-    if (airtableIds.length === 0) return;
-
-    const statements = airtableIds.map((id) =>
-      this.db.prepare("DELETE FROM records WHERE airtable_id = ?").bind(id)
-    );
-
-    await this.db.batch(statements);
-  }
-
-  /**
-   * Clear all records from the table (useful for full refresh)
-   */
-  async clearAllRecords(): Promise<void> {
-    await this.db.prepare("DELETE FROM records").run();
+  async dropTable(): Promise<void> {
+    await this.db.exec("DROP TABLE IF EXISTS records");
   }
 
   /**
@@ -309,5 +195,120 @@ export class DatabaseService {
       oldestRecord: oldestResult?.created_time || null,
       newestRecord: newestResult?.created_time || null,
     };
+  }
+
+  /**
+   * Replace all records atomically (for full table sync from Google Sheets)
+   * Uses D1 batch for atomic execution - all or nothing
+   */
+  async replaceAllRecords(
+    records: Array<Record<string, string>>,
+    schema: Array<{ name: string; type: string }>
+  ): Promise<void> {
+    if (records.length === 0) {
+      throw new Error("Cannot replace with empty record set");
+    }
+
+    const statements: D1PreparedStatement[] = [];
+
+    // Step 1: Drop existing table
+    statements.push(this.db.prepare("DROP TABLE IF EXISTS records"));
+
+    // Step 2: Create table with new schema
+    const createTableSQL = buildCreateTableSQL(schema);
+    statements.push(this.db.prepare(createTableSQL));
+
+    // Step 3: Create indexes
+    const indexStatements = buildCreateIndexSQL();
+    for (const indexSQL of indexStatements) {
+      statements.push(this.db.prepare(indexSQL));
+    }
+
+    // Step 4: Insert all records (batched in chunks due to D1 limits)
+    const BATCH_SIZE = 100;
+    const chunks: Array<Record<string, string>[]> = [];
+
+    for (let i = 0; i < records.length; i += BATCH_SIZE) {
+      chunks.push(records.slice(i, i + BATCH_SIZE));
+    }
+
+    // Process first chunk in initial batch
+    const firstChunk = chunks[0];
+    for (const record of firstChunk) {
+      const columns = ["airtable_id", "created_time"];
+      const values = [record.id, new Date().toISOString()];
+      const placeholders = ["?", "?"];
+
+      // Add dynamic fields from schema
+      for (const field of schema) {
+        const value = record[field.name];
+        if (value !== undefined) {
+          columns.push(field.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, ""));
+          values.push(convertValue(value, field.type));
+          placeholders.push("?");
+        }
+      }
+
+      const sql = `INSERT INTO records (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
+      statements.push(this.db.prepare(sql).bind(...values));
+    }
+
+    // Execute first batch atomically
+    await this.db.batch(statements);
+
+    // Process remaining chunks separately (if any)
+    for (let i = 1; i < chunks.length; i++) {
+      const chunkStatements: D1PreparedStatement[] = [];
+
+      for (const record of chunks[i]) {
+        const columns = ["airtable_id", "created_time"];
+        const values = [record.id, new Date().toISOString()];
+        const placeholders = ["?", "?"];
+
+        for (const field of schema) {
+          const value = record[field.name];
+          if (value !== undefined) {
+            columns.push(field.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, ""));
+            values.push(convertValue(value, field.type));
+            placeholders.push("?");
+          }
+        }
+
+        const sql = `INSERT INTO records (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
+        chunkStatements.push(this.db.prepare(sql).bind(...values));
+      }
+
+      await this.db.batch(chunkStatements);
+    }
+  }
+
+  /**
+   * Get last sync timestamp from metadata
+   */
+  async getLastSyncTime(): Promise<string | null> {
+    try {
+      await this.db.exec("CREATE TABLE IF NOT EXISTS _sync_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)");
+
+      const result = await this.db
+        .prepare("SELECT value FROM _sync_metadata WHERE key = ?")
+        .bind("lastSyncTime")
+        .first<{ value: string }>();
+
+      return result?.value || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Set last sync timestamp in metadata
+   */
+  async setLastSyncTime(timestamp: string): Promise<void> {
+    await this.db.exec("CREATE TABLE IF NOT EXISTS _sync_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)");
+
+    await this.db
+      .prepare("INSERT OR REPLACE INTO _sync_metadata (key, value, updated_at) VALUES (?, ?, ?)")
+      .bind("lastSyncTime", timestamp, new Date().toISOString())
+      .run();
   }
 }

@@ -408,7 +408,7 @@ async function importPosts(options = {}) {
             title: wpPost.title,
             slug: {
               _type: 'slug',
-              current: ContentTransformer.createSlug(wpPost.slug || wpPost.title)
+              current: wpPost.slug || ContentTransformer.createSlug(wpPost.title)
             },
             author: {
               _type: 'reference',
@@ -474,7 +474,7 @@ async function importPosts(options = {}) {
           title: wpPost.title,
           slug: {
             _type: 'slug',
-            current: ContentTransformer.createSlug(wpPost.slug || wpPost.title)
+            current: wpPost.slug || ContentTransformer.createSlug(wpPost.title)
           },
           author: {
             _type: 'reference',

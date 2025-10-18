@@ -1,52 +1,36 @@
 import type { Context } from "hono";
 import type { Env, PaginatedResponse, DBRecord } from "../types";
 import { DatabaseService } from "../services/database";
-import { AirtableService } from "../services/airtable";
 import { parsePaginationParams, calculatePaginationMeta } from "../utils/pagination";
-import { APIError } from "../middleware/error";
 
 /**
  * GET /records - List all records with filtering, sorting, and pagination
+ *
+ * Note: Data is synced via cron trigger (every 2 minutes).
+ * If no data exists, returns empty array.
  */
 export async function getRecordsHandler(c: Context<{ Bindings: Env }>) {
   const env = c.env;
   const db = new DatabaseService(env.DB);
-  const airtable = new AirtableService(env);
 
-  // Check if database is initialized
+  // Check if database has been synced
   const isInitialized = await db.isInitialized();
 
   if (!isInitialized) {
-    // Lazy load: Fetch from Airtable and populate database
-    console.log("Database not initialized. Fetching from Airtable...");
+    // Return empty response if not yet synced
+    console.log("Database not yet synced. Waiting for cron trigger...");
 
-    try {
-      const result = await db.initializeFromAirtable(airtable);
-      console.log(`Initialized database with ${result.recordCount} records`);
-    } catch (error) {
-      console.error("Failed to initialize database from Airtable:", error);
-
-      // If no records available, return empty array
-      if (error instanceof Error && error.message.includes("No records available")) {
-        return c.json<PaginatedResponse<DBRecord>>({
-          data: [],
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
-        });
-      }
-
-      throw new APIError(
-        500,
-        error instanceof Error ? error.message : "Failed to fetch from Airtable",
-        "Initialization Error"
-      );
-    }
+    return c.json<PaginatedResponse<DBRecord>>({
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      },
+    });
   }
 
   // Parse query parameters

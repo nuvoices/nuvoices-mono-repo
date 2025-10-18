@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a monorepo for the nuvoices website, consisting of two main applications:
+This is a monorepo for the nuvoices website, consisting of three main applications:
 - **nuvoices-studio**: A Sanity CMS studio for content management
 - **nuvoices-web**: A Next.js frontend application that consumes content from Sanity
+- **nuvoices-worker**: A Cloudflare Worker that caches Google Sheets data in D1 database
 
 ## Development Commands
 
@@ -26,11 +27,26 @@ pnpm deploy-graphql   # Deploy GraphQL API
 ```bash
 cd nuvoices-web
 
-# Development 
+# Development
 pnpm dev              # Start dev server with Turbopack
 pnpm build            # Build for production
 pnpm start            # Start production server
 pnpm lint             # Run ESLint
+```
+
+### Cloudflare Worker (nuvoices-worker/)
+```bash
+cd nuvoices-worker
+
+# Development
+pnpm dev              # Start local dev server (localhost:8787)
+pnpm deploy           # Deploy to Cloudflare Workers
+pnpm test             # Run tests with Vitest
+pnpm type-check       # Run TypeScript type checking
+
+# Database management
+wrangler d1 list      # List D1 databases
+wrangler tail         # View production logs
 ```
 
 ## Architecture
@@ -54,8 +70,27 @@ pnpm lint             # Run ESLint
 2. Next.js app fetches content via `next-sanity` client
 3. Expert listings at `/experts` with individual pages at `/experts/[expert]`
 
+### Worker Configuration (nuvoices-worker/)
+- **Purpose**: Google Sheets caching layer with REST API
+- **Framework**: Hono (lightweight web framework)
+- **Database**: Cloudflare D1 (SQLite) for persistent caching
+- **Sync Strategy**: Cron-based (every 2 minutes) full table replacement
+- **Data Source**: Google Sheets via Apps Script CSV export
+- **Key Services**:
+  - `sync.ts` - Orchestrates Google Sheets sync workflow
+  - `database.ts` - Manages D1 database operations
+- **Environment variables** (in `.dev.vars`):
+  - `TIMESTAMP_URL` - Apps Script timestamp endpoint
+  - `CSV_URL` - Apps Script CSV data endpoint
+- **API Endpoints**:
+  - `GET /` - Health check
+  - `GET /records` - List with filtering, sorting, pagination
+  - `GET /record/:id` - Get single record by ID
+- **Data Flow**: Google Sheets → Apps Script → Cron Trigger → Worker → D1 → API
+- **See** `nuvoices-worker/README.md` for comprehensive documentation
+
 ## Package Management
-Both projects use `pnpm` as the package manager. Always run commands from the specific project directory (nuvoices-studio or nuvoices-web).
+All projects use `pnpm` as the package manager. Always run commands from the specific project directory (nuvoices-studio, nuvoices-web, or nuvoices-worker).
 
 ## Code Style
 - TypeScript throughout

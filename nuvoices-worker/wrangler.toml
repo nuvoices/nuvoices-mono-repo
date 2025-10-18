@@ -1,19 +1,29 @@
 name = "nuvoices-worker"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
-node_compat = true
+compatibility_flags = ["nodejs_compat"]
 
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "airtable-cache"
+database_name = "google-sheets-cache"
 database_id = "placeholder"  # Replace with actual database ID after creation
 
+# Cron Triggers - Sync from Google Sheets every 2 minutes
+[triggers]
+crons = ["*/2 * * * *"]
+
 # Environment variables (use .dev.vars for local development)
-# ACCESS_TOKEN, BASE_ID, TABLE_NAME should be set in Cloudflare dashboard for production
+# TIMESTAMP_URL, CSV_URL should be set in Cloudflare dashboard for production
+# Example .dev.vars file:
+# TIMESTAMP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=timestamp
+# CSV_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=csv
 
 [env.production]
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "airtable-cache-production"
+database_name = "google-sheets-cache-production"
 database_id = "placeholder"  # Replace with production database ID
+
+[env.production.triggers]
+crons = ["*/2 * * * *"]
