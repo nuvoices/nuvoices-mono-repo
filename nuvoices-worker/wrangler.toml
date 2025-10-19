@@ -6,12 +6,12 @@ compatibility_flags = ["nodejs_compat"]
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "google-sheets-cache"
-database_id = "placeholder"  # Replace with actual database ID after creation
+database_name = "nuvoices-preview-data"
+database_id = "f4c7c2ff-7802-40b4-8bb4-941539c534c9"
 
-# Cron Triggers - Sync from Google Sheets every 2 minutes
+# Cron Triggers - Sync from Google Sheets every 10 minutes
 [triggers]
-crons = ["*/2 * * * *"]
+crons = ["*/10 * * * *"]
 
 # Environment variables (use .dev.vars for local development)
 # TIMESTAMP_URL, CSV_URL should be set in Cloudflare dashboard for production
@@ -22,8 +22,8 @@ crons = ["*/2 * * * *"]
 [env.production]
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "google-sheets-cache-production"
-database_id = "placeholder"  # Replace with production database ID
+database_name = "nuvoices-data"
+database_id = "43b417cc-40a3-4f1b-a886-e4ffaede2b15"  # Replace with production database ID
 
 [env.production.triggers]
-crons = ["*/2 * * * *"]
+crons = ["*/10 * * * *"]

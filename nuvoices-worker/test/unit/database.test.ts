@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterEach } from "vitest";
 import { env } from "cloudflare:test";
 import { DatabaseService } from "../../src/services/database";
+import { JOURNALIST_SCHEMA } from "../../src/schema/journalist-schema";
+import { createJournalistRecord, createJournalistRecords } from "../helpers/test-data";
 
 describe("Database Service", () => {
   let db: DatabaseService;
@@ -21,34 +23,25 @@ describe("Database Service", () => {
   });
 
   describe("Schema Management", () => {
-    it("should initialize schema with fields", async () => {
-      const fields = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
-      await db.initializeSchema(fields);
+    it("should initialize schema with journalist fields", async () => {
+      await db.initializeSchema();
 
       // Verify table was created
       const tableExists = await db.tableExists();
       expect(tableExists).toBe(true);
 
-      // Verify schema was stored
+      // Verify schema was stored (should match JOURNALIST_SCHEMA)
       const storedSchema = await db.getStoredSchema();
-      expect(storedSchema).toEqual(fields);
+      expect(storedSchema).toEqual(JOURNALIST_SCHEMA);
     });
 
     it("should retrieve stored schema", async () => {
-      const fields = [
-        { name: "Name", type: "TEXT" },
-        { name: "Rating", type: "REAL" },
-      ];
-
-      await db.initializeSchema(fields);
+      await db.initializeSchema();
       const storedSchema = await db.getStoredSchema();
 
-      expect(storedSchema).toEqual(fields);
+      // Should match JOURNALIST_SCHEMA
+      expect(storedSchema).toEqual(JOURNALIST_SCHEMA);
+      expect(storedSchema).toHaveLength(15); // 15 fields in journalist schema
     });
 
     it("should return null for non-existent schema", async () => {
@@ -56,25 +49,19 @@ describe("Database Service", () => {
       expect(schema).toBeNull();
     });
 
-    it("should update schema on re-initialization", async () => {
-      const fields1 = [{ name: "Name", type: "TEXT" }];
-      const fields2 = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-      ];
-
-      await db.initializeSchema(fields1);
-      await db.initializeSchema(fields2);
+    it("should store same schema on re-initialization", async () => {
+      await db.initializeSchema();
+      await db.initializeSchema();
 
       const storedSchema = await db.getStoredSchema();
-      expect(storedSchema).toEqual(fields2);
+      // Should still be JOURNALIST_SCHEMA (idempotent)
+      expect(storedSchema).toEqual(JOURNALIST_SCHEMA);
     });
   });
 
   describe("Table Operations", () => {
     it("should detect when table exists", async () => {
-      const fields = [{ name: "Name", type: "TEXT" }];
-      await db.initializeSchema(fields);
+      await db.initializeSchema();
 
       const exists = await db.tableExists();
       expect(exists).toBe(true);
@@ -86,10 +73,9 @@ describe("Database Service", () => {
     });
 
     it("should detect when database is initialized with data", async () => {
-      const fields = [{ name: "Name", type: "TEXT" }];
-      const records = [{ id: "row_2", Name: "John Doe" }];
+      const records = [createJournalistRecord()];
 
-      await db.replaceAllRecords(records, fields);
+      await db.replaceAllRecords(records);
 
       const isInit = await db.isInitialized();
       expect(isInit).toBe(true);
@@ -101,16 +87,14 @@ describe("Database Service", () => {
     });
 
     it("should detect when database has empty table", async () => {
-      const fields = [{ name: "Name", type: "TEXT" }];
-      await db.initializeSchema(fields);
+      await db.initializeSchema();
 
       const isInit = await db.isInitialized();
       expect(isInit).toBe(false);
     });
 
     it("should drop table successfully", async () => {
-      const fields = [{ name: "Name", type: "TEXT" }];
-      await db.initializeSchema(fields);
+      await db.initializeSchema();
 
       await db.dropTable();
 
@@ -201,34 +185,28 @@ describe("Database Service", () => {
     });
 
     it("should get record count with filters", async () => {
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John", Age: "30" },
-        { id: "row_3", Name: "Jane", Age: "25" },
-        { id: "row_4", Name: "Bob", Age: "35" },
+        createJournalistRecord({ id: "row_2", Years_Experience: "10" }),
+        createJournalistRecord({ id: "row_3", Years_Experience: "5" }),
+        createJournalistRecord({ id: "row_4", Years_Experience: "15" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
-      const count = await db.getRecordCount({ age: ">25" });
+      const count = await db.getRecordCount({ years_experience: ">5" });
       expect(count).toBe(2);
     });
 
     it("should get records with pagination", async () => {
-      const schema = [{ name: "Name", type: "TEXT" }];
       const records = [
-        { id: "row_2", Name: "Record 1" },
-        { id: "row_3", Name: "Record 2" },
-        { id: "row_4", Name: "Record 3" },
-        { id: "row_5", Name: "Record 4" },
-        { id: "row_6", Name: "Record 5" },
+        createJournalistRecord({ id: "row_2", Name: "Record 1" }),
+        createJournalistRecord({ id: "row_3", Name: "Record 2" }),
+        createJournalistRecord({ id: "row_4", Name: "Record 3" }),
+        createJournalistRecord({ id: "row_5", Name: "Record 4" }),
+        createJournalistRecord({ id: "row_6", Name: "Record 5" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const page1 = await db.getRecords({}, 2, 0);
       const page2 = await db.getRecords({}, 2, 2);
@@ -238,34 +216,28 @@ describe("Database Service", () => {
     });
 
     it("should get records with filters and sorting", async () => {
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John", Age: "30" },
-        { id: "row_3", Name: "Jane", Age: "25" },
-        { id: "row_4", Name: "Bob", Age: "35" },
+        createJournalistRecord({ id: "row_2", Name: "John", Years_Experience: "10" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane", Years_Experience: "5" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob", Years_Experience: "15" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
-      const results = await db.getRecords({ sort: "age", order: "asc" }, 10, 0);
+      const results = await db.getRecords({ sort: "years_experience", order: "asc" }, 10, 0);
 
       expect(results).toHaveLength(3);
-      expect(results[0].age).toBe(25);
-      expect(results[2].age).toBe(35);
+      expect(results[0].years_experience).toBe(5);
+      expect(results[2].years_experience).toBe(15);
     });
 
     it("should get record by Airtable ID", async () => {
-      const schema = [{ name: "Name", type: "TEXT" }];
       const records = [
-        { id: "row_2", Name: "John Doe" },
-        { id: "row_3", Name: "Jane Smith" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const record = await db.getRecordByAirtableId("row_2");
 
@@ -275,20 +247,18 @@ describe("Database Service", () => {
     });
 
     it("should return null for non-existent record", async () => {
-      const schema = [{ name: "Name", type: "TEXT" }];
-      const records = [{ id: "row_2", Name: "John Doe" }];
+      const records = [createJournalistRecord({ id: "row_2", Name: "John Doe" })];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const record = await db.getRecordByAirtableId("row_999");
       expect(record).toBeNull();
     });
 
     it("should get record by ID (generic method)", async () => {
-      const schema = [{ name: "Name", type: "TEXT" }];
-      const records = [{ id: "row_2", Name: "John Doe" }];
+      const records = [createJournalistRecord({ id: "row_2", Name: "John Doe" })];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const record = await db.getRecordById("row_2");
 
@@ -326,18 +296,13 @@ describe("Database Service", () => {
 
   describe("Database Statistics", () => {
     it("should get statistics for populated database", async () => {
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Created", type: "TEXT" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "Record 1", Created: "2025-01-15T10:00:00.000Z" },
-        { id: "row_3", Name: "Record 2", Created: "2025-01-15T11:00:00.000Z" },
-        { id: "row_4", Name: "Record 3", Created: "2025-01-15T12:00:00.000Z" },
+        createJournalistRecord({ id: "row_2", Name: "Record 1" }),
+        createJournalistRecord({ id: "row_3", Name: "Record 2" }),
+        createJournalistRecord({ id: "row_4", Name: "Record 3" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const stats = await db.getStats();
 
@@ -346,8 +311,7 @@ describe("Database Service", () => {
     });
 
     it("should get statistics for empty database", async () => {
-      const schema = [{ name: "Name", type: "TEXT" }];
-      await db.initializeSchema(schema);
+      await db.initializeSchema();
 
       const stats = await db.getStats();
 
@@ -359,75 +323,69 @@ describe("Database Service", () => {
 
   describe("Complex Scenarios", () => {
     it("should handle records with optional fields", async () => {
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-        { name: "Phone", type: "TEXT" },
-      ];
+      // Create base records and override specific fields
+      const baseRecord1 = createJournalistRecord({ id: "row_2", Name: "John Doe", Email: "john@example.com" });
+      const baseRecord2 = createJournalistRecord({ id: "row_3", Name: "Jane Smith", Phone: "+1-555-5678" });
 
-      const records = [
-        { id: "row_2", Name: "John Doe", Email: "john@example.com" },
-        { id: "row_3", Name: "Jane Smith", Phone: "+1-555-1234" },
-      ];
+      const records = [baseRecord1, baseRecord2];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const record1 = await db.getRecordById("row_2");
       const record2 = await db.getRecordById("row_3");
 
       expect(record1?.email).toBe("john@example.com");
-      expect(record1?.phone).toBeNull();
+      expect(record1?.phone).toBe("+1-555-0000"); // Default value from helper
 
-      expect(record2?.phone).toBe("+1-555-1234");
-      expect(record2?.email).toBeNull();
+      expect(record2?.phone).toBe("+1-555-5678"); // Overridden value
+      expect(record2?.email).toBe("test@example.com"); // Default value from helper
     });
 
-    it("should handle records with special characters in field names", async () => {
-      const schema = [
-        { name: "First Name", type: "TEXT" },
-        { name: "Email Address", type: "TEXT" },
-      ];
-
+    it("should handle journalist records with all fields", async () => {
       const records = [
-        {
+        createJournalistRecord({
           id: "row_2",
-          "First Name": "John Doe",
-          "Email Address": "john@example.com",
-        },
+          Name: "John Doe",
+          Email: "john@example.com",
+          LinkedIn_Profile: "linkedin.com/in/johndoe",
+          Years_Experience: "10",
+          Daily_Rate_USD: "500",
+        }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const count = await db.getRecordCount();
       expect(count).toBe(1);
+
+      const record = await db.getRecordById("row_2");
+      expect(record?.linkedin_profile).toBe("linkedin.com/in/johndoe");
+      expect(record?.years_experience).toBe(10);
+      expect(record?.daily_rate_usd).toBe(500);
     });
 
     it("should handle multiple data types in same table", async () => {
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-        { name: "Rating", type: "REAL" },
-        { name: "Active", type: "TEXT" },
-      ];
-
       const records = [
-        {
+        createJournalistRecord({
           id: "row_2",
           Name: "John Doe",
-          Age: "30",
-          Rating: "4.5",
-          Active: "Yes",
-        },
+          Years_Experience: "10",
+          Daily_Rate_USD: "500",
+          Available_For_Live: "Yes",
+        }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const record = await db.getRecordById("row_2");
 
+      // TEXT fields should remain as strings
       expect(record?.name).toBe("John Doe");
-      expect(record?.age).toBe(30);
-      expect(record?.rating).toBe(4.5);
-      expect(record?.active).toBe("Yes");
+      expect(record?.available_for_live).toBe("Yes");
+
+      // INTEGER fields should be converted to numbers
+      expect(record?.years_experience).toBe(10);
+      expect(record?.daily_rate_usd).toBe(500);
     });
   });
 });

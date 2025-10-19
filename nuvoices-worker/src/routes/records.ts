@@ -2,6 +2,8 @@ import type { Context } from "hono";
 import type { Env, PaginatedResponse, DBRecord } from "../types";
 import { DatabaseService } from "../services/database";
 import { parsePaginationParams, calculatePaginationMeta } from "../utils/pagination";
+import { transformRecords } from "../utils/transform";
+import type { JournalistRecord } from "../schema/journalist-schema";
 
 /**
  * GET /records - List all records with filtering, sorting, and pagination
@@ -43,11 +45,14 @@ export async function getRecordsHandler(c: Context<{ Bindings: Env }>) {
   // Get records with filters and pagination
   const records = await db.getRecords(queryParams, limit, offset);
 
+  // Transform records to convert string numbers to actual numbers
+  const transformedRecords = transformRecords(records);
+
   // Calculate pagination metadata
   const pagination = calculatePaginationMeta(page, limit, total);
 
-  return c.json<PaginatedResponse<DBRecord>>({
-    data: records,
+  return c.json<PaginatedResponse<JournalistRecord>>({
+    data: transformedRecords,
     pagination,
   });
 }

@@ -2,6 +2,8 @@ import type { Context } from "hono";
 import type { Env, DBRecord } from "../types";
 import { DatabaseService } from "../services/database";
 import { APIError } from "../middleware/error";
+import { transformRecord } from "../utils/transform";
+import type { JournalistRecord } from "../schema/journalist-schema";
 
 /**
  * GET /record/:id - Get a single record by Airtable ID
@@ -30,5 +32,8 @@ export async function getRecordHandler(c: Context<{ Bindings: Env }>) {
     throw new APIError(404, `Record not found: ${recordId}`, "Not Found");
   }
 
-  return c.json<DBRecord>(record);
+  // Transform record to convert string numbers to actual numbers
+  const transformedRecord = transformRecord(record);
+
+  return c.json<JournalistRecord>(transformedRecord);
 }

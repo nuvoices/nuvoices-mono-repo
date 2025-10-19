@@ -1,4 +1,5 @@
 import type { RecordsQueryParams, SQLQuery } from "../types";
+import type { SchemaField } from "../schema/journalist-schema";
 
 /**
  * Reserved query parameter keys that should not be treated as filters
@@ -179,7 +180,7 @@ export function buildCountQuery(params: RecordsQueryParams): SQLQuery {
  * Build dynamic table schema based on Airtable fields
  */
 export function buildCreateTableSQL(
-  fields: Array<{ name: string; type: string }>
+  fields: SchemaField[]
 ): string {
   if (fields.length === 0) {
     // No fields - create table with just base columns
@@ -188,7 +189,7 @@ export function buildCreateTableSQL(
 
   const columnDefinitions = fields.map((field) => {
     const columnName = sanitizeColumnName(field.name);
-    const sqlType = getSQLType(field.type);
+    const sqlType = field.sqlType; // Use sqlType from SchemaField
     return `${columnName} ${sqlType}`;
   });
 

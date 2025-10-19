@@ -5,13 +5,13 @@ import {
   buildCreateTableSQL,
   buildCreateIndexSQL,
 } from "../utils/query-builder";
+import { JOURNALIST_SCHEMA, toSqlColumnName } from "../schema/journalist-schema";
 
 /**
  * Convert value to appropriate type based on schema field type
- * Note: We still pass strings to D1, but D1 will store them with proper types
- * When queried back, D1 may return them as strings depending on the HTTP API serialization
+ * Returns value as-is (string) since D1 handles type conversion based on column definition
  */
-function convertValue(value: string, type: string): string | null {
+function convertValue(value: string): string | null {
   if (value === "" || value === null || value === undefined) {
     return null;
   }
@@ -27,12 +27,10 @@ export class DatabaseService {
   constructor(private db: D1Database) {}
 
   /**
-   * Initialize database schema based on Google Sheets fields
+   * Initialize database schema using fixed journalist schema
    */
-  async initializeSchema(
-    fields: Array<{ name: string; type: string }>
-  ): Promise<void> {
-    const createTableSQL = buildCreateTableSQL(fields);
+  async initializeSchema(): Promise<void> {
+    const createTableSQL = buildCreateTableSQL(JOURNALIST_SCHEMA);
     const createIndexSQL = buildCreateIndexSQL();
 
     // Create table
@@ -44,13 +42,13 @@ export class DatabaseService {
     }
 
     // Store schema for later use
-    await this.storeSchema(fields);
+    await this.storeSchema(JOURNALIST_SCHEMA);
   }
 
   /**
    * Store schema in a metadata table for later retrieval
    */
-  private async storeSchema(fields: Array<{ name: string; type: string }>): Promise<void> {
+  private async storeSchema(fields: typeof JOURNALIST_SCHEMA): Promise<void> {
     // Create schema metadata table if it doesn't exist
     await this.db.exec("CREATE TABLE IF NOT EXISTS _schema_metadata (id INTEGER PRIMARY KEY CHECK (id = 1), schema_json TEXT NOT NULL, updated_at TEXT NOT NULL)");
 
@@ -200,15 +198,16 @@ export class DatabaseService {
   /**
    * Replace all records atomically (for full table sync from Google Sheets)
    * Uses D1 batch for atomic execution - all or nothing
+   * Uses fixed JOURNALIST_SCHEMA for all operations
    */
   async replaceAllRecords(
-    records: Array<Record<string, string>>,
-    schema: Array<{ name: string; type: string }>
+    records: Array<Record<string, string>>
   ): Promise<void> {
     if (records.length === 0) {
       throw new Error("Cannot replace with empty record set");
     }
 
+    const schema = JOURNALIST_SCHEMA;
     const statements: D1PreparedStatement[] = [];
 
     // Step 1: Drop existing table
@@ -243,8 +242,8 @@ export class DatabaseService {
       for (const field of schema) {
         const value = record[field.name];
         if (value !== undefined) {
-          columns.push(field.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, ""));
-          values.push(convertValue(value, field.type));
+          columns.push(toSqlColumnName(field.name));
+          values.push(convertValue(value));
           placeholders.push("?");
         }
       }
@@ -268,8 +267,8 @@ export class DatabaseService {
         for (const field of schema) {
           const value = record[field.name];
           if (value !== undefined) {
-            columns.push(field.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, ""));
-            values.push(convertValue(value, field.type));
+            columns.push(toSqlColumnName(field.name));
+            values.push(convertValue(value));
             placeholders.push("?");
           }
         }

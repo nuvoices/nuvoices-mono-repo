@@ -7,7 +7,8 @@
 
 import type { Env } from "../types";
 import { DatabaseService } from "./database";
-import { parseCSV, inferSchemaFromCSV, csvToRecords } from "../utils/csv-parser";
+import { parseCSV, csvToRecords } from "../utils/csv-parser";
+import { validateCSVHeaders } from "../schema/journalist-schema";
 
 interface TimestampResponse {
   spreadsheetId: string;
@@ -46,17 +47,17 @@ export async function syncFromGoogleSheets(env: Env): Promise<void> {
     const { headers, rows } = parseCSV(csvData);
     console.log(`Parsed ${headers.length} columns, ${rows.length} rows`);
 
-    // Step 6: Infer schema from data
-    const schema = inferSchemaFromCSV(headers, rows);
-    console.log(`Inferred schema with ${schema.length} fields`);
+    // Step 6: Validate CSV headers against expected schema
+    validateCSVHeaders(headers);
+    console.log("CSV headers validated against schema");
 
     // Step 7: Convert to records
     const records = csvToRecords(headers, rows);
     console.log(`Converted to ${records.length} records`);
 
-    // Step 8: Replace all records atomically
+    // Step 8: Replace all records atomically (uses fixed schema internally)
     console.log("Replacing table...");
-    await db.replaceAllRecords(records, schema);
+    await db.replaceAllRecords(records);
 
     // Step 9: Update last sync time
     await db.setLastSyncTime(timestamp.lastUpdated);

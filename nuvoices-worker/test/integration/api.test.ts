@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import { env, SELF } from "cloudflare:test";
-import type { Env } from "../../src/types";
 import { DatabaseService } from "../../src/services/database";
+import { createJournalistRecord } from "../helpers/test-data";
 
 describe("API Integration Tests", () => {
   let db: DatabaseService;
@@ -85,29 +85,13 @@ describe("API Integration Tests", () => {
 
     it("should return records with actual data", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Email: "john@example.com", Age: "30" },
-        {
-          id: "row_3",
-          Name: "Jane Smith",
-          Email: "jane@example.com",
-          Age: "25",
-        },
-        {
-          id: "row_4",
-          Name: "Bob Wilson",
-          Email: "bob@example.com",
-          Age: "35",
-        },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Email: "john@example.com", Years_Experience: "10" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith", Email: "jane@example.com", Years_Experience: "5" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob Wilson", Email: "bob@example.com", Years_Experience: "15" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch("http://localhost/records");
       expect(response.status).toBe(200);
@@ -120,18 +104,13 @@ describe("API Integration Tests", () => {
 
     it("should filter records by exact match", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Country", type: "TEXT" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Country: "USA" },
-        { id: "row_3", Name: "Jane Smith", Country: "Canada" },
-        { id: "row_4", Name: "Bob Wilson", Country: "USA" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Country: "USA" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith", Country: "Canada" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob Wilson", Country: "USA" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch(
         "http://localhost/records?country=USA"
@@ -146,20 +125,15 @@ describe("API Integration Tests", () => {
 
     it("should filter records with greater than operator", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Age: "30" },
-        { id: "row_3", Name: "Jane Smith", Age: "25" },
-        { id: "row_4", Name: "Bob Wilson", Age: "35" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Years_Experience: "10" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith", Years_Experience: "5" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob Wilson", Years_Experience: "15" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
-      const response = await SELF.fetch("http://localhost/records?age=>28");
+      const response = await SELF.fetch("http://localhost/records?years_experience=>8");
       expect(response.status).toBe(200);
 
       const data = await response.json();
@@ -169,18 +143,13 @@ describe("API Integration Tests", () => {
 
     it("should filter records with LIKE pattern", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Email: "john@example.com" },
-        { id: "row_3", Name: "Jane Smith", Email: "jane@test.com" },
-        { id: "row_4", Name: "Bob Wilson", Email: "bob@example.com" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Email: "john@example.com" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith", Email: "jane@test.com" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob Wilson", Email: "bob@example.com" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch(
         "http://localhost/records?email=*example.com"
@@ -193,45 +162,37 @@ describe("API Integration Tests", () => {
 
     it("should sort records ascending", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Age: "30" },
-        { id: "row_3", Name: "Jane Smith", Age: "25" },
-        { id: "row_4", Name: "Bob Wilson", Age: "35" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Years_Experience: "10" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith", Years_Experience: "5" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob Wilson", Years_Experience: "15" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch(
-        "http://localhost/records?sort=age&order=asc"
+        "http://localhost/records?sort=years_experience&order=asc"
       );
       expect(response.status).toBe(200);
 
       const data = await response.json();
       expect(data.data).toHaveLength(3);
-      expect(data.data[0].age).toBe(25);
-      expect(data.data[1].age).toBe(30);
-      expect(data.data[2].age).toBe(35);
+      expect(data.data[0].years_experience).toBe(5);
+      expect(data.data[1].years_experience).toBe(10);
+      expect(data.data[2].years_experience).toBe(15);
     });
 
     it("should paginate records correctly", async () => {
       // Setup test data with 10 records
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Value", type: "INTEGER" },
-      ];
+      const records = Array.from({ length: 10 }, (_, i) =>
+        createJournalistRecord({
+          id: `row_${i + 2}`,
+          Name: `Record ${i + 1}`,
+          Years_Experience: String(i + 1),
+        })
+      );
 
-      const records = Array.from({ length: 10 }, (_, i) => ({
-        id: `row_${i + 2}`,
-        Name: `Record ${i + 1}`,
-        Value: String(i + 1),
-      }));
-
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       // Page 1
       const response1 = await SELF.fetch(
@@ -271,31 +232,25 @@ describe("API Integration Tests", () => {
 
     it("should combine filters, sorting, and pagination", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Country", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John", Country: "USA", Age: "30" },
-        { id: "row_3", Name: "Jane", Country: "USA", Age: "25" },
-        { id: "row_4", Name: "Bob", Country: "Canada", Age: "35" },
-        { id: "row_5", Name: "Alice", Country: "USA", Age: "28" },
-        { id: "row_6", Name: "Charlie", Country: "USA", Age: "32" },
+        createJournalistRecord({ id: "row_2", Name: "John", Country: "USA", Years_Experience: "10" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane", Country: "USA", Years_Experience: "5" }),
+        createJournalistRecord({ id: "row_4", Name: "Bob", Country: "Canada", Years_Experience: "15" }),
+        createJournalistRecord({ id: "row_5", Name: "Alice", Country: "USA", Years_Experience: "8" }),
+        createJournalistRecord({ id: "row_6", Name: "Charlie", Country: "USA", Years_Experience: "12" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch(
-        "http://localhost/records?country=USA&sort=age&order=asc&page=1&limit=2"
+        "http://localhost/records?country=USA&sort=years_experience&order=asc&page=1&limit=2"
       );
       expect(response.status).toBe(200);
 
       const data = await response.json();
       expect(data.data).toHaveLength(2);
-      expect(data.data[0].age).toBe(25); // Jane
-      expect(data.data[1].age).toBe(28); // Alice
+      expect(data.data[0].years_experience).toBe(5); // Jane
+      expect(data.data[1].years_experience).toBe(8); // Alice
       expect(data.pagination.total).toBe(4); // 4 USA records
     });
   });
@@ -303,16 +258,11 @@ describe("API Integration Tests", () => {
   describe("GET /record/:id", () => {
     it("should return 404 for non-existent record", async () => {
       // Setup a database with some records first
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Email: "john@example.com" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Email: "john@example.com" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       // Now request a non-existent record
       const response = await SELF.fetch("http://localhost/record/nonexistent");
@@ -326,17 +276,12 @@ describe("API Integration Tests", () => {
 
     it("should return record by ID", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Email: "john@example.com" },
-        { id: "row_3", Name: "Jane Smith", Email: "jane@example.com" },
+        createJournalistRecord({ id: "row_2", Name: "John Doe", Email: "john@example.com" }),
+        createJournalistRecord({ id: "row_3", Name: "Jane Smith", Email: "jane@example.com" }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch("http://localhost/record/row_2");
       expect(response.status).toBe(200);
@@ -357,25 +302,24 @@ describe("API Integration Tests", () => {
 
     it("should handle record with all field types", async () => {
       // Setup test data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Age", type: "INTEGER" },
-        { name: "Rating", type: "REAL" },
-      ];
-
       const records = [
-        { id: "row_2", Name: "John Doe", Age: "30", Rating: "4.5" },
+        createJournalistRecord({
+          id: "row_2",
+          Name: "John Doe",
+          Years_Experience: "10",
+          Daily_Rate_USD: "500"
+        }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch("http://localhost/record/row_2");
       expect(response.status).toBe(200);
 
       const data = await response.json();
       expect(data.name).toBe("John Doe");
-      expect(data.age).toBe(30);
-      expect(data.rating).toBe(4.5);
+      expect(data.years_experience).toBe(10);
+      expect(data.daily_rate_usd).toBe(500);
     });
   });
 
@@ -412,18 +356,15 @@ describe("API Integration Tests", () => {
 
     it("should enforce maximum limit", async () => {
       // Setup test data first so we can test limit enforcement
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Value", type: "INTEGER" },
-      ];
+      const records = Array.from({ length: 150 }, (_, i) =>
+        createJournalistRecord({
+          id: `row_${i + 2}`,
+          Name: `Record ${i}`,
+          Years_Experience: String(i),
+        })
+      );
 
-      const records = Array.from({ length: 150 }, (_, i) => ({
-        id: `row_${i + 2}`,
-        Name: `Record ${i}`,
-        Value: String(i),
-      }));
-
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       const response = await SELF.fetch(
         "http://localhost/records?limit=1000"
@@ -440,42 +381,34 @@ describe("API Integration Tests", () => {
   describe("Complex Real-World Scenarios", () => {
     it("should handle journalist database query", async () => {
       // Setup realistic journalist data
-      const schema = [
-        { name: "Name", type: "TEXT" },
-        { name: "Email", type: "TEXT" },
-        { name: "Country", type: "TEXT" },
-        { name: "Languages", type: "TEXT" },
-        { name: "Years_Experience", type: "INTEGER" },
-      ];
-
       const records = [
-        {
+        createJournalistRecord({
           id: "row_2",
           Name: "Sarah Chen",
           Email: "s.chen@email.com",
           Country: "China",
           Languages: "English, Mandarin, Cantonese",
           Years_Experience: "12",
-        },
-        {
+        }),
+        createJournalistRecord({
           id: "row_3",
           Name: "Raj Patel",
           Email: "raj.patel@email.com",
           Country: "India",
           Languages: "English, Hindi, Marathi",
           Years_Experience: "8",
-        },
-        {
+        }),
+        createJournalistRecord({
           id: "row_4",
           Name: "Yuki Tanaka",
           Email: "y.tanaka@email.jp",
           Country: "Japan",
           Languages: "Japanese, English",
           Years_Experience: "10",
-        },
+        }),
       ];
 
-      await db.replaceAllRecords(records, schema);
+      await db.replaceAllRecords(records);
 
       // Query for experienced journalists
       const response = await SELF.fetch(
