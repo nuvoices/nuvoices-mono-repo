@@ -3,14 +3,7 @@ import { env } from "cloudflare:test";
 import { syncFromGoogleSheets } from "../../src/services/sync";
 import { DatabaseService } from "../../src/services/database";
 import type { Env } from "../../src/types";
-
-// Mock CSV data (first 5 records from mockSheetsCSV.txt for testing)
-const mockCSVData = `Name,Email,Phone,Country,City,Languages,Specializations,Years_Experience,Outlet,Time_Zone,LinkedIn_Profile,Avatar,Daily_Rate_USD,Available_For_Live,Last_Updated
-Sarah Chen,s.chen.reporter@email.com,+86-138-1234-5678,China,Beijing,"English, Mandarin, Cantonese","Politics, Trade, Technology",12,Freelance,GMT+8,linkedin.com/in/sarahchen,https://images.example.com/avatars/schen-profile-400x400.jpg,450,Yes,2025-01-15
-Raj Patel,raj.patel.news@email.com,+91-98765-43210,India,Mumbai,"English, Hindi, Marathi","Business, Bollywood, Finance",8,Times of India,GMT+5:30,linkedin.com/in/rajpatel,https://media.example.org/reporters/raj_patel_headshot.png,350,Yes,2025-01-10
-Yuki Tanaka,y.tanaka@email.jp,+81-90-1234-5678,Japan,Tokyo,"Japanese, English","Technology, Gaming, Pop Culture",10,NHK World,GMT+9,linkedin.com/in/yukitanaka,https://cdn.newsagency.com/photos/ytanaka-2025.jpg,500,No,2025-01-12
-Kim Min-jung,kmj.reporter@email.kr,+82-10-9876-5432,South Korea,Seoul,"Korean, English, Mandarin","K-pop, Technology, Politics",6,Freelance,GMT+9,linkedin.com/in/kimminjung,https://assets.journalist.net/profiles/kim-minjung-sq.jpg,400,Yes,2025-01-08
-Ahmad Hassan,a.hassan.jour@email.com,+62-812-3456-7890,Indonesia,Jakarta,"Indonesian, English, Arabic","Politics, Islam, Environment",15,Jakarta Post,GMT+7,linkedin.com/in/ahmadhassan,https://storage.media.com/avatars/ahmad_hassan_300.jpg,325,Yes,2025-01-14`;
+import { createJournalistCSV, SINGLE_JOURNALIST_CSV, SIMPLE_JOURNALIST_CSV, MOCK_SHEETS_CSV_SUBSET } from "../helpers/csv-data";
 
 describe("Sync Service Integration Tests", () => {
   let db: DatabaseService;
@@ -56,7 +49,7 @@ describe("Sync Service Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -128,7 +121,7 @@ describe("Sync Service Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -159,7 +152,7 @@ describe("Sync Service Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -171,9 +164,6 @@ describe("Sync Service Integration Tests", () => {
       expect(initialCount).toBe(5);
 
       // Second sync with different data
-      const newCSVData = `Name,Email
-New Person,new@example.com`;
-
       global.fetch = vi.fn((url: string) => {
         if (url.includes("timestamp")) {
           return Promise.resolve({
@@ -187,7 +177,7 @@ New Person,new@example.com`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(newCSVData),
+            text: () => Promise.resolve(SINGLE_JOURNALIST_CSV),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -298,7 +288,7 @@ New Person,new@example.com`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -339,11 +329,13 @@ New Person,new@example.com`;
     });
   });
 
-  describe("Schema Inference and Data Types", () => {
-    it("should correctly infer schema from CSV data", async () => {
-      const csvWithTypes = `Name,Age,Rating,Active
-John Doe,30,4.5,Yes
-Jane Smith,25,4.8,No`;
+  describe("Schema Validation and Data Types", () => {
+    it.only("should validate CSV against strict journalist schema", async () => {
+      // Use journalist CSV with proper fields
+      const journalistCSV = createJournalistCSV([
+        { Name: "John Doe", Email: "john@example.com", Country: "USA", Years_Experience: "10", Daily_Rate_USD: "500" },
+        { Name: "Jane Smith", Email: "jane@example.com", Country: "UK", Years_Experience: "8", Daily_Rate_USD: "450" }
+      ]);
 
       global.fetch = vi.fn((url: string) => {
         if (url.includes("timestamp")) {
@@ -358,7 +350,7 @@ Jane Smith,25,4.8,No`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(csvWithTypes),
+            text: () => Promise.resolve(journalistCSV),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -366,16 +358,18 @@ Jane Smith,25,4.8,No`;
 
       await syncFromGoogleSheets(mockEnv);
 
-      // Verify schema was inferred correctly
+      // Verify strict schema was stored
       const schema = await db.getStoredSchema();
+      console.log('schema', schema)
       expect(schema).toBeDefined();
+      expect(schema).toHaveLength(15); // 15 fields in JOURNALIST_SCHEMA
 
-      // Check record to verify types
+      // Check record to verify type transformations
       const record = await db.getRecordById("row_2");
       expect(record?.name).toBe("John Doe");
-      expect(record?.age).toBe(30); // INTEGER
-      expect(record?.rating).toBe(4.5); // REAL
-      expect(record?.active).toBe("Yes"); // TEXT
+      expect(record?.years_experience).toBe(10); // INTEGER - transformed from string
+      expect(record?.daily_rate_usd).toBe(500); // INTEGER - transformed from string
+      expect(record?.email).toBe("john@example.com"); // TEXT
     });
 
     it("should handle complex CSV with many fields", async () => {
@@ -393,7 +387,7 @@ Jane Smith,25,4.8,No`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -433,7 +427,7 @@ Jane Smith,25,4.8,No`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -464,7 +458,7 @@ Jane Smith,25,4.8,No`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));

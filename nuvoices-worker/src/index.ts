@@ -4,6 +4,7 @@ import { errorHandler, notFoundHandler } from "./middleware/error";
 import { logger } from "./middleware/logger";
 import { getRecordsHandler } from "./routes/records";
 import { getRecordHandler } from "./routes/record";
+import { syncFromGoogleSheets } from "./services/sync";
 
 /**
  * Main Hono application
@@ -14,7 +15,48 @@ const app = new Hono<{ Bindings: Env }>();
  * Middleware
  */
 app.use("*", logger);
-app.use("*", errorHandler);
+
+/**
+ * Error handler
+ */
+app.onError((err, c) => {
+  console.error("Error occurred:", err);
+
+  let status = 500;
+  let error = "Internal Server Error";
+  let message = "An unexpected error occurred";
+
+  if (err instanceof Error && err.name === "APIError" && 'status' in err && 'error' in err) {
+    // APIError instance
+    status = (err as any).status;
+    error = (err as any).error;
+    message = err.message;
+  } else if (err instanceof Error) {
+    message = err.message;
+
+    // Check for specific error types
+    if (message.includes("not found")) {
+      status = 404;
+      error = "Not Found";
+    } else if (message.includes("unauthorized") || message.includes("authentication")) {
+      status = 401;
+      error = "Unauthorized";
+    } else if (message.includes("forbidden")) {
+      status = 403;
+      error = "Forbidden";
+    } else if (message.includes("bad request") || message.includes("invalid")) {
+      status = 400;
+      error = "Bad Request";
+    }
+  }
+
+  return c.json({
+    error,
+    message,
+    status,
+    timestamp: new Date().toISOString(),
+  }, status);
+});
 
 /**
  * Health check endpoint
@@ -28,6 +70,7 @@ app.get("/", (c) => {
     endpoints: {
       records: "GET /records - List all records with filtering and pagination",
       record: "GET /record/:id - Get a single record by ID",
+      sync: "POST /sync - Manually trigger sync from Google Sheets (dev/testing)",
     },
     sync: {
       strategy: "cron-pull",
@@ -46,6 +89,29 @@ app.get("/records", getRecordsHandler);
 
 // GET /record/:id - Get a single record by ID
 app.get("/record/:id", getRecordHandler);
+
+/**
+ * Manual sync trigger endpoint (useful for development/testing)
+ * POST /sync - Manually trigger a sync from Google Sheets
+ */
+app.post("/sync", async (c) => {
+  try {
+    console.log("Manual sync triggered via POST /sync");
+    await syncFromGoogleSheets(c.env);
+    return c.json({
+      success: true,
+      message: "Sync completed successfully",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Manual sync failed:", error);
+    return c.json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+    }, 500);
+  }
+});
 
 /**
  * 404 handler

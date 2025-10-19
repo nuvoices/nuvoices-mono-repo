@@ -3,14 +3,7 @@ import { env } from "cloudflare:test";
 import { scheduled } from "../../src/scheduled";
 import { DatabaseService } from "../../src/services/database";
 import type { Env } from "../../src/types";
-
-// Mock CSV data (first 5 records from mockSheetsCSV.txt for testing)
-const mockCSVData = `Name,Email,Phone,Country,City,Languages,Specializations,Years_Experience,Outlet,Time_Zone,LinkedIn_Profile,Avatar,Daily_Rate_USD,Available_For_Live,Last_Updated
-Sarah Chen,s.chen.reporter@email.com,+86-138-1234-5678,China,Beijing,"English, Mandarin, Cantonese","Politics, Trade, Technology",12,Freelance,GMT+8,linkedin.com/in/sarahchen,https://images.example.com/avatars/schen-profile-400x400.jpg,450,Yes,2025-01-15
-Raj Patel,raj.patel.news@email.com,+91-98765-43210,India,Mumbai,"English, Hindi, Marathi","Business, Bollywood, Finance",8,Times of India,GMT+5:30,linkedin.com/in/rajpatel,https://media.example.org/reporters/raj_patel_headshot.png,350,Yes,2025-01-10
-Yuki Tanaka,y.tanaka@email.jp,+81-90-1234-5678,Japan,Tokyo,"Japanese, English","Technology, Gaming, Pop Culture",10,NHK World,GMT+9,linkedin.com/in/yukitanaka,https://cdn.newsagency.com/photos/ytanaka-2025.jpg,500,No,2025-01-12
-Kim Min-jung,kmj.reporter@email.kr,+82-10-9876-5432,South Korea,Seoul,"Korean, English, Mandarin","K-pop, Technology, Politics",6,Freelance,GMT+9,linkedin.com/in/kimminjung,https://assets.journalist.net/profiles/kim-minjung-sq.jpg,400,Yes,2025-01-08
-Ahmad Hassan,a.hassan.jour@email.com,+62-812-3456-7890,Indonesia,Jakarta,"Indonesian, English, Arabic","Politics, Islam, Environment",15,Jakarta Post,GMT+7,linkedin.com/in/ahmadhassan,https://storage.media.com/avatars/ahmad_hassan_300.jpg,325,Yes,2025-01-14`;
+import { SIMPLE_JOURNALIST_CSV, MOCK_SHEETS_CSV_SUBSET } from "../helpers/csv-data";
 
 describe("Scheduled Handler Integration Tests", () => {
   let db: DatabaseService;
@@ -69,7 +62,7 @@ describe("Scheduled Handler Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -99,7 +92,7 @@ describe("Scheduled Handler Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -141,7 +134,7 @@ describe("Scheduled Handler Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -184,7 +177,7 @@ describe("Scheduled Handler Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -218,7 +211,7 @@ describe("Scheduled Handler Integration Tests", () => {
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -230,10 +223,6 @@ describe("Scheduled Handler Integration Tests", () => {
       expect(count1).toBe(5);
 
       // Second execution with new data
-      const newCSVData = `Name,Email
-Updated Person,updated@example.com
-Another Person,another@example.com`;
-
       global.fetch = vi.fn((url: string) => {
         if (url.includes("timestamp")) {
           return Promise.resolve({
@@ -247,7 +236,7 @@ Another Person,another@example.com`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(newCSVData),
+            text: () => Promise.resolve(SIMPLE_JOURNALIST_CSV),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -281,7 +270,7 @@ Another Person,another@example.com`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
@@ -361,7 +350,7 @@ Another Person,another@example.com`;
         } else if (url.includes("csv")) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(mockCSVData),
+            text: () => Promise.resolve(MOCK_SHEETS_CSV_SUBSET),
           } as Response);
         }
         return Promise.reject(new Error("Unknown URL"));
