@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
+    "build": "esbuild src/index.ts --bundle --outfile=dist/worker.js --format=esm --target=es2022",
     "deploy": "wrangler deploy",
     "test": "vitest",
     "test:watch": "vitest --watch",
