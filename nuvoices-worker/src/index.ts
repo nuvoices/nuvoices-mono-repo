@@ -68,9 +68,14 @@ app.get("/", (c) => {
     version: "2.0.0",
     description: "Cron-based sync from Google Sheets to D1 Database",
     endpoints: {
-      records: "GET /records - List all records with filtering and pagination",
+      records: "GET /records - List all records with filtering, search, and pagination",
       record: "GET /record/:id - Get a single record by ID",
       sync: "POST /sync - Manually trigger sync from Google Sheets (dev/testing)",
+    },
+    features: {
+      search: "Full-text search using FTS5 - Use ?search=query parameter",
+      filtering: "Field-specific filters - Use ?field=value parameters",
+      pagination: "Use ?page=N&limit=M parameters",
     },
     sync: {
       strategy: "cron-pull",

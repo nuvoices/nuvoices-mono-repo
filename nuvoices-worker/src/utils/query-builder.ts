@@ -4,7 +4,7 @@ import type { SchemaField } from "../schema/journalist-schema";
 /**
  * Reserved query parameter keys that should not be treated as filters
  */
-const RESERVED_PARAMS = ["page", "limit", "sort", "order"];
+const RESERVED_PARAMS = ["page", "limit", "sort", "order", "search"];
 
 /**
  * SQL reserved keywords that cannot be used as column names
@@ -205,4 +205,75 @@ export function buildCreateIndexSQL(): string[] {
     "CREATE INDEX IF NOT EXISTS idx_created_time ON records(created_time)",
     "CREATE INDEX IF NOT EXISTS idx_last_modified_time ON records(last_modified_time)",
   ];
+}
+
+/**
+ * Build CREATE VIRTUAL TABLE statement for FTS5 full-text search
+ * Creates an external content table linked to the main records table
+ */
+export function buildCreateFTS5TableSQL(): string {
+  // FTS5 virtual table with all searchable text columns
+  // Excluding numeric columns (years_experience, daily_rate_usd) and dates
+  const searchableColumns = [
+    "name",
+    "email",
+    "country",
+    "city",
+    "languages",
+    "specializations",
+    "outlet",
+    "linkedin_profile",
+  ];
+
+  return `CREATE VIRTUAL TABLE IF NOT EXISTS records_fts USING fts5(${searchableColumns.join(", ")}, content=records, content_rowid=id)`;
+}
+
+/**
+ * Build query to populate FTS5 table from main records table
+ * Should be called after creating the FTS5 table and inserting records
+ */
+export function buildPopulateFTS5SQL(): string {
+  return `INSERT INTO records_fts(records_fts) VALUES('rebuild')`;
+}
+
+/**
+ * Build FTS5 search query with pagination
+ * Searches across all columns in the FTS5 virtual table and joins back to main table
+ */
+export function buildSearchQuery(
+  searchQuery: string,
+  limit: number,
+  offset: number
+): SQLQuery {
+  // FTS5 search using MATCH operator
+  // Join back to main records table to get all fields
+  const sql = `
+    SELECT r.*
+    FROM records r
+    INNER JOIN records_fts fts ON r.id = fts.rowid
+    WHERE records_fts MATCH ?
+    ORDER BY rank
+    LIMIT ? OFFSET ?
+  `.trim();
+
+  return {
+    sql,
+    params: [searchQuery, limit, offset],
+  };
+}
+
+/**
+ * Build COUNT query for FTS5 search results
+ */
+export function buildSearchCountQuery(searchQuery: string): SQLQuery {
+  const sql = `
+    SELECT COUNT(*) as count
+    FROM records_fts
+    WHERE records_fts MATCH ?
+  `.trim();
+
+  return {
+    sql,
+    params: [searchQuery],
+  };
 }

@@ -4,6 +4,10 @@ import {
   buildCountQuery,
   buildCreateTableSQL,
   buildCreateIndexSQL,
+  buildCreateFTS5TableSQL,
+  buildPopulateFTS5SQL,
+  buildSearchQuery,
+  buildSearchCountQuery,
 } from "../utils/query-builder";
 import { JOURNALIST_SCHEMA, toSqlColumnName } from "../schema/journalist-schema";
 
@@ -11,7 +15,7 @@ import { JOURNALIST_SCHEMA, toSqlColumnName } from "../schema/journalist-schema"
  * Convert value to appropriate type based on schema field type
  * Returns value as-is (string) since D1 handles type conversion based on column definition
  */
-function convertValue(value: string): string | null {
+function convertValue(value: string | null): string | null {
   if (value === "" || value === null || value === undefined) {
     return null;
   }
@@ -32,6 +36,7 @@ export class DatabaseService {
   async initializeSchema(): Promise<void> {
     const createTableSQL = buildCreateTableSQL(JOURNALIST_SCHEMA);
     const createIndexSQL = buildCreateIndexSQL();
+    const createFTS5SQL = buildCreateFTS5TableSQL();
 
     // Create table
     await this.db.exec(createTableSQL);
@@ -40,6 +45,9 @@ export class DatabaseService {
     for (const indexSQL of createIndexSQL) {
       await this.db.exec(indexSQL);
     }
+
+    // Create FTS5 virtual table for full-text search
+    await this.db.exec(createFTS5SQL);
 
     // Store schema for later use
     await this.storeSchema(JOURNALIST_SCHEMA);
@@ -210,7 +218,8 @@ export class DatabaseService {
     const schema = JOURNALIST_SCHEMA;
     const statements: D1PreparedStatement[] = [];
 
-    // Step 1: Drop existing table
+    // Step 1: Drop existing tables
+    statements.push(this.db.prepare("DROP TABLE IF EXISTS records_fts"));
     statements.push(this.db.prepare("DROP TABLE IF EXISTS records"));
 
     // Step 2: Create table with new schema
@@ -223,7 +232,11 @@ export class DatabaseService {
       statements.push(this.db.prepare(indexSQL));
     }
 
-    // Step 4: Insert all records (batched in chunks due to D1 limits)
+    // Step 4: Create FTS5 virtual table
+    const createFTS5SQL = buildCreateFTS5TableSQL();
+    statements.push(this.db.prepare(createFTS5SQL));
+
+    // Step 5: Insert all records (batched in chunks due to D1 limits)
     const BATCH_SIZE = 100;
     const chunks: Array<Record<string, string>[]> = [];
 
@@ -235,7 +248,7 @@ export class DatabaseService {
     const firstChunk = chunks[0];
     for (const record of firstChunk) {
       const columns = ["airtable_id", "created_time"];
-      const values = [record.id, new Date().toISOString()];
+      const values: (string | null)[] = [record.id, new Date().toISOString()];
       const placeholders = ["?", "?"];
 
       // Add dynamic fields from schema
@@ -261,7 +274,7 @@ export class DatabaseService {
 
       for (const record of chunks[i]) {
         const columns = ["airtable_id", "created_time"];
-        const values = [record.id, new Date().toISOString()];
+        const values: (string | null)[] = [record.id, new Date().toISOString()];
         const placeholders = ["?", "?"];
 
         for (const field of schema) {
@@ -279,6 +292,40 @@ export class DatabaseService {
 
       await this.db.batch(chunkStatements);
     }
+
+    // Step 6: Populate FTS5 table from records table
+    const populateFTS5SQL = buildPopulateFTS5SQL();
+    await this.db.exec(populateFTS5SQL);
+  }
+
+  /**
+   * Get records count for search query
+   */
+  async getSearchCount(searchQuery: string): Promise<number> {
+    const query = buildSearchCountQuery(searchQuery);
+    const result = await this.db
+      .prepare(query.sql)
+      .bind(...query.params)
+      .first<{ count: number }>();
+
+    return result?.count || 0;
+  }
+
+  /**
+   * Search records using FTS5 full-text search
+   */
+  async searchRecords(
+    searchQuery: string,
+    limit: number,
+    offset: number
+  ): Promise<DBRecord[]> {
+    const query = buildSearchQuery(searchQuery, limit, offset);
+    const results = await this.db
+      .prepare(query.sql)
+      .bind(...query.params)
+      .all<DBRecord>();
+
+    return results.results || [];
   }
 
   /**

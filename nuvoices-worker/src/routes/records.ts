@@ -6,7 +6,12 @@ import { transformRecords } from "../utils/transform";
 import type { JournalistRecord } from "../schema/journalist-schema";
 
 /**
- * GET /records - List all records with filtering, sorting, and pagination
+ * GET /records - List all records with filtering, sorting, pagination, and search
+ *
+ * Query Parameters:
+ * - search: Full-text search query (uses FTS5)
+ * - page, limit: Pagination
+ * - Other parameters: Field-specific filters
  *
  * Note: Data is synced via cron trigger (every 2 minutes).
  * If no data exists, returns empty array.
@@ -38,12 +43,20 @@ export async function getRecordsHandler(c: Context<{ Bindings: Env }>) {
   // Parse query parameters
   const queryParams = c.req.query();
   const { page, limit, offset } = parsePaginationParams(queryParams);
+  const searchQuery = queryParams.search;
 
-  // Get total count with filters
-  const total = await db.getRecordCount(queryParams);
+  let total: number;
+  let records: DBRecord[];
 
-  // Get records with filters and pagination
-  const records = await db.getRecords(queryParams, limit, offset);
+  // Use FTS5 search if search parameter is provided
+  if (searchQuery) {
+    total = await db.getSearchCount(searchQuery);
+    records = await db.searchRecords(searchQuery, limit, offset);
+  } else {
+    // Use regular filtering
+    total = await db.getRecordCount(queryParams);
+    records = await db.getRecords(queryParams, limit, offset);
+  }
 
   // Transform records to convert string numbers to actual numbers
   const transformedRecords = transformRecords(records);

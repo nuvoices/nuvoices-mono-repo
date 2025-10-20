@@ -16,6 +16,7 @@ export interface RecordsQueryParams {
   limit?: number;
   sort?: string;
   order?: "asc" | "desc";
+  search?: string; // Full-text search query using FTS5
   [key: string]: string | number | undefined; // Allow arbitrary filter fields
 }
 
