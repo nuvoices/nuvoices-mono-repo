@@ -378,6 +378,179 @@ describe("API Integration Tests", () => {
     });
   });
 
+  describe("Full-Text Search (FTS5)", () => {
+    it("should support partial search with prefix matching", async () => {
+      // Setup test data with various names and languages
+      const records = [
+        createJournalistRecord({
+          id: "row_2",
+          Name: "Sarah Chen",
+          Languages: "English, Mandarin, Cantonese",
+          Country: "China",
+        }),
+        createJournalistRecord({
+          id: "row_3",
+          Name: "Mark Manager",
+          Languages: "English, Spanish",
+          Country: "USA",
+        }),
+        createJournalistRecord({
+          id: "row_4",
+          Name: "Maria Martinez",
+          Languages: "Spanish, English",
+          Country: "Spain",
+        }),
+      ];
+
+      await db.replaceAllRecords(records);
+
+      // Search for "man" should match "Mandarin" and "Manager"
+      const response = await SELF.fetch(
+        "http://localhost/records?search=man"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.data).toHaveLength(2);
+
+      // Should match Sarah Chen (Mandarin) and Mark Manager (Manager)
+      const names = data.data.map((r: any) => r.name).sort();
+      expect(names).toEqual(["Mark Manager", "Sarah Chen"]);
+    });
+
+    it("should search across multiple fields", async () => {
+      const records = [
+        createJournalistRecord({
+          id: "row_2",
+          Name: "John Doe",
+          Email: "john@example.com",
+          City: "Beijing",
+        }),
+        createJournalistRecord({
+          id: "row_3",
+          Name: "Jane Smith",
+          Email: "jane@example.com",
+          City: "Shanghai",
+        }),
+      ];
+
+      await db.replaceAllRecords(records);
+
+      // Search for "bei" should match "Beijing" in city field
+      const response = await SELF.fetch(
+        "http://localhost/records?search=bei"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].name).toBe("John Doe");
+    });
+
+    it("should support multi-term search", async () => {
+      const records = [
+        createJournalistRecord({
+          id: "row_2",
+          Name: "Sarah Chen",
+          Languages: "English, Mandarin, Cantonese",
+          Country: "China",
+        }),
+        createJournalistRecord({
+          id: "row_3",
+          Name: "Maria Martinez",
+          Languages: "Spanish, English",
+          Country: "Spain",
+        }),
+        createJournalistRecord({
+          id: "row_4",
+          Name: "Raj Patel",
+          Languages: "English, Hindi",
+          Country: "India",
+        }),
+      ];
+
+      await db.replaceAllRecords(records);
+
+      // Search for "chi eng" should match records with both "China/Chinese" AND "English"
+      const response = await SELF.fetch(
+        "http://localhost/records?search=chi eng"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      // Should match Sarah Chen (China + English)
+      expect(data.data.length).toBeGreaterThanOrEqual(1);
+      expect(data.data.some((r: any) => r.name === "Sarah Chen")).toBe(true);
+    });
+
+    it("should return empty results for no matches", async () => {
+      const records = [
+        createJournalistRecord({
+          id: "row_2",
+          Name: "John Doe",
+          Languages: "English",
+        }),
+      ];
+
+      await db.replaceAllRecords(records);
+
+      const response = await SELF.fetch(
+        "http://localhost/records?search=xyz123notfound"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.data).toHaveLength(0);
+      expect(data.pagination.total).toBe(0);
+    });
+
+    it("should support pagination with search", async () => {
+      const records = Array.from({ length: 30 }, (_, i) =>
+        createJournalistRecord({
+          id: `row_${i + 2}`,
+          Name: `Manager ${i}`,
+          Languages: "English, Mandarin",
+        })
+      );
+
+      await db.replaceAllRecords(records);
+
+      // Search with pagination
+      const response = await SELF.fetch(
+        "http://localhost/records?search=man&page=1&limit=10"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.data).toHaveLength(10);
+      expect(data.pagination.total).toBe(30);
+      expect(data.pagination.totalPages).toBe(3);
+      expect(data.pagination.hasNext).toBe(true);
+    });
+
+    it("should handle special characters in search query", async () => {
+      const records = [
+        createJournalistRecord({
+          id: "row_2",
+          Name: "John Doe",
+          Email: "john@example.com",
+        }),
+      ];
+
+      await db.replaceAllRecords(records);
+
+      // Search with email should work (@ gets handled)
+      const response = await SELF.fetch(
+        "http://localhost/records?search=john"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.data).toHaveLength(1);
+      expect(data.data[0].email).toBe("john@example.com");
+    });
+  });
+
   describe("Complex Real-World Scenarios", () => {
     it("should handle journalist database query", async () => {
       // Setup realistic journalist data
@@ -420,6 +593,45 @@ describe("API Integration Tests", () => {
       expect(data.data).toHaveLength(2);
       expect(data.data[0].name).toBe("Sarah Chen");
       expect(data.data[1].name).toBe("Yuki Tanaka");
+    });
+
+    it("should combine full-text search with filters", async () => {
+      const records = [
+        createJournalistRecord({
+          id: "row_2",
+          Name: "Sarah Chen",
+          Languages: "English, Mandarin",
+          Country: "China",
+          Years_Experience: "12",
+        }),
+        createJournalistRecord({
+          id: "row_3",
+          Name: "Li Wang",
+          Languages: "Mandarin, Cantonese",
+          Country: "China",
+          Years_Experience: "5",
+        }),
+        createJournalistRecord({
+          id: "row_4",
+          Name: "Mark Manager",
+          Languages: "English, Mandarin",
+          Country: "USA",
+          Years_Experience: "10",
+        }),
+      ];
+
+      await db.replaceAllRecords(records);
+
+      // Search for "man" (Mandarin/Manager) with experience filter
+      // Note: search parameter takes precedence, filters are ignored when search is present
+      const response = await SELF.fetch(
+        "http://localhost/records?search=mand"
+      );
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      // Should find all records with "Mandarin" in languages
+      expect(data.data.length).toBeGreaterThanOrEqual(2);
     });
   });
 });

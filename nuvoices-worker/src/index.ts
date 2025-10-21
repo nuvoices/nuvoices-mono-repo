@@ -81,7 +81,7 @@ app.get("/", (c) => {
       sync: "POST /sync - Manually trigger sync from Google Sheets (dev/testing)",
     },
     features: {
-      search: "Full-text search using FTS5 - Use ?search=query parameter",
+      search: "Full-text search with partial matching - Use ?search=query parameter. Automatically adds prefix matching (e.g., 'man' matches 'mandarin', 'manager')",
       filtering: "Field-specific filters - Use ?field=value parameters",
       pagination: "Use ?page=N&limit=M parameters",
     },

@@ -6,6 +6,9 @@ import {
   buildSelectQuery,
   buildCountQuery,
   getSQLType,
+  transformSearchQuery,
+  buildSearchQuery,
+  buildSearchCountQuery,
 } from "../../src/utils/query-builder";
 
 describe("Query Builder Utils", () => {
@@ -156,6 +159,90 @@ describe("Query Builder Utils", () => {
       expect(result.sql).toContain("WHERE");
       expect(result.sql).toContain("name = ?");
       expect(result.params).toEqual(["John"]);
+    });
+  });
+
+  describe("transformSearchQuery", () => {
+    it("should add wildcard to single term", () => {
+      expect(transformSearchQuery("man")).toBe("man*");
+    });
+
+    it("should add wildcards to multiple terms", () => {
+      expect(transformSearchQuery("man chi")).toBe("man* chi*");
+    });
+
+    it("should handle terms that already have wildcards", () => {
+      expect(transformSearchQuery("man*")).toBe("man*");
+    });
+
+    it("should handle empty string", () => {
+      expect(transformSearchQuery("")).toBe("");
+    });
+
+    it("should handle whitespace-only string", () => {
+      expect(transformSearchQuery("   ")).toBe("");
+    });
+
+    it("should handle extra whitespace between terms", () => {
+      expect(transformSearchQuery("man   chi   nese")).toBe("man* chi* nese*");
+    });
+
+    it("should clean special FTS5 characters", () => {
+      expect(transformSearchQuery("john@example.com")).toBe("john* example.com*");
+    });
+
+    it("should handle hyphenated terms", () => {
+      expect(transformSearchQuery("full-time")).toBe("full-time*");
+    });
+
+    it("should handle email addresses", () => {
+      expect(transformSearchQuery("user@domain")).toBe("user* domain*");
+    });
+
+    it("should remove problematic characters but keep valid ones", () => {
+      expect(transformSearchQuery("test!@#$%")).toBe("test*");
+    });
+
+    it("should handle mixed alphanumeric", () => {
+      expect(transformSearchQuery("abc123")).toBe("abc123*");
+    });
+  });
+
+  describe("buildSearchQuery", () => {
+    it("should build FTS5 search query with transformed terms", () => {
+      const result = buildSearchQuery("man", 20, 0);
+      expect(result.sql).toContain("SELECT r.*");
+      expect(result.sql).toContain("FROM records r");
+      expect(result.sql).toContain("INNER JOIN records_fts fts");
+      expect(result.sql).toContain("WHERE records_fts MATCH ?");
+      expect(result.sql).toContain("ORDER BY rank");
+      expect(result.sql).toContain("LIMIT ? OFFSET ?");
+      expect(result.params).toEqual(["man*", 20, 0]);
+    });
+
+    it("should transform multi-word queries", () => {
+      const result = buildSearchQuery("man chi", 10, 5);
+      expect(result.params).toEqual(["man* chi*", 10, 5]);
+    });
+
+    it("should handle pagination parameters", () => {
+      const result = buildSearchQuery("test", 50, 100);
+      expect(result.params).toEqual(["test*", 50, 100]);
+    });
+  });
+
+  describe("buildSearchCountQuery", () => {
+    it("should build FTS5 count query with transformed terms", () => {
+      const result = buildSearchCountQuery("man");
+      expect(result.sql).toContain("SELECT COUNT(*) as count");
+      expect(result.sql).toContain("FROM records_fts");
+      expect(result.sql).toContain("WHERE records_fts MATCH ?");
+      expect(result.params).toEqual(["man*"]);
+    });
+
+    it("should transform multi-word queries", () => {
+      const result = buildSearchCountQuery("man chi");
+      expect(result.params).toEqual(["man* chi*"]);
     });
   });
 });

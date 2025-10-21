@@ -9,6 +9,7 @@ A Cloudflare Worker that acts as a caching layer for Google Sheets using D1 data
 - **Cron-based Sync**: Automatically syncs every 2 minutes via Cloudflare Cron Triggers
 - **Full Table Replacement**: Simple, atomic sync strategy for small datasets (<1000 records)
 - **Timestamp Comparison**: Only syncs when Google Sheets data has changed
+- **Full-Text Search**: FTS5-powered partial search with automatic prefix matching
 - **Flexible Filtering**: Dynamic query parameters with operators (`>`, `<`, `>=`, `<=`, `!=`, `*`)
 - **Pagination**: Configurable page size with full metadata
 - **Type-Safe**: Full TypeScript implementation
@@ -207,15 +208,37 @@ Health check endpoint.
 
 ### GET /records
 
-List all records with filtering, sorting, and pagination.
+List all records with filtering, sorting, pagination, and full-text search.
 
 **Query Parameters:**
 
+- `search` (string): Full-text search query with automatic partial matching
 - `page` (number, default: 1): Page number
 - `limit` (number, default: 20, max: 100): Records per page
 - `sort` (string): Field name to sort by
 - `order` (string: "asc" | "desc", default: "desc"): Sort order
 - Any field name for filtering (e.g., `name=John`, `age=>18`, `status!=active`)
+
+**Full-Text Search:**
+
+The `search` parameter provides powerful partial matching across all text fields:
+
+- **Automatic prefix matching**: Searching "man" matches "Mandarin", "Manager", "Manual", etc.
+- **Multi-term search**: "man chi" finds records containing both terms
+- **Searches across all fields**: name, email, languages, country, city, specializations, etc.
+- **Fast performance**: Uses SQLite FTS5 full-text index
+
+Examples:
+```bash
+# Find records with "mandarin" or "manager" (partial match)
+curl "http://localhost:8787/records?search=man"
+
+# Find records with both "chinese" AND "english"
+curl "http://localhost:8787/records?search=chi eng"
+
+# Search with pagination
+curl "http://localhost:8787/records?search=jour&page=1&limit=10"
+```
 
 **Filter Operators:**
 
@@ -225,11 +248,19 @@ List all records with filtering, sorting, and pagination.
 - Not equal: `field=!=value`
 - LIKE pattern: `field=value*` (wildcards with `*`)
 
+**Note:** When using the `search` parameter, it takes precedence and filters are ignored.
+
 **Examples:**
 
 ```bash
 # Get first page (default 20 records)
 curl http://localhost:8787/records
+
+# Full-text search (partial matching)
+curl "http://localhost:8787/records?search=man"
+
+# Multi-term search
+curl "http://localhost:8787/records?search=mandarin journalist"
 
 # Custom pagination
 curl http://localhost:8787/records?page=2&limit=50

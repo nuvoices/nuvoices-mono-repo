@@ -237,14 +237,51 @@ export function buildPopulateFTS5SQL(): string {
 }
 
 /**
+ * Transform search query to support partial matching using FTS5 prefix search
+ * Adds wildcards (*) to each search term for prefix matching
+ *
+ * Examples:
+ * - "man" → "man*" (matches "man", "mandarin", "manager", etc.)
+ * - "man chi" → "man* chi*" (matches records with "mandarin" AND "chinese")
+ * - "john@example" → "john* example*" (handles special characters)
+ */
+export function transformSearchQuery(query: string): string {
+  if (!query || query.trim() === '') {
+    return query;
+  }
+
+  // Split by whitespace and filter out empty strings
+  const terms = query.trim().split(/\s+/).filter(term => term.length > 0);
+
+  // Add wildcard to each term for prefix matching
+  // Replace special FTS5 characters that could cause syntax errors
+  const transformedTerms = terms.map(term => {
+    // Remove special FTS5 operators and characters, keep alphanumeric and common punctuation
+    const cleaned = term.replace(/[^a-zA-Z0-9@._-]/g, '');
+
+    // Only add wildcard if term doesn't already have one and isn't empty
+    if (cleaned.length > 0 && !cleaned.endsWith('*')) {
+      return cleaned + '*';
+    }
+    return cleaned;
+  }).filter(term => term.length > 0);
+
+  return transformedTerms.join(' ');
+}
+
+/**
  * Build FTS5 search query with pagination
  * Searches across all columns in the FTS5 virtual table and joins back to main table
+ * Automatically transforms query for partial matching (prefix search)
  */
 export function buildSearchQuery(
   searchQuery: string,
   limit: number,
   offset: number
 ): SQLQuery {
+  // Transform query to support partial matching
+  const transformedQuery = transformSearchQuery(searchQuery);
+
   // FTS5 search using MATCH operator
   // Join back to main records table to get all fields
   const sql = `
@@ -258,14 +295,18 @@ export function buildSearchQuery(
 
   return {
     sql,
-    params: [searchQuery, limit, offset],
+    params: [transformedQuery, limit, offset],
   };
 }
 
 /**
  * Build COUNT query for FTS5 search results
+ * Automatically transforms query for partial matching (prefix search)
  */
 export function buildSearchCountQuery(searchQuery: string): SQLQuery {
+  // Transform query to support partial matching
+  const transformedQuery = transformSearchQuery(searchQuery);
+
   const sql = `
     SELECT COUNT(*) as count
     FROM records_fts
@@ -274,6 +315,6 @@ export function buildSearchCountQuery(searchQuery: string): SQLQuery {
 
   return {
     sql,
-    params: [searchQuery],
+    params: [transformedQuery],
   };
 }
