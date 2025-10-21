@@ -15,18 +15,11 @@ const app = new Hono<{ Bindings: Env }>();
 /**
  * Middleware
  */
-// CORS - Allow requests from your frontend
+// CORS - Allow requests from any origin
 app.use("*", cors({
-  origin: [
-    "http://localhost:3000",  // Local development
-    "http://localhost:3001",
-    "https://nuvoices.com",   // Production domain (update to your actual domain)
-    "https://www.nuvoices.com",
-    /https:\/\/.*\.vercel\.app$/, // Vercel preview deployments
-  ],
+  origin: "*",  // Allow all origins (can be restricted later if needed)
   allowMethods: ["GET", "POST", "OPTIONS"],
   allowHeaders: ["Content-Type"],
-  credentials: true,
 }));
 
 app.use("*", logger);
