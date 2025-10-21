@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import type { Env } from "./types";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 import { logger } from "./middleware/logger";
@@ -14,6 +15,20 @@ const app = new Hono<{ Bindings: Env }>();
 /**
  * Middleware
  */
+// CORS - Allow requests from your frontend
+app.use("*", cors({
+  origin: [
+    "http://localhost:3000",  // Local development
+    "http://localhost:3001",
+    "https://nuvoices.com",   // Production domain (update to your actual domain)
+    "https://www.nuvoices.com",
+    /https:\/\/.*\.vercel\.app$/, // Vercel preview deployments
+  ],
+  allowMethods: ["GET", "POST", "OPTIONS"],
+  allowHeaders: ["Content-Type"],
+  credentials: true,
+}));
+
 app.use("*", logger);
 
 /**
