@@ -19,6 +19,13 @@ body {
   --font-weight-normal: 400;
   --font-weight-regular: 400;
   --color-black: #000;
+
+  /* Responsive breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 }
 
 @theme inline {
