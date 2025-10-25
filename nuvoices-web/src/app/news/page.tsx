@@ -10,7 +10,7 @@ import {
   ArticleExcerpt,
   ArticleDate,
 } from "@/components/ui/grid";
-import { Container } from "@/components/ui/Container";
+import { Content } from "@/components/ui/Content";
 
 interface NewsPost {
   _id: string;
@@ -71,7 +71,7 @@ export default async function NewsPage() {
         </div>
 
         {/* Articles Grid - using grid components */}
-        <Container>
+        <Content>
           {newsPosts.length > 0 ? (
             <Grid>
               {/* Group news items into rows of 3 */}
@@ -100,7 +100,7 @@ export default async function NewsPage() {
               <p className="text-[1rem] text-[#3c2e24] opacity-75">Make sure to create posts with the &quot;news&quot; category in Sanity Studio.</p>
             </div>
           )}
-        </Container>
+        </Content>
       </main>
     </div>
   );

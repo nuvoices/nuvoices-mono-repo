@@ -10,7 +10,7 @@ import {
   ArticleExcerpt,
   ArticleDate,
 } from "@/components/ui/grid";
-import { Container } from "@/components/ui/Container";
+import { Content } from "@/components/ui/Content";
 
 interface Post {
   _id: string;
@@ -77,7 +77,7 @@ export default async function MagazinePage() {
         </div>
 
         {/* Articles Grid - 1446px = 45.1875rem width, 606px = 18.9375rem height per row */}
-        <Container>
+        <Content>
           {posts.length > 0 ? (
             <Grid>
               {/* Group posts into rows of 3 */}
@@ -106,7 +106,7 @@ export default async function MagazinePage() {
               <p className="text-[1rem] text-[#3c2e24] opacity-75">Make sure to create posts with the &quot;featuredstories&quot; category in Sanity Studio.</p>
             </div>
           )}
-        </Container>
+        </Content>
       </main>
     </div>
   );

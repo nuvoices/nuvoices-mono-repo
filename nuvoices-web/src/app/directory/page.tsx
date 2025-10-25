@@ -1,9 +1,9 @@
-import { Container } from "@/components/ui/Container";
+import { Content } from "@/components/ui/Content";
 
 export default function DirectoryPage() {
   return (
     <div className="min-h-screen bg-[#f4ecea]">
-      <Container variant="narrow">
+      <Content>
         <main className="py-[3rem]">
         {/* Title */}
         <h1 className="text-[2.96875rem] font-serif font-normal leading-[1.1] tracking-[-0.089rem] text-[#3c2e24] mb-[1.5rem] text-center">
@@ -68,7 +68,7 @@ export default function DirectoryPage() {
           />
         </div>
       </main>
-      </Container>
+      </Content>
     </div>
   );
 }

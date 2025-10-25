@@ -10,7 +10,7 @@ import {
   ArticleExcerpt,
   ArticleDate
 } from '@/components/ui/grid';
-import { Container } from '@/components/ui/Container';
+import { Content } from '@/components/ui/Content';
 
 interface Post {
   _id: string;
@@ -128,7 +128,7 @@ export default async function Home() {
   return (
     <div className="bg-[#f4ecea] flex flex-col gap-[1.563rem] items-center min-h-screen">
       {/* Hero Section */}
-      <Container className="relative">
+      <Content className="relative">
         <div className="flex flex-col items-center gap-[1.563rem] pt-[1.563rem]">
           {/* Logo placeholder - 270px x 354px */}
           <div className="w-[8.438rem] h-[11.063rem] relative">
@@ -157,7 +157,7 @@ export default async function Home() {
             </a>
           </div>
         </div>
-      </Container>
+      </Content>
 
       {/* Featured Section */}
       {featuredPost && (
@@ -165,7 +165,7 @@ export default async function Home() {
           <div className="font-sans font-semibold text-[1.25rem] text-black text-center">
             Featured Content
           </div>
-          <Container className="flex flex-col gap-[0.625rem] items-center">
+          <Content className="flex flex-col gap-[0.625rem] items-center">
             <a href={`/magazine/${featuredPost.slug.current}`} className="flex flex-col gap-[0.625rem] items-center w-full no-underline hover:no-underline">
             {featuredPost.featuredImage?.asset?.url && (
               <div className="h-[18.75rem] w-full relative">
@@ -187,7 +187,7 @@ export default async function Home() {
               })}
             </div>
           </a>
-          </Container>
+          </Content>
         </div>
       )}
 
@@ -197,7 +197,7 @@ export default async function Home() {
           <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
             Magazine
           </div>
-          <Container>
+          <Content>
             <Grid>
             <GridRow>
               {magazinePosts.map((post, index) => (
@@ -216,7 +216,7 @@ export default async function Home() {
               ))}
             </GridRow>
           </Grid>
-          </Container>
+          </Content>
         </div>
       )}
 
@@ -226,7 +226,7 @@ export default async function Home() {
           <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
             Podcast
           </div>
-          <Container>
+          <Content>
             <Grid>
             <GridRow>
               {podcastPosts.map((post, index) => (
@@ -245,7 +245,7 @@ export default async function Home() {
               ))}
             </GridRow>
           </Grid>
-          </Container>
+          </Content>
         </div>
       )}
 
@@ -255,7 +255,7 @@ export default async function Home() {
           <div className="font-sans font-semibold text-[1.25rem] text-[#3c2e24] text-center">
             News
           </div>
-          <Container>
+          <Content>
             <Grid>
             <GridRow>
               {newsPosts.map((post, index) => (
@@ -274,7 +274,7 @@ export default async function Home() {
               ))}
             </GridRow>
           </Grid>
-          </Container>
+          </Content>
         </div>
       )}
     </div>
