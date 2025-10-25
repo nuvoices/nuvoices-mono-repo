@@ -1,7 +1,10 @@
+import { Container } from "@/components/ui/Container";
+
 export default function DirectoryPage() {
   return (
     <div className="min-h-screen bg-[#f4ecea]">
-      <main className="max-w-[35.71875rem] mx-auto px-[1.875rem] py-[3rem]">
+      <Container variant="narrow">
+        <main className="py-[3rem]">
         {/* Title */}
         <h1 className="text-[2.96875rem] font-serif font-normal leading-[1.1] tracking-[-0.089rem] text-[#3c2e24] mb-[1.5rem] text-center">
           Expert Directory
@@ -65,6 +68,7 @@ export default function DirectoryPage() {
           />
         </div>
       </main>
+      </Container>
     </div>
   );
 }

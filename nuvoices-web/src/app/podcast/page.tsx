@@ -10,6 +10,7 @@ import {
   ArticleExcerpt,
   ArticleDate,
 } from '@/components/ui/grid'
+import { Container } from '@/components/ui/Container'
 
 interface PodcastEpisode {
   _id: string
@@ -50,7 +51,7 @@ export default async function PodcastPage() {
 
   return (
     <div className="min-h-screen bg-pink-50">
-      <div className="max-w-6xl mx-auto px-6 py-16">
+      <Container variant="wide" className="py-16">
         <h1 className="text-5xl font-serif text-center mb-6">Podcast</h1>
         <p className="text-xl italic text-center mb-16">
           A show coordinated, produced and edited by the NüVoices board.
@@ -86,7 +87,7 @@ export default async function PodcastPage() {
             <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the &quot;podcast&quot; category in Sanity.</p>
           </div>
         )}
-      </div>
+      </Container>
     </div>
   )
 }
