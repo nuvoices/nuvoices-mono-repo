@@ -59,29 +59,24 @@ export default async function PodcastPage() {
 
         {/* Episodes Grid - using grid components */}
         {episodes.length > 0 ? (
-          <div className="flex justify-center">
-            <Grid>
-              {/* Group episodes into rows of 3 */}
-              {Array.from({ length: Math.ceil(episodes.length / 3) }, (_, rowIndex) => (
-                <GridRow key={rowIndex}>
-                  {episodes.slice(rowIndex * 3, (rowIndex + 1) * 3).map((episode, indexInRow) => (
-                    <Article key={episode._id} href={`/podcast/${episode.slug.current}`}>
-                      <ArticleImage
-                        src={episode.featuredImage?.asset?.url}
-                        alt={episode.title}
-                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
-                      />
-                      <ArticleContent>
-                        <ArticleTitle>{episode.title}</ArticleTitle>
-                        {episode.excerpt && <ArticleExcerpt>{episode.excerpt}</ArticleExcerpt>}
-                        <ArticleDate date={episode.publishedAt} />
-                      </ArticleContent>
-                    </Article>
-                  ))}
-                </GridRow>
+          <Grid>
+            <GridRow>
+              {episodes.map((episode, index) => (
+                <Article key={episode._id} href={`/podcast/${episode.slug.current}`}>
+                  <ArticleImage
+                    src={episode.featuredImage?.asset?.url}
+                    alt={episode.title}
+                    rotation={index % 2 === 0 ? 'left' : 'right'}
+                  />
+                  <ArticleContent>
+                    <ArticleTitle>{episode.title}</ArticleTitle>
+                    {episode.excerpt && <ArticleExcerpt>{episode.excerpt}</ArticleExcerpt>}
+                    <ArticleDate date={episode.publishedAt} />
+                  </ArticleContent>
+                </Article>
               ))}
-            </Grid>
-          </div>
+            </GridRow>
+          </Grid>
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the &quot;podcast&quot; category in Sanity.</p>

@@ -80,25 +80,22 @@ export default async function MagazinePage() {
         <Content>
           {posts.length > 0 ? (
             <Grid>
-              {/* Group posts into rows of 3 */}
-              {Array.from({ length: Math.ceil(posts.length / 3) }, (_, rowIndex) => (
-                <GridRow key={rowIndex}>
-                  {posts.slice(rowIndex * 3, (rowIndex + 1) * 3).map((post, indexInRow) => (
-                    <Article key={post._id} href={`/magazine/${post.slug.current}`}>
-                      <ArticleImage
-                        src={post.featuredImage?.asset?.url}
-                        alt={post.featuredImage?.alt || post.title}
-                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
-                      />
-                      <ArticleContent>
-                        <ArticleTitle>{post.title}</ArticleTitle>
-                        {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
-                        <ArticleDate date={post.publishedAt} />
-                      </ArticleContent>
-                    </Article>
-                  ))}
-                </GridRow>
-              ))}
+              <GridRow>
+                {posts.map((post, index) => (
+                  <Article key={post._id} href={`/magazine/${post.slug.current}`}>
+                    <ArticleImage
+                      src={post.featuredImage?.asset?.url}
+                      alt={post.featuredImage?.alt || post.title}
+                      rotation={index % 2 === 0 ? 'left' : 'right'}
+                    />
+                    <ArticleContent>
+                      <ArticleTitle>{post.title}</ArticleTitle>
+                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                      <ArticleDate date={post.publishedAt} />
+                    </ArticleContent>
+                  </Article>
+                ))}
+              </GridRow>
             </Grid>
           ) : (
             <div className="text-center py-[6rem]">

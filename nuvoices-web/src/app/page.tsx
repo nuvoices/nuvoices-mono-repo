@@ -199,23 +199,23 @@ export default async function Home() {
           </div>
           <Content>
             <Grid>
-            <GridRow>
-              {magazinePosts.map((post, index) => (
-                <Article key={post._id} href={`/magazine/${post.slug.current}`}>
-                  <ArticleImage
-                    src={post.featuredImage?.asset?.url}
-                    alt={post.featuredImage?.alt || post.title}
-                    rotation={index % 2 === 0 ? 'left' : 'right'}
-                  />
-                  <ArticleContent>
-                    <ArticleTitle>{post.title}</ArticleTitle>
-                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
-                    <ArticleDate date={post.publishedAt} />
-                  </ArticleContent>
-                </Article>
-              ))}
-            </GridRow>
-          </Grid>
+              <GridRow>
+                {magazinePosts.map((post, index) => (
+                  <Article key={post._id} href={`/magazine/${post.slug.current}`}>
+                    <ArticleImage
+                      src={post.featuredImage?.asset?.url}
+                      alt={post.featuredImage?.alt || post.title}
+                      rotation={index % 2 === 0 ? 'left' : 'right'}
+                    />
+                    <ArticleContent>
+                      <ArticleTitle>{post.title}</ArticleTitle>
+                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                      <ArticleDate date={post.publishedAt} />
+                    </ArticleContent>
+                  </Article>
+                ))}
+              </GridRow>
+            </Grid>
           </Content>
         </div>
       )}
@@ -228,23 +228,23 @@ export default async function Home() {
           </div>
           <Content>
             <Grid>
-            <GridRow>
-              {podcastPosts.map((post, index) => (
-                <Article key={post._id} href={`/podcast/${post.slug.current}`}>
-                  <ArticleImage
-                    src={post.featuredImage?.asset?.url}
-                    alt={post.featuredImage?.alt || post.title}
-                    rotation={index % 2 === 0 ? 'left' : 'right'}
-                  />
-                  <ArticleContent>
-                    <ArticleTitle>{post.title}</ArticleTitle>
-                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
-                    <ArticleDate date={post.publishedAt} />
-                  </ArticleContent>
-                </Article>
-              ))}
-            </GridRow>
-          </Grid>
+              <GridRow>
+                {podcastPosts.map((post, index) => (
+                  <Article key={post._id} href={`/podcast/${post.slug.current}`}>
+                    <ArticleImage
+                      src={post.featuredImage?.asset?.url}
+                      alt={post.featuredImage?.alt || post.title}
+                      rotation={index % 2 === 0 ? 'left' : 'right'}
+                    />
+                    <ArticleContent>
+                      <ArticleTitle>{post.title}</ArticleTitle>
+                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                      <ArticleDate date={post.publishedAt} />
+                    </ArticleContent>
+                  </Article>
+                ))}
+              </GridRow>
+            </Grid>
           </Content>
         </div>
       )}
@@ -257,23 +257,23 @@ export default async function Home() {
           </div>
           <Content>
             <Grid>
-            <GridRow>
-              {newsPosts.map((post, index) => (
-                <Article key={post._id} href={`/news/${post.slug.current}`}>
-                  <ArticleImage
-                    src={post.featuredImage?.asset?.url}
-                    alt={post.featuredImage?.alt || post.title}
-                    rotation={index % 2 === 0 ? 'left' : 'right'}
-                  />
-                  <ArticleContent>
-                    <ArticleTitle>{post.title}</ArticleTitle>
-                    {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
-                    <ArticleDate date={post.publishedAt} />
-                  </ArticleContent>
-                </Article>
-              ))}
-            </GridRow>
-          </Grid>
+              <GridRow>
+                {newsPosts.map((post, index) => (
+                  <Article key={post._id} href={`/news/${post.slug.current}`}>
+                    <ArticleImage
+                      src={post.featuredImage?.asset?.url}
+                      alt={post.featuredImage?.alt || post.title}
+                      rotation={index % 2 === 0 ? 'left' : 'right'}
+                    />
+                    <ArticleContent>
+                      <ArticleTitle>{post.title}</ArticleTitle>
+                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                      <ArticleDate date={post.publishedAt} />
+                    </ArticleContent>
+                  </Article>
+                ))}
+              </GridRow>
+            </Grid>
           </Content>
         </div>
       )}
