@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Content } from "@/components/ui/Content";
 
 export default function DirectoryPage() {
@@ -17,9 +18,9 @@ export default function DirectoryPage() {
 
         {/* Access button */}
         <div className="flex justify-center mb-[2.5rem]">
-          <button className="bg-[#3c2e24] text-[#f5f4f1] px-[2.5rem] py-[0.75rem] text-[0.781rem] font-sans font-extrabold uppercase rounded-[0.313rem] hover:bg-opacity-90 transition">
+          <Link href="/experts" className="bg-[#3c2e24] text-[#f5f4f1] px-[2.5rem] py-[0.75rem] text-[0.781rem] font-sans font-extrabold uppercase rounded-[0.313rem] hover:bg-opacity-90 transition inline-block">
             ACCESS OUR DIRECTORY HERE
-          </button>
+          </Link>
         </div>
 
         {/* Main content */}
