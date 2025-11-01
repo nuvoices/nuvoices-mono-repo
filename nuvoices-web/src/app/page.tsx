@@ -11,6 +11,7 @@ import {
   ArticleDate
 } from '@/components/ui/grid';
 import { Content } from '@/components/ui/Content';
+import ActionButton from '@/components/ActionButton';
 
 interface Post {
   _id: string;
@@ -146,15 +147,9 @@ export default async function Home() {
 
           {/* Buttons - 252px x 99px, 35px text */}
           <div className="flex gap-[0.938rem]">
-            <a href="/join" className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center transition-all duration-200 hover:bg-[#5a4638] hover:scale-105 hover:shadow-lg no-underline hover:no-underline border-0">
-              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">JOIN</span>
-            </a>
-            <button className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center transition-all duration-200 hover:bg-[#5a4638] hover:scale-105 hover:shadow-lg border-0">
-              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">DONATE</span>
-            </button>
-            <a href="/explore" className="bg-[#3c2e24] rounded-[0.313rem] w-[7.875rem] h-[3.094rem] flex items-center justify-center transition-all duration-200 hover:bg-[#5a4638] hover:scale-105 hover:shadow-lg no-underline hover:no-underline border-0">
-              <span className="font-sans font-extrabold text-[1.094rem] text-[#f5f4f1] uppercase">EXPLORE</span>
-            </a>
+            <ActionButton href="/join" label="JOIN" />
+            <ActionButton label="DONATE" />
+            <ActionButton href="/explore" label="EXPLORE" />
           </div>
         </div>
       </Content>
