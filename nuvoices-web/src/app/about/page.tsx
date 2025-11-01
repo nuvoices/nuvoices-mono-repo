@@ -12,9 +12,6 @@ export default function AboutPage() {
             <h1 className="text-[2.5rem] font-serif leading-[1.2] tracking-[-0.075rem] text-black inline">
               About Us
             </h1>
-            <span className="text-[1.875rem] font-serif leading-[1.2] tracking-[-0.075rem] text-black ml-[1rem]">
-              关于我们
-            </span>
           </div>
 
           {/* Introduction - 40px = 1.25rem, 50px line height = 1.5625rem */}
@@ -72,6 +69,25 @@ export default function AboutPage() {
               </p>
               <p>
                 <span>Get in touch with our team at </span><a href="mailto:nuvoices@protonmail.com" className="text-black no-underline hover:bg-yellow-200 transition-colors">nuvoices@protonmail.com</a>
+              </p>
+            </div>
+
+            {/* Non-profit status */}
+            <div className="mt-[2rem]">
+              <p className="font-serif text-[0.9375rem] leading-[1.6] text-black">
+                NUVOICES INC is a non-profit charity (
+                <a href="https://apps.irs.gov/app/eos/" className="text-black underline hover:opacity-70 transition">
+                  EIN number 882135796
+                </a>
+                ) established in the United States under the US IRS Code Section{' '}
+                <a href="https://en.wikipedia.org/wiki/501(c)_organization#501(c)(3)" className="text-black underline hover:opacity-70 transition">
+                  501(c)(3)
+                </a>
+                , and, for that reason, donations from persons or entities located in the United States may benefit from tax-deductible status. Read our impact report{' '}
+                <a href="https://nuvoices.com/2020/08/25/support-nuvoices-on-patreon/" className="text-black underline hover:opacity-70 transition">
+                  here
+                </a>
+                .
               </p>
             </div>
           </div>

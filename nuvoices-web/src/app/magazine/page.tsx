@@ -11,6 +11,7 @@ import {
   ArticleDate,
 } from "@/components/ui/grid";
 import { Content } from "@/components/ui/Content";
+import ActionButton from "@/components/ActionButton";
 
 interface Post {
   _id: string;
@@ -68,12 +69,7 @@ export default async function MagazinePage() {
           <p className="text-[1.5625rem] font-serif italic leading-[1.1] tracking-[-0.047rem] text-black mb-[1.25rem]">
             A magazine of ideas from minority voices on China subjects
           </p>
-          <a
-            href="/submissions"
-            className="inline-block px-[2.5rem] py-[0.75rem] bg-[#3c2e24] text-[#f5f4f1] font-sans font-extrabold uppercase text-[0.781rem] leading-[1.1] rounded-[0.313rem] hover:bg-opacity-90 transition no-underline"
-          >
-            SUBMISSIONS
-          </a>
+          <ActionButton href="/submissions" label="SUBMISSIONS" variant="flexible" />
         </div>
 
         {/* Articles Grid - 1446px = 45.1875rem width, 606px = 18.9375rem height per row */}

@@ -5,8 +5,16 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
-import NavigationLinks from './NavigationLinks';
+import NavigationLinks, { type NavLink } from './NavigationLinks';
 import SocialIcons from './SocialIcons';
+
+const headerNavigationLinks: NavLink[] = [
+  { href: '/about', label: 'About' },
+  { href: '/magazine', label: 'Magazine' },
+  { href: '/podcast', label: 'Podcast' },
+  { href: '/news', label: 'News' },
+  { href: '/directory', label: 'Directory' },
+];
 
 export default function Header() {
   const pathname = usePathname();
@@ -39,7 +47,7 @@ export default function Header() {
           {/* Right Section: Navigation */}
           {/* Desktop Navigation */}
           <nav className="hidden md:flex gap-[1.25rem]">
-            <NavigationLinks variant="header" />
+            <NavigationLinks links={headerNavigationLinks} variant="header" />
           </nav>
 
           {/* Mobile Menu Button */}
@@ -84,7 +92,7 @@ export default function Header() {
 
           {/* Mobile Navigation Links */}
           <nav className="flex flex-col gap-6 border-t border-[#3c2e24]/10 pt-6">
-            <NavigationLinks variant="mobile" onLinkClick={() => setMobileMenuOpen(false)} />
+            <NavigationLinks links={headerNavigationLinks} variant="mobile" onLinkClick={() => setMobileMenuOpen(false)} />
           </nav>
 
           {/* Mobile Social Icons */}
