@@ -5,25 +5,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
-import TwitterIcon from '../../public/icons/twitter.svg';
-import InstagramIcon from '../../public/icons/instagram.svg';
-import LinkedInIcon from '../../public/icons/linkedin.svg';
-import EmailIcon from '../../public/icons/email.svg';
-
-const navigationLinks = [
-  { href: '/about', label: 'About' },
-  { href: '/magazine', label: 'Magazine' },
-  { href: '/podcast', label: 'Podcast' },
-  { href: '/news', label: 'News' },
-  { href: '/directory', label: 'Directory' },
-];
-
-const socialLinks = [
-  { href: '#', icon: TwitterIcon, label: 'Twitter', size: 'w-[0.844rem] h-[0.844rem]' },
-  { href: '#', icon: InstagramIcon, label: 'Instagram', size: 'w-[0.781rem] h-[0.844rem]' },
-  { href: '#', icon: LinkedInIcon, label: 'LinkedIn', size: 'w-[0.844rem] h-[0.844rem]' },
-  { href: '#', icon: EmailIcon, label: 'Email', size: 'w-[1.125rem] h-[1.125rem]' },
-];
+import NavigationLinks from './NavigationLinks';
+import SocialIcons from './SocialIcons';
 
 export default function Header() {
   const pathname = usePathname();
@@ -42,49 +25,27 @@ export default function Header() {
                 <Image
                   src="/nuvoices-logo-header.png"
                   alt="NüVoices"
-                  width={57}
-                  height={75}
-                  className="w-[1.781rem] h-[2.344rem]"
+                  width={18}
+                  height={24}
+                  className="w-[18px] h-[24px] block"
                 />
               </Link>
             )}
 
             {/* Social Icons - Desktop */}
-            <div className="hidden sm:flex gap-[0.781rem]">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    aria-label={social.label}
-                    className="hover:opacity-80 transition"
-                  >
-                    <Icon className={`${social.size} text-[#3c2e24]`} />
-                  </a>
-                );
-              })}
-            </div>
+            <SocialIcons variant="desktop" />
           </div>
 
           {/* Right Section: Navigation */}
           {/* Desktop Navigation */}
           <nav className="hidden md:flex gap-[1.25rem]">
-            {navigationLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="font-sans font-semibold text-[0.688rem] text-[#3c2e24] capitalize tracking-[-0.021rem] hover:opacity-80 transition"
-              >
-                {link.label}
-              </a>
-            ))}
+            <NavigationLinks variant="header" />
           </nav>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded transition flex items-center justify-center min-w-[44px] min-h-[44px] bg-transparent border-none"
+            className="md:hidden p-2 rounded transition flex items-center justify-center min-w-[44px] min-h-[44px] bg-transparent border-none mr-[-10px]"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             type="button"
           >
@@ -123,34 +84,11 @@ export default function Header() {
 
           {/* Mobile Navigation Links */}
           <nav className="flex flex-col gap-6 border-t border-[#3c2e24]/10 pt-6">
-            {navigationLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-sans font-semibold text-lg text-[#f4ecea] capitalize hover:opacity-70 transition py-2 border-b border-[#3c2e24]/5"
-              >
-                {link.label}
-              </a>
-            ))}
+            <NavigationLinks variant="mobile" onLinkClick={() => setMobileMenuOpen(false)} />
           </nav>
 
           {/* Mobile Social Icons */}
-          <div className="flex gap-3 mt-8 pt-6 ">
-            {socialLinks.map((social) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-12 h-12 flex items-center justify-center hover:bg-[#f4ecea]/10 rounded-lg transition"
-                >
-                  <Icon className={`w-6 h-6 text-[#f4ecea] ${social.size}`} />
-                </a>
-              );
-            })}
-          </div>
+          <SocialIcons variant="mobile" />
         </div>
       </div>
     </>

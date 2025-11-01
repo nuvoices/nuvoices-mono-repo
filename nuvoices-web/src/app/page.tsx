@@ -141,7 +141,7 @@ export default async function Home() {
 
           {/* Tagline - 110px = 3.438rem */}
           <div className="font-serif text-[3.438rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]">
-            Amplifying the voices of women and minority experts on China
+            Amplifying women and minority voices on China
           </div>
 
           {/* Buttons - 252px x 99px, 35px text */}
