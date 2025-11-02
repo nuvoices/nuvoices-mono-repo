@@ -126,13 +126,170 @@ class ContentTransformer {
     return html;
   }
 
-  static htmlToPortableText(html, imageAssetMap = new Map()) {
+  /**
+   * Extract attributes from WordPress caption shortcode
+   */
+  static extractCaptionAttributes(captionTag) {
+    const attrs = {};
+
+    // Extract width
+    const widthMatch = captionTag.match(/width=["']?(\d+)["']?/i);
+    if (widthMatch) attrs.width = parseInt(widthMatch[1], 10);
+
+    // Extract height (less common but possible)
+    const heightMatch = captionTag.match(/height=["']?(\d+)["']?/i);
+    if (heightMatch) attrs.height = parseInt(heightMatch[1], 10);
+
+    // Extract align
+    const alignMatch = captionTag.match(/align=["']?(alignnone|alignleft|aligncenter|alignright)["']?/i);
+    if (alignMatch) attrs.align = alignMatch[1];
+
+    return attrs;
+  }
+
+  /**
+   * Preprocess horizontal rule markers (---) to convert to proper <hr> tags
+   * Handles patterns like:
+   * - <p>---</p>
+   * - <p>--- </p>
+   * - Standalone --- on its own line
+   */
+  static preprocessHorizontalRules(html) {
+    if (!html) return html;
+
+    // Convert <p>---</p> to <hr />
+    html = html.replace(/<p>\s*---\s*<\/p>/gi, '<hr />');
+
+    // Convert standalone --- (not in tags) at line boundaries
+    html = html.replace(/(^|\n)\s*---\s*($|\n)/g, '$1<hr />$2');
+
+    return html;
+  }
+
+  /**
+   * Preprocess WordPress caption shortcodes to preserve image-caption relationship
+   * Handles multiple WordPress caption formats:
+   * 1. <p>[caption ...]</p><img ...><p>Caption text[/caption]</p>
+   * 2. [caption ...]</p><img ...><p>Caption text[/caption]
+   * 3. [caption ...]<img ...>Caption text[/caption]
+   * Converts to: <figure data-wp-caption data-width="..." data-align="..."><img ...><figcaption>Caption text</figcaption></figure>
+   */
+  static preprocessCaptions(html) {
+    if (!html) return html;
+
+    // Pattern 1: Standard format with full <p> tags
+    // <p>[caption id="..." ...]</p> <img ...> <p>Caption text[/caption]</p>
+    // Allow whitespace (including newlines) between [/caption] and </p>
+    const standardPattern = /<p>(\[caption[^\]]*\])<\/p>\s*(<img[^>]*>)\s*<p>\s*([^]*?)\[\/caption\]\s*<\/p>/gi;
+
+    html = html.replace(standardPattern, (match, captionTag, imgTag, captionText) => {
+      const attrs = this.extractCaptionAttributes(captionTag);
+      const cleanCaption = captionText.replace(/<br\s*\/?>/gi, ' ').trim();
+
+      let figureAttrs = 'data-wp-caption';
+      if (attrs.width) figureAttrs += ` data-width="${attrs.width}"`;
+      if (attrs.height) figureAttrs += ` data-height="${attrs.height}"`;
+      if (attrs.align) figureAttrs += ` data-align="${attrs.align}"`;
+
+      return `<figure ${figureAttrs}>${imgTag}<figcaption>${cleanCaption}</figcaption></figure>`;
+    });
+
+    // Pattern 2: Variant without opening <p> tag or closing </p> tag
+    // [caption id="..." ...]</p> <img ...> <p>Caption text[/caption]
+    const variantPattern = /(\[caption[^\]]*\])<\/p>\s*(<img[^>]*>)\s*<p>\s*([^]*?)\[\/caption\]/gi;
+
+    html = html.replace(variantPattern, (match, captionTag, imgTag, captionText) => {
+      const attrs = this.extractCaptionAttributes(captionTag);
+      const cleanCaption = captionText.replace(/<br\s*\/?>/gi, ' ').trim();
+
+      let figureAttrs = 'data-wp-caption';
+      if (attrs.width) figureAttrs += ` data-width="${attrs.width}"`;
+      if (attrs.height) figureAttrs += ` data-height="${attrs.height}"`;
+      if (attrs.align) figureAttrs += ` data-align="${attrs.align}"`;
+
+      return `<figure ${figureAttrs}>${imgTag}<figcaption>${cleanCaption}</figcaption></figure>`;
+    });
+
+    // Pattern 3: Inline version (completely unwrapped)
+    // [caption ...]<img ...>Caption text[/caption]
+    const inlinePattern = /(\[caption[^\]]*\])(<img[^>]*>)([^]*?)\[\/caption\]/gi;
+
+    html = html.replace(inlinePattern, (match, captionTag, imgTag, captionText) => {
+      const attrs = this.extractCaptionAttributes(captionTag);
+      const cleanCaption = captionText.replace(/<br\s*\/?>/gi, ' ').trim();
+
+      let figureAttrs = 'data-wp-caption';
+      if (attrs.width) figureAttrs += ` data-width="${attrs.width}"`;
+      if (attrs.height) figureAttrs += ` data-height="${attrs.height}"`;
+      if (attrs.align) figureAttrs += ` data-align="${attrs.align}"`;
+
+      return `<figure ${figureAttrs}>${imgTag}<figcaption>${cleanCaption}</figcaption></figure>`;
+    });
+
+    return html;
+  }
+
+  /**
+   * Preprocess WordPress gallery shortcodes to convert them to individual images (vertically aligned)
+   * Handles formats like:
+   * - [gallery ids="1,2,3"]
+   * - [gallery columns="2" ids="1,2,3,4"]
+   * Converts to: <figure><img src="URL" alt="Title"><figcaption>Title</figcaption></figure> (repeated for each image)
+   *
+   * @param {string} html - HTML content containing gallery shortcodes
+   * @param {Map} attachmentMap - Map of WordPress post IDs to attachment objects
+   * @returns {string} HTML with gallery shortcodes replaced by individual images
+   */
+  static preprocessGalleries(html, attachmentMap = new Map()) {
+    if (!html || attachmentMap.size === 0) return html;
+
+    // Pattern to match gallery shortcodes: [gallery ...ids="1,2,3"...]
+    const galleryPattern = /\[gallery\s+([^\]]+)\]/gi;
+
+    html = html.replace(galleryPattern, (match, attributes) => {
+      // Extract the ids attribute
+      const idsMatch = attributes.match(/ids=["']([^"']+)["']/i);
+      if (!idsMatch) {
+        console.warn(`Gallery shortcode found without ids attribute: ${match}`);
+        return match; // Return unchanged if no ids found
+      }
+
+      const ids = idsMatch[1].split(',').map(id => parseInt(id.trim(), 10));
+
+      // Build HTML for each image in the gallery
+      const imageHtmlArray = ids.map(id => {
+        const attachment = attachmentMap.get(id);
+        if (!attachment) {
+          console.warn(`Gallery image ID ${id} not found in attachments`);
+          return ''; // Skip missing attachments
+        }
+
+        // Use the full size image URL
+        const imgUrl = attachment.url;
+        const imgTitle = attachment.title || '';
+        const imgAlt = imgTitle; // Use title as alt text
+
+        // Create a figure element for each image (vertically stacked)
+        return `<figure class="wp-gallery-image"><img src="${imgUrl}" alt="${imgAlt}"><figcaption>${imgTitle}</figcaption></figure>`;
+      }).filter(Boolean); // Remove empty entries
+
+      // Join all images vertically (each in its own figure)
+      return imageHtmlArray.join('\n');
+    });
+
+    return html;
+  }
+
+  static htmlToPortableText(html, imageAssetMap = new Map(), attachmentMap = new Map()) {
     if (!html || html.trim() === '') {
       return [];
     }
 
     try {
-      // Preprocess to convert WordPress embeds to a parseable format
+      // Preprocess WordPress shortcodes and markdown
+      html = this.preprocessHorizontalRules(html);
+      html = this.preprocessGalleries(html, attachmentMap); // Process galleries before captions
+      html = this.preprocessCaptions(html);
       html = this.preprocessEmbeds(html);
 
       const dom = new JSDOM(html);
@@ -159,33 +316,54 @@ class ContentTransformer {
 
   static parseElement(element, imageAssetMap = new Map()) {
     const blocks = [];
+    const inlineTagNames = ['b', 'strong', 'i', 'em', 'code', 'a', 'span'];
+    const blockTagNames = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'ul', 'ol', 'li', 'div', 'figure', 'img', 'iframe', 'hr'];
+
+    // Helper to check if a node is inline content
+    const isInlineContent = (node) => {
+      if (node.nodeType === 3) { // Text node - always inline, including whitespace
+        return true;
+      }
+      if (node.nodeType === 1) { // Element node
+        const tagName = node.tagName.toLowerCase();
+        // Inline if it's in the inline list, or if it's NOT in the block list
+        return inlineTagNames.includes(tagName) || !blockTagNames.includes(tagName);
+      }
+      return false;
+    };
+
+    // Collect consecutive inline content into paragraphs
+    let inlineBuffer = [];
 
     for (const child of element.childNodes) {
-      if (child.nodeType === 3) { // Text node
-        const text = child.textContent.trim();
-        if (text) {
-          blocks.push({
-            _key: this.generateKey(),
-            _type: 'block',
-            style: 'normal',
-            children: [{
-              _key: this.generateKey(),
-              _type: 'span',
-              text: text,
-              marks: []
-            }]
-          });
+      if (isInlineContent(child)) {
+        inlineBuffer.push(child);
+      } else {
+        // Flush inline buffer if we have accumulated inline content
+        if (inlineBuffer.length > 0) {
+          const paragraph = this.createParagraphFromInlineContent(inlineBuffer);
+          if (paragraph) blocks.push(paragraph);
+          inlineBuffer = [];
         }
-      } else if (child.nodeType === 1) { // Element node
-        const block = this.convertElementToBlock(child, imageAssetMap);
-        if (block) {
-          if (Array.isArray(block)) {
-            blocks.push(...block);
-          } else {
-            blocks.push(block);
+
+        // Process block-level element
+        if (child.nodeType === 1) {
+          const block = this.convertElementToBlock(child, imageAssetMap);
+          if (block) {
+            if (Array.isArray(block)) {
+              blocks.push(...block);
+            } else {
+              blocks.push(block);
+            }
           }
         }
       }
+    }
+
+    // Flush any remaining inline content
+    if (inlineBuffer.length > 0) {
+      const paragraph = this.createParagraphFromInlineContent(inlineBuffer);
+      if (paragraph) blocks.push(paragraph);
     }
 
     return blocks.length > 0 ? blocks : [{
@@ -199,6 +377,48 @@ class ContentTransformer {
         marks: []
       }]
     }];
+  }
+
+  /**
+   * Create a paragraph block from a sequence of inline content nodes (text nodes and inline elements)
+   */
+  static createParagraphFromInlineContent(nodes) {
+    const children = [];
+    const markDefs = [];
+
+    for (const node of nodes) {
+      if (node.nodeType === 3) { // Text node
+        const text = node.textContent;
+        if (text) {
+          children.push({
+            _key: this.generateKey(),
+            _type: 'span',
+            text: text,
+            marks: []
+          });
+        }
+      } else if (node.nodeType === 1) { // Element node
+        const result = this.convertInlineElement(node, markDefs);
+        if (result) {
+          if (Array.isArray(result)) {
+            children.push(...result);
+          } else {
+            children.push(result);
+          }
+        }
+      }
+    }
+
+    if (children.length === 0) return null;
+
+    const block = {
+      _key: this.generateKey(),
+      _type: 'block',
+      style: 'normal',
+      children
+    };
+    if (markDefs.length > 0) block.markDefs = markDefs;
+    return block;
   }
 
   static convertElementToBlock(element, imageAssetMap = new Map()) {
@@ -276,6 +496,46 @@ class ContentTransformer {
         return this.parseList(element, 'bullet', imageAssetMap);
       case 'ol':
         return this.parseList(element, 'number', imageAssetMap);
+      case 'figure':
+        // Handle WordPress caption figure elements
+        if (element.hasAttribute('data-wp-caption')) {
+          const img = element.querySelector('img');
+          const figcaption = element.querySelector('figcaption');
+
+          if (img) {
+            const imgSrc = img.src || img.getAttribute('src');
+            const assetId = imageAssetMap.get(imgSrc);
+
+            if (!assetId) {
+              console.warn(`Skipping figure with image without uploaded asset: ${imgSrc}`);
+              return null;
+            }
+
+            const imageBlock = {
+              _key: this.generateKey(),
+              _type: 'image',
+              asset: {
+                _type: 'reference',
+                _ref: assetId
+              },
+              alt: img.alt || '',
+              caption: figcaption ? figcaption.textContent.trim() : (img.title || '')
+            };
+
+            // Extract and preserve width, height, and alignment from caption attributes
+            const width = element.getAttribute('data-width');
+            const height = element.getAttribute('data-height');
+            const align = element.getAttribute('data-align');
+
+            if (width) imageBlock.width = parseInt(width, 10);
+            if (height) imageBlock.height = parseInt(height, 10);
+            if (align) imageBlock.alignment = align.replace('align', ''); // aligncenter -> center
+
+            return imageBlock;
+          }
+        }
+        // For other figures, parse as container
+        return this.parseElement(element, imageAssetMap);
       case 'img':
         const imgSrc = element.src || element.getAttribute('src');
         const assetId = imageAssetMap.get(imgSrc);
@@ -327,6 +587,12 @@ class ContentTransformer {
 
         console.log(`  Found ${embedData.platform} embed: ${iframeSrc.substring(0, 60)}...`);
         return embedBlock;
+      case 'hr':
+        // Horizontal rule - convert to Portable Text horizontal rule block
+        return {
+          _key: this.generateKey(),
+          _type: 'horizontalRule'
+        };
       case 'br':
         return null; // Ignore line breaks
       case 'div':
@@ -410,23 +676,22 @@ class ContentTransformer {
     return { children: finalChildren, markDefs };
   }
 
-  static convertInlineElement(element, markDefs = []) {
+  static convertInlineElement(element, markDefs = [], inheritedMarks = []) {
     const tagName = element.tagName.toLowerCase();
-    const textContent = element.textContent;
 
-    const marks = [];
-
+    // Determine the mark for this element
+    let currentMark = null;
     switch (tagName) {
       case 'strong':
       case 'b':
-        marks.push('strong');
+        currentMark = 'strong';
         break;
       case 'em':
       case 'i':
-        marks.push('em');
+        currentMark = 'em';
         break;
       case 'code':
-        marks.push('code');
+        currentMark = 'code';
         break;
       case 'a':
         const href = element.href;
@@ -442,28 +707,41 @@ class ContentTransformer {
             blank: element.target === '_blank'
           });
 
-          // Reference the markDef by key in marks
-          marks.push(markKey);
+          currentMark = markKey;
         }
         break;
     }
 
-    if (textContent) {
-      return {
-        _key: this.generateKey(),
-        _type: 'span',
-        text: textContent,
-        marks: marks
-      };
+    // Combine inherited marks with current mark
+    const marks = currentMark ? [...inheritedMarks, currentMark] : inheritedMarks;
+
+    // Process children
+    const children = [];
+    for (const child of element.childNodes) {
+      if (child.nodeType === 3) { // Text node
+        const text = child.textContent;
+        if (text) {
+          children.push({
+            _key: this.generateKey(),
+            _type: 'span',
+            text: text,
+            marks: marks
+          });
+        }
+      } else if (child.nodeType === 1) { // Element node
+        // Recursively process nested inline elements with inherited marks
+        const result = this.convertInlineElement(child, markDefs, marks);
+        if (result) {
+          if (Array.isArray(result)) {
+            children.push(...result);
+          } else {
+            children.push(result);
+          }
+        }
+      }
     }
 
-    // For nested elements, parse children
-    const result = this.parseInlineElements(element);
-    // Merge any nested markDefs
-    if (result.markDefs && result.markDefs.length > 0) {
-      markDefs.push(...result.markDefs);
-    }
-    return result.children;
+    return children;
   }
 
   static parseList(listElement, listType, imageAssetMap = null) {

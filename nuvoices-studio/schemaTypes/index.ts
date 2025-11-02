@@ -4,6 +4,7 @@ import { categoryType } from "./categoryType";
 import { tagType } from "./tagType";
 import { postType } from "./postType";
 import { embedType } from "./embedType";
+import { horizontalRuleType } from "./horizontalRuleType";
 import news from "./news";
 
 export const schemaTypes = [
@@ -13,5 +14,6 @@ export const schemaTypes = [
   tagType,
   postType,
   embedType,
+  horizontalRuleType,
   news,
 ];

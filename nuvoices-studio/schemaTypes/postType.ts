@@ -114,6 +114,9 @@ export const postType = defineType({
         {
           type: "embed",
         },
+        {
+          type: "horizontalRule",
+        },
       ],
     }),
     defineField({

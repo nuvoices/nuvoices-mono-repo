@@ -332,22 +332,8 @@ async function importPosts(options = {}) {
           }
         }
 
-        // Check for gallery attachments (posts with child attachments)
-        let galleryHtml = '';
-        const galleryAttachments = wpAttachments.filter(
-          att => att.wpPostParent === wpPost.wpPostId && 
-                 att.url && 
-                 (att.url.includes('.jpg') || att.url.includes('.jpeg') || att.url.includes('.png') || att.url.includes('.gif'))
-        );
-        if (galleryAttachments.length > 0) {
-          console.log(`  Found ${galleryAttachments.length} gallery images for post "${wpPost.title}"`);
-          galleryAttachments.forEach(att => {
-            galleryHtml += `<img src="${att.url}" alt="${att.title || ''}" />`;
-          });
-        }
-
-        // Process images in content (including gallery) unless skipping
-        let processedHtml = wpPost.content + galleryHtml;
+        // Process images in content only (gallery attachments not appended)
+        let processedHtml = wpPost.content;
         let imageAssetMap = new Map();
         
         if (!skipImages) {
@@ -365,7 +351,7 @@ async function importPosts(options = {}) {
         }
         
         // Convert HTML content to Portable Text with proper image references
-        const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap);
+        const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap, attachmentMap);
 
         // Build category references
         const categoryRefs = wpPost.categories

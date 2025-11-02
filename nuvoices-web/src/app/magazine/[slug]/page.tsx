@@ -223,7 +223,14 @@ export default async function MagazineArticlePage({
             value={post.body}
             components={{
               types: {
-                image: ({value}: {value: { asset?: { _ref?: string; _type?: string }; alt?: string; caption?: string }}) => {
+                image: ({value}: {value: {
+                  asset?: { _ref?: string; _type?: string };
+                  alt?: string;
+                  caption?: string;
+                  width?: number;
+                  height?: number;
+                  alignment?: string;
+                }}) => {
                   console.log('Rendering image block:', value);
 
                   if (!value?.asset) {
@@ -241,21 +248,29 @@ export default async function MagazineArticlePage({
 
                   console.log('Generated image URL:', imageUrl);
 
+                  // Use width from caption if available, otherwise use full width
+                  const maxWidth = value.width ? `${value.width}px` : '100%';
+
                   return (
                     <div className="my-[1.5rem]">
-                      <Image
-                        src={imageUrl}
-                        alt={value.alt || ''}
-                        width={1143}
-                        height={800}
-                        className="w-full h-auto"
-                        style={{ objectFit: 'cover' }}
-                      />
-                      {(value.caption || value.alt) && (
-                        <p className="text-[0.875rem] text-[#3c2e24] mt-2 text-center italic font-serif">
-                          {value.caption || value.alt}
-                        </p>
-                      )}
+                      <div
+                        className="mx-auto"
+                        style={{ maxWidth }}
+                      >
+                        <Image
+                          src={imageUrl}
+                          alt={value.alt || ''}
+                          width={value.width || 1143}
+                          height={value.height || 800}
+                          className="w-full h-auto"
+                          style={{ objectFit: 'cover' }}
+                        />
+                        {(value.caption || value.alt) && (
+                          <p className="text-[0.875rem] text-[#3c2e24] mt-2 text-center italic font-serif">
+                            {value.caption || value.alt}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 },
