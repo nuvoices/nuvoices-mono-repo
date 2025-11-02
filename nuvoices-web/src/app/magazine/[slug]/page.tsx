@@ -225,22 +225,22 @@ export default async function MagazineArticlePage({
               types: {
                 image: ({value}: {value: { asset?: { _ref?: string; _type?: string }; alt?: string; caption?: string }}) => {
                   console.log('Rendering image block:', value);
-                  
+
                   if (!value?.asset) {
                     console.log('No asset found in image block');
                     return null;
                   }
-                  
+
                   // Use the image URL builder to construct the proper URL
                   const imageUrl = urlFor(value).width(1200).url();
-                  
+
                   if (!imageUrl) {
                     console.log('Could not generate image URL');
                     return null;
                   }
-                  
+
                   console.log('Generated image URL:', imageUrl);
-                  
+
                   return (
                     <div className="my-[1.5rem]">
                       <Image

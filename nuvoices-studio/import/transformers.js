@@ -206,48 +206,72 @@ class ContentTransformer {
     const textContent = element.textContent.trim();
 
     switch (tagName) {
-      case 'h1':
-        return {
+      case 'h1': {
+        const { children, markDefs } = this.parseInlineElements(element);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'h1',
-          children: this.parseInlineElements(element)
+          children
         };
-      case 'h2':
-        return {
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        return block;
+      }
+      case 'h2': {
+        const { children, markDefs } = this.parseInlineElements(element);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'h2',
-          children: this.parseInlineElements(element)
+          children
         };
-      case 'h3':
-        return {
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        return block;
+      }
+      case 'h3': {
+        const { children, markDefs } = this.parseInlineElements(element);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'h3',
-          children: this.parseInlineElements(element)
+          children
         };
-      case 'h4':
-        return {
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        return block;
+      }
+      case 'h4': {
+        const { children, markDefs } = this.parseInlineElements(element);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'h4',
-          children: this.parseInlineElements(element)
+          children
         };
-      case 'p':
-        return {
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        return block;
+      }
+      case 'p': {
+        const { children, markDefs } = this.parseInlineElements(element);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'normal',
-          children: this.parseInlineElements(element)
+          children
         };
-      case 'blockquote':
-        return {
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        return block;
+      }
+      case 'blockquote': {
+        const { children, markDefs } = this.parseInlineElements(element);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'blockquote',
-          children: this.parseInlineElements(element)
+          children
         };
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        return block;
+      }
       case 'ul':
         return this.parseList(element, 'bullet', imageAssetMap);
       case 'ol':
@@ -335,12 +359,15 @@ class ContentTransformer {
         return this.parseElement(element, imageAssetMap);
       default:
         if (textContent) {
-          return {
+          const { children, markDefs } = this.parseInlineElements(element);
+          const block = {
             _key: this.generateKey(),
             _type: 'block',
             style: 'normal',
-            children: this.parseInlineElements(element)
+            children
           };
+          if (markDefs.length > 0) block.markDefs = markDefs;
+          return block;
         }
         return null;
     }
@@ -348,6 +375,7 @@ class ContentTransformer {
 
   static parseInlineElements(element) {
     const children = [];
+    const markDefs = [];
 
     for (const child of element.childNodes) {
       if (child.nodeType === 3) { // Text node
@@ -361,26 +389,28 @@ class ContentTransformer {
           });
         }
       } else if (child.nodeType === 1) { // Element node
-        const inline = this.convertInlineElement(child);
-        if (inline) {
-          if (Array.isArray(inline)) {
-            children.push(...inline);
+        const result = this.convertInlineElement(child, markDefs);
+        if (result) {
+          if (Array.isArray(result)) {
+            children.push(...result);
           } else {
-            children.push(inline);
+            children.push(result);
           }
         }
       }
     }
 
-    return children.length > 0 ? children : [{
+    const finalChildren = children.length > 0 ? children : [{
       _key: this.generateKey(),
       _type: 'span',
       text: '',
       marks: []
     }];
+
+    return { children: finalChildren, markDefs };
   }
 
-  static convertInlineElement(element) {
+  static convertInlineElement(element, markDefs = []) {
     const tagName = element.tagName.toLowerCase();
     const textContent = element.textContent;
 
@@ -401,11 +431,19 @@ class ContentTransformer {
       case 'a':
         const href = element.href;
         if (href) {
-          marks.push({
+          // Create a unique key for this link markDef
+          const markKey = this.generateKey();
+
+          // Add the markDef to the array
+          markDefs.push({
+            _key: markKey,
             _type: 'link',
             href: href,
             blank: element.target === '_blank'
           });
+
+          // Reference the markDef by key in marks
+          marks.push(markKey);
         }
         break;
     }
@@ -420,7 +458,12 @@ class ContentTransformer {
     }
 
     // For nested elements, parse children
-    return this.parseInlineElements(element);
+    const result = this.parseInlineElements(element);
+    // Merge any nested markDefs
+    if (result.markDefs && result.markDefs.length > 0) {
+      markDefs.push(...result.markDefs);
+    }
+    return result.children;
   }
 
   static parseList(listElement, listType, imageAssetMap = null) {
@@ -428,13 +471,16 @@ class ContentTransformer {
 
     for (const child of listElement.children) {
       if (child.tagName.toLowerCase() === 'li') {
-        items.push({
+        const { children, markDefs } = this.parseInlineElements(child);
+        const block = {
           _key: this.generateKey(),
           _type: 'block',
           style: 'normal',
           listItem: listType,
-          children: this.parseInlineElements(child)
-        });
+          children
+        };
+        if (markDefs.length > 0) block.markDefs = markDefs;
+        items.push(block);
       }
     }
 
