@@ -29,7 +29,7 @@ export default function Header() {
           <div className="flex items-center gap-4 sm:gap-8">
             {/* NüVoices Logo - Show only when not on homepage */}
             {!isHomepage && (
-              <Link href="/" className="flex-shrink-0">
+              <Link href="/" className="flex-shrink-0 mr-[1.25rem]">
                 <Image
                   src="/nuvoices-logo-header.png"
                   alt="NüVoices"
@@ -76,26 +76,49 @@ export default function Header() {
 
       {/* Mobile Menu Panel */}
       <div
-        className={`fixed box-border top-[0px] left-[0x] h-screen w-full max-w-sm bg-[#3c2e24] p-[1.5rem] z-50 shadow-2xl md:hidden transition-opacity duration-300 ${
+        className={`fixed box-border top-[0px] left-[0px] h-screen w-full bg-[#3c2e24] z-50 md:hidden transition-opacity duration-300 flex flex-col items-center ${
           mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="h-full overflow-y-auto p-6">
+        {/* Header Section */}
+        <div className="bg-[rgba(244,236,234,0.92)] h-[3.75rem] w-full relative flex items-center justify-center overflow-hidden shrink-0">
+          {/* Logo */}
+          <div className="relative h-[2rem] w-[1.75rem]">
+            <Image
+              src="/nuvoices-logo-header.png"
+              alt="NüVoices"
+              fill
+              className="object-contain"
+            />
+          </div>
+
           {/* Close Button */}
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-[0px] right-[0px] p-2 rounded-lg transition bg-transparent border-none w-[48px] h-[48px]"
+            className="absolute top-[1rem] right-[1.125rem] p-2 bg-transparent border-none flex items-center justify-center"
             aria-label="Close menu"
           >
-            <X className="h-6 w-6 text-[#f4ecea]" strokeWidth={2.5} />
+            <X className="h-6 w-6 text-[#3c2e24]" strokeWidth={2.5} />
           </button>
+        </div>
 
-          {/* Mobile Navigation Links */}
-          <nav className="flex flex-col gap-6 border-t border-[#3c2e24]/10 pt-6">
-            <NavigationLinks links={headerNavigationLinks} variant="mobile" onLinkClick={() => setMobileMenuOpen(false)} />
-          </nav>
+        {/* Navigation Links */}
+        <nav className="flex flex-col gap-[1.5rem] mt-[1.5rem] px-[1.5rem] w-full box-border">
+          {headerNavigationLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className="font-serif text-[1.5rem] text-[#FFFFFF] leading-[1.2] tracking-[-0.075rem] hover:opacity-80 transition no-underline"
+              style={{ fontFamily: 'Source Serif Pro, serif' }}
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
 
-          {/* Mobile Social Icons */}
+        {/* Mobile Social Icons */}
+        <div className="mt-[2rem] mb-[25px] flex gap-[20px] items-center justify-center">
           <SocialIcons variant="mobile" />
         </div>
       </div>

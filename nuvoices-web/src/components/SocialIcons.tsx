@@ -17,7 +17,7 @@ interface SocialIconsProps {
 export default function SocialIcons({ variant = 'desktop' }: SocialIconsProps) {
   if (variant === 'mobile') {
     return (
-      <div className="flex gap-3 mt-8 pt-6">
+      <>
         {socialLinks.map((social) => {
           const Icon = social.icon;
           return (
@@ -25,13 +25,13 @@ export default function SocialIcons({ variant = 'desktop' }: SocialIconsProps) {
               key={social.label}
               href={social.href}
               aria-label={social.label}
-              className="w-12 h-12 flex items-center justify-center hover:bg-[#f4ecea]/10 rounded-lg transition"
+              className="flex items-center justify-center hover:opacity-70 transition"
             >
-              <Icon className="w-[1rem] h-[1rem] text-[#f4ecea]" />
+              <Icon className="w-[14px] h-[14px] text-[#f4ecea]" />
             </a>
           );
         })}
-      </div>
+      </>
     );
   }
 

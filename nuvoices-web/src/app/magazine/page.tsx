@@ -64,12 +64,11 @@ export default async function MagazinePage() {
         {/* Title section - 369px height = 11.531rem, 1234px width = 38.5625rem */}
         <div className="flex flex-col items-center justify-center h-[11.531rem] w-full max-w-[38.5625rem] text-center">
           <h1 className="text-[2.5rem] font-serif leading-[1.1] tracking-[-0.075rem] text-black mb-[0.5rem]">
-            NüStories
+            NüVoices Magazine
           </h1>
           <p className="text-[1.5625rem] font-serif italic leading-[1.1] tracking-[-0.047rem] text-black mb-[1.25rem]">
             A magazine of ideas from minority voices on China subjects
           </p>
-          <ActionButton href="/submissions" label="SUBMISSIONS" variant="flexible" />
         </div>
 
         {/* Articles Grid - 1446px = 45.1875rem width, 606px = 18.9375rem height per row */}

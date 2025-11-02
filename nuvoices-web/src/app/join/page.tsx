@@ -1,11 +1,12 @@
 import Image from "next/image";
+import { Content } from "@/components/ui/Content";
 
 export default function JoinPage() {
   return (
     <div className="min-h-screen bg-[#f4ecea]">
       {/* Main content */}
-      <main className="flex flex-col items-center px-6 py-[2.5rem]">
-        <div className="max-w-[25rem] w-full space-y-[1.25rem]">
+      <main className="flex flex-col items-center py-[2.5rem]">
+        <Content className="space-y-[1.25rem]">
           {/* Page header - 80px = 2.5rem */}
           <div className="mb-[1.25rem]">
             <h1 className="text-[2.5rem] font-serif leading-[1.2] tracking-[-0.075rem] text-black">
@@ -60,7 +61,7 @@ export default function JoinPage() {
               className="w-full h-auto"
             />
           </div>
-        </div>
+        </Content>
       </main>
     </div>
   );

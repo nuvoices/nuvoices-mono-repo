@@ -1,9 +1,10 @@
 import Image from 'next/image';
+import { Content } from '@/components/ui/Content';
 
 export default function SubmissionsPage() {
   return (
     <div className="min-h-screen bg-[#f4ecea]">
-      <div className="max-w-[23.813rem] mx-auto px-[1.875rem] py-[3.125rem]">
+      <Content className="py-[3.125rem]">
         {/* Title - 80px = 2.5rem */}
         <h1 className="font-serif text-[2.5rem] leading-[1.2] text-black tracking-[-0.075rem] mb-[1.25rem]">Submissions</h1>
 
@@ -54,19 +55,17 @@ export default function SubmissionsPage() {
           </section>
         </div>
 
-        {/* Team image - 539px height = 16.844rem, 780.405px width = 24.388rem */}
-        <div className="mt-[1.25rem] flex justify-center">
-          <div className="w-[24.388rem] h-[16.844rem] relative">
-            <Image
-              src="/group-pic.png"
-              alt="NüVoices team"
-              width={780}
-              height={539}
-              className="w-full h-full object-cover mix-blend-multiply"
-            />
-          </div>
+        {/* Team image */}
+        <div className="mt-[1.25rem]">
+          <Image
+            src="/group-pic.png"
+            alt="NüVoices team"
+            width={780}
+            height={539}
+            className="w-full h-auto mix-blend-multiply"
+          />
         </div>
-      </div>
+      </Content>
     </div>
   )
 }

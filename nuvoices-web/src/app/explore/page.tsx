@@ -1,96 +1,114 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Content } from "@/components/ui/Content";
 
 export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-[#f4ecea]">
-      {/* Main content */}
-      <main className="flex flex-col items-center px-6 py-[2.5rem]">
-        <div className="max-w-[23.8125rem] w-full space-y-[1.25rem]">
-          {/* Page header - 80px = 2.5rem */}
-          <div className="mb-[1.25rem]">
-            <h1 className="text-[2.5rem] font-serif leading-[1.2] tracking-[-0.075rem] text-black">
+      <Content>
+        <main className="py-[1.5625rem] flex flex-col gap-[1.5625rem]">
+          {/* Heading Section */}
+          <div className="flex flex-col gap-[1.25rem]">
+            {/* Title */}
+            <h1 className="font-serif font-normal text-[2.5rem] leading-[1.2] tracking-[-0.075rem] text-black m-0">
               Explore
             </h1>
+
+            {/* Introduction */}
+            <p className="font-serif text-[1.25rem] leading-[1.5625rem] text-black text-justify m-0">
+              From our online magazine to our regular podcasts, we support the work of our members in various ways.
+            </p>
+
+            {/* Panel Image with Overlay */}
+            <div className="relative w-full aspect-[762/508] overflow-hidden">
+              <Image
+                src="/nuvoices-explore.png"
+                alt="NüVoices panel discussion"
+                fill
+                className="object-cover"
+                priority
+              />
+              {/* Pink overlay using mix-blend-mode */}
+              <div className="absolute inset-0 bg-[#dd9ca1] mix-blend-color pointer-events-none" />
+            </div>
           </div>
 
-          {/* Introduction - 40px = 1.25rem, 50px line height = 1.5625rem */}
-          <p className="text-[1.25rem] font-serif leading-[1.5625rem] text-black text-justify mb-[1.25rem]">
-            From our online magazine to our regular podcasts, we support the work of our members in various ways.
-          </p>
-
-          {/* Panel photo - 762px = 23.8125rem, 508px = 15.875rem */}
-          <div className="my-[1.25rem]">
-            <Image
-              src="/nuvoices-explore.png"
-              alt="NüVoices panel discussion"
-              width={762}
-              height={508}
-              className="w-full h-auto"
-            />
-          </div>
-
-          {/* Content sections - 30px = 0.9375rem */}
-          <div className="space-y-[1rem] text-[0.9375rem] font-serif leading-[1.6] text-black">
-            {/* NuStories Magazine section */}
-            <div>
-              <h2 className="font-bold mb-[0.25rem]">NuStories Magazine</h2>
-              <p>
-                Our{" "}
-                <a href="/magazine" className="text-black underline hover:bg-yellow-200 transition-colors">
-                  magazine
-                </a>
-                , NüStories, reaches audiences all around the world. We regularly publish narrative essays, event reviews, articles, multimedia projects and other original content.
+          {/* Grid Section - 2x2 on desktop, 1 column on mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[3.75rem] gap-y-[3.15625rem] py-[1.5rem] justify-items-center md:justify-items-start">
+            {/* Magazine */}
+            <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
+              <Link
+                href="/magazine"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+              >
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  NÜVOICES
+                </div>
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  MAGAZINE
+                </div>
+              </Link>
+              <p className="font-serif text-[0.8rem] leading-[1.6] text-black text-center m-0">
+                Our magazine reaches audiences all around the world. We regularly publish narrative essays, event reviews, articles, multimedia projects and other original content.
               </p>
             </div>
 
-            {/* NuVoices Podcast section */}
-            <div>
-              <h2 className="font-bold mb-[0.25rem]">NuVoices Podcast</h2>
-              <p>
-                Our{" "}
-                <a href="/podcast" className="text-black underline hover:bg-yellow-200 transition-colors">
-                  podcast
-                </a>{" "}
-                regularly features women's and minorities' voices on a range of topical issues. It has been{" "}
-                <a
-                  href="https://www.timeoutshanghai.com/features/City_Life_/52265/Listen-up-8-brilliant-podcasts-all-about-China.html"
-                  className="text-black underline hover:bg-yellow-200 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  named
-                </a>{" "}
-                by numerous publications as one of the best podcasts on China today.
+            {/* Podcast */}
+            <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
+              <Link
+                href="/podcast"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+              >
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  NÜVOICES
+                </div>
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  PODCAST
+                </div>
+              </Link>
+              <p className="font-serif text-[0.8rem] leading-[1.6] text-black text-center m-0">
+                Our podcast regularly features women's and minorities' voices on a range of topical issues. It has been named by numerous publications as one of the best podcasts on China today.
               </p>
             </div>
 
-            {/* NuVoices Events section */}
-            <div>
-              <h2 className="font-bold mb-[0.25rem]">NuVoices Events</h2>
-              <p>
+            {/* News */}
+            <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
+              <Link
+                href="/news"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+              >
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  NÜVOICES
+                </div>
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  NEWS
+                </div>
+              </Link>
+              <p className="font-serif text-[0.8rem] leading-[1.6] text-black text-center m-0">
                 Our events and discussion forums aim to foster collaboration among people working across different mediums.
               </p>
             </div>
 
-            {/* NuVoices Directory section */}
-            <div>
-              <h2 className="font-bold mb-[0.25rem]">NuVoices Directory</h2>
-              <p>
-                Our{" "}
-                <a
-                  href="https://docs.google.com/spreadsheets/d/13l9IH7kWahhXwWFsMtBdrMs11gWYGOKqNI6rfUM84k4/edit#gid=0"
-                  className="text-black underline hover:bg-yellow-200 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  directory
-                </a>{" "}
-                of more than 600 international experts on Greater China is a popular tool for journalists and event organizers. It has significantly boosted women and minorities' representation in media and events.
+            {/* Directory */}
+            <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
+              <Link
+                href="/directory"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+              >
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  NÜVOICES
+                </div>
+                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                  DIRECTORY
+                </div>
+              </Link>
+              <p className="font-serif text-[0.8rem] leading-[1.6] text-black text-center m-0">
+                Our directory of more than 600 international experts on Greater China is a popular tool for journalists and event organizers. It has significantly boosted women and minorities' representation in media and events.
               </p>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </Content>
     </div>
   );
 }
