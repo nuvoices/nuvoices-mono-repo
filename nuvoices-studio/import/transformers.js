@@ -280,6 +280,29 @@ class ContentTransformer {
     return html;
   }
 
+  /**
+   * Remove empty paragraph tags that contain only whitespace, &nbsp;, or <br> tags
+   * Patterns handled:
+   * - <p></p>
+   * - <p> </p>, <p>\n</p>, <p>\t</p>
+   * - <p>&nbsp;</p>
+   * - <p><br></p>, <p><br/></p>, <p><br /></p>
+   * - Any combination of the above
+   */
+  static preprocessEmptyParagraphs(html) {
+    if (!html) return html;
+
+    // Remove paragraphs that contain only whitespace, &nbsp;, and/or <br> tags
+    // This pattern matches <p> followed by any combination of:
+    // - whitespace characters (\s)
+    // - &nbsp; entities
+    // - <br>, <br/>, or <br /> tags
+    // followed by </p>
+    html = html.replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '');
+
+    return html;
+  }
+
   static htmlToPortableText(html, imageAssetMap = new Map(), attachmentMap = new Map()) {
     if (!html || html.trim() === '') {
       return [];
@@ -291,12 +314,36 @@ class ContentTransformer {
       html = this.preprocessGalleries(html, attachmentMap); // Process galleries before captions
       html = this.preprocessCaptions(html);
       html = this.preprocessEmbeds(html);
+      html = this.preprocessEmptyParagraphs(html); // Remove empty paragraphs last
 
       const dom = new JSDOM(html);
       const document = dom.window.document;
       const body = document.body;
 
-      return this.parseElement(body, imageAssetMap);
+      const blocks = this.parseElement(body, imageAssetMap);
+
+      // Filter out empty paragraph blocks
+      return blocks.filter(block => {
+        // Keep non-paragraph blocks (images, embeds, horizontal rules, etc.)
+        if (block._type !== 'block') {
+          return true;
+        }
+
+        // Keep blocks with meaningful content
+        if (!block.children || block.children.length === 0) {
+          return false;
+        }
+
+        // Check if all children are empty spans
+        const hasContent = block.children.some(child => {
+          if (child._type === 'span') {
+            return child.text && child.text.trim().length > 0;
+          }
+          return true; // Keep non-span children
+        });
+
+        return hasContent;
+      });
     } catch (error) {
       console.error('Error converting HTML to Portable Text:', error);
       // Fallback: return as a single text block
@@ -532,6 +579,32 @@ class ContentTransformer {
             if (align) imageBlock.alignment = align.replace('align', ''); // aligncenter -> center
 
             return imageBlock;
+          }
+        }
+        // Handle gallery figure elements
+        if (element.classList && element.classList.contains('wp-gallery-image')) {
+          const img = element.querySelector('img');
+          const figcaption = element.querySelector('figcaption');
+
+          if (img) {
+            const imgSrc = img.src || img.getAttribute('src');
+            const assetId = imageAssetMap.get(imgSrc);
+
+            if (!assetId) {
+              console.warn(`Skipping gallery figure with image without uploaded asset: ${imgSrc}`);
+              return null;
+            }
+
+            return {
+              _key: this.generateKey(),
+              _type: 'image',
+              asset: {
+                _type: 'reference',
+                _ref: assetId
+              },
+              alt: img.alt || '',
+              caption: figcaption ? figcaption.textContent.trim() : ''
+            };
           }
         }
         // For other figures, parse as container

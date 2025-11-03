@@ -147,7 +147,8 @@ export default async function MagazineArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await client.fetch<Post | null>(postQuery, { slug });
+  console.log('>>>', slug, decodeURIComponent(slug))
+  const post = await client.fetch<Post | null>(postQuery, { slug: slug.toLowerCase() });
 
   if (!post) {
     notFound();

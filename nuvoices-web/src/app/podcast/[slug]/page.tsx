@@ -80,7 +80,7 @@ export const revalidate = 3600; // Revalidate every hour
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const episode = await client.fetch<PodcastEpisode>(EPISODE_QUERY, { slug })
+  const episode = await client.fetch<PodcastEpisode>(EPISODE_QUERY, { slug: slug.toLowerCase() })
 
   console.log(episode)
   
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PodcastEpisodePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const episode = await client.fetch<PodcastEpisode>(EPISODE_QUERY, { slug })
+  const episode = await client.fetch<PodcastEpisode>(EPISODE_QUERY, { slug: slug.toLowerCase() })
 
   if (!episode) {
     notFound()

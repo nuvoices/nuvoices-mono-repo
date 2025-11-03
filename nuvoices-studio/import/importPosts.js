@@ -353,17 +353,25 @@ async function importPosts(options = {}) {
         // Convert HTML content to Portable Text with proper image references
         const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap, attachmentMap);
 
-        // Build category references
+        // Build category references with unique keys
         const categoryRefs = wpPost.categories
           .map(catNicename => categoryMap.get(catNicename))
           .filter(Boolean)
-          .map(id => ({ _type: 'reference', _ref: id }));
+          .map(id => ({
+            _key: ContentTransformer.generateKey(),
+            _type: 'reference',
+            _ref: id
+          }));
 
-        // Build tag references
+        // Build tag references with unique keys
         const tagRefs = wpPost.tags
           .map(tagNicename => tagMap.get(tagNicename))
           .filter(Boolean)
-          .map(id => ({ _type: 'reference', _ref: id }));
+          .map(id => ({
+            _key: ContentTransformer.generateKey(),
+            _type: 'reference',
+            _ref: id
+          }));
 
         // Check if this is a magazine post with images
         const isMagazinePost = wpPost.categories.some(cat => 
@@ -416,8 +424,11 @@ async function importPosts(options = {}) {
           };
 
           if (existingPost) {
-            await client.patch(existingPost._id)
-              .set({
+            const publishedId = existingPost._id.replace(/^drafts\./, '');
+
+            await client
+              .transaction()
+              .patch(publishedId, patch => patch.set({
                 title: postDoc.title,
                 slug: postDoc.slug,
                 author: postDoc.author,
@@ -430,13 +441,22 @@ async function importPosts(options = {}) {
                 wpPostName: postDoc.wpPostName,
                 ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
                 seo: postDoc.seo
-              })
-              .commit();
-            console.log(`Updated magazine post: ${postDoc.title}`);
+              }))
+              .delete(`drafts.${publishedId}`)
+              .commit({ autoGenerateArrayKeys: true });
+
+            console.log(`Updated and published magazine post: ${postDoc.title}`);
             updatedCount++;
           } else {
-            await client.create(postDoc);
-            console.log(`Imported magazine post: ${postDoc.title}`);
+            const publishedId = postDoc._id;
+
+            await client
+              .transaction()
+              .createOrReplace(postDoc)
+              .delete(`drafts.${publishedId}`)
+              .commit({ autoGenerateArrayKeys: true });
+
+            console.log(`Imported and published magazine post: ${postDoc.title}`);
             importedCount++;
           }
           
@@ -483,9 +503,12 @@ async function importPosts(options = {}) {
 
         let result;
         if (existingPost) {
-          // Update existing post
-          result = await client.patch(existingPost._id)
-            .set({
+          // Update existing post - patch the published version directly
+          const publishedId = existingPost._id.replace(/^drafts\./, '');
+
+          result = await client
+            .transaction()
+            .patch(publishedId, patch => patch.set({
               title: postDoc.title,
               slug: postDoc.slug,
               author: postDoc.author,
@@ -498,14 +521,25 @@ async function importPosts(options = {}) {
               wpPostName: postDoc.wpPostName,
               ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
               seo: postDoc.seo
-            })
-            .commit();
-          console.log(`Updated post: ${postDoc.title}`);
+            }))
+            // Delete any draft version that might exist
+            .delete(`drafts.${publishedId}`)
+            .commit({ autoGenerateArrayKeys: true });
+
+          console.log(`Updated and published: ${postDoc.title}`);
           updatedCount++;
         } else {
-          // Create new post
-          result = await client.create(postDoc);
-          console.log(`Imported post: ${postDoc.title}`);
+          // Create new post and publish it
+          const publishedId = postDoc._id;
+
+          result = await client
+            .transaction()
+            .createOrReplace(postDoc)
+            // Delete any draft that might exist
+            .delete(`drafts.${publishedId}`)
+            .commit({ autoGenerateArrayKeys: true });
+
+          console.log(`Imported and published: ${postDoc.title}`);
           importedCount++;
         }
 

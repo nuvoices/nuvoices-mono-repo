@@ -147,7 +147,7 @@ export default async function NewsArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await client.fetch<Post | null>(postQuery, { slug });
+  const post = await client.fetch<Post | null>(postQuery, { slug: slug.toLowerCase() });
 
   if (!post) {
     notFound();
