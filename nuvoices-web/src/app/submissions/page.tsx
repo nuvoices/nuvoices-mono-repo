@@ -1,12 +1,13 @@
 import Image from 'next/image';
 import { Content } from '@/components/ui/Content';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageLayout } from '@/components/layouts/PageLayout';
 
 export default function SubmissionsPage() {
   return (
-    <div className="min-h-screen bg-[#f4ecea]">
+    <PageLayout>
       <Content className="py-[3.125rem]">
-        {/* Title - 80px = 2.5rem */}
-        <h1 className="font-serif text-[2.5rem] leading-[1.2] text-black tracking-[-0.075rem] mb-[1.25rem]">Submissions</h1>
+        <PageHeader title="Submissions" />
 
         {/* Introduction text - 40px = 1.25rem */}
         <p className="font-serif text-[1.25rem] leading-[1.5625rem] text-black text-justify mb-[1.25rem]">
@@ -66,6 +67,6 @@ export default function SubmissionsPage() {
           />
         </div>
       </Content>
-    </div>
+    </PageLayout>
   )
 }

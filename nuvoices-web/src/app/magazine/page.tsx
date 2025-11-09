@@ -55,7 +55,6 @@ const magazinePostsQuery = groq`
 
 export default async function MagazinePage() {
   const posts = await client.fetch<Post[]>(magazinePostsQuery);
-  console.log(posts)
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">

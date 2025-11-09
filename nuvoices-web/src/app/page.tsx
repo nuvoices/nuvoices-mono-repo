@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
 import {
@@ -10,7 +11,7 @@ import {
   ArticleExcerpt,
   ArticleDate
 } from '@/components/ui/grid';
-import { Content } from '@/components/ui/Content';
+import { Content, FullWidthBreakout } from '@/components/ui/Content';
 import ActionButton from '@/components/ActionButton';
 
 interface Post {
@@ -133,15 +134,17 @@ export default async function Home() {
         <div className="flex flex-col items-center gap-[1.563rem] pt-[1.563rem]">
           {/* Logo placeholder - 270px x 354px */}
           <div className="w-[8.438rem] h-[11.063rem] relative">
-            <img
+            <Image
               src="/nuvoices-logo.png"
               alt="NüVoices Logo"
+              width={270}
+              height={354}
               className="w-full h-full object-cover"
             />
           </div>
 
-          {/* Tagline - 110px = 3.438rem */}
-          <div className="font-serif text-[3.438rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]">
+          {/* Tagline - 110px = 3.438rem, responsive sizing */}
+          <div className="font-serif text-[2rem] sm:text-[2.5rem] md:text-[3.438rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]">
             Amplifying women and minority voices on China
           </div>
 
@@ -163,11 +166,12 @@ export default async function Home() {
           <Content className="flex flex-col gap-[0.625rem] items-center">
             <a href={`/magazine/${featuredPost.slug.current}`} className="flex flex-col gap-[0.625rem] items-center w-full no-underline hover:no-underline">
             {featuredPost.featuredImage?.asset?.url && (
-              <div className="h-[18.75rem] w-full relative">
-                <img
+              <div className="h-[18.75rem] relative -mx-[2.5rem]" style={{ width: 'calc(100% + 5rem)' }}>
+                <Image
                   src={featuredPost.featuredImage.asset.url}
                   alt={featuredPost.featuredImage.alt || featuredPost.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             )}

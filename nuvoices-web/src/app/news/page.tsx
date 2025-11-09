@@ -54,7 +54,6 @@ const newsPostsQuery = groq`
 
 export default async function NewsPage() {
   const newsPosts = await client.fetch<NewsPost[]>(newsPostsQuery);
-  console.log(newsPosts)
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">

@@ -43,7 +43,6 @@ async function fetchRecords(search?: string): Promise<Record[]> {
   }
 
   const response = await fetch(url.toString())
-  console.log("response", response)
   const data: ApiResponse = await response.json()
   return data.data
 }
