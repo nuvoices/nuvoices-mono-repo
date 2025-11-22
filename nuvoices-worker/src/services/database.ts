@@ -9,7 +9,7 @@ import {
   buildSearchQuery,
   buildSearchCountQuery,
 } from "../utils/query-builder";
-import { JOURNALIST_SCHEMA, toSqlColumnName } from "../schema/journalist-schema";
+import { JOURNALIST_SCHEMA, toSqlColumnName, type SchemaField } from "../schema/journalist-schema";
 
 /**
  * Convert value to appropriate type based on schema field type
@@ -31,10 +31,10 @@ export class DatabaseService {
   constructor(private db: D1Database) {}
 
   /**
-   * Initialize database schema using fixed journalist schema
+   * Initialize database schema using provided schema
    */
-  async initializeSchema(): Promise<void> {
-    const createTableSQL = buildCreateTableSQL(JOURNALIST_SCHEMA);
+  async initializeSchema(schema: SchemaField[]): Promise<void> {
+    const createTableSQL = buildCreateTableSQL(schema);
     const createIndexSQL = buildCreateIndexSQL();
     const createFTS5SQL = buildCreateFTS5TableSQL();
 
@@ -50,13 +50,13 @@ export class DatabaseService {
     await this.db.exec(createFTS5SQL);
 
     // Store schema for later use
-    await this.storeSchema(JOURNALIST_SCHEMA);
+    await this.storeSchema(schema);
   }
 
   /**
    * Store schema in a metadata table for later retrieval
    */
-  private async storeSchema(fields: typeof JOURNALIST_SCHEMA): Promise<void> {
+  private async storeSchema(fields: SchemaField[]): Promise<void> {
     // Create schema metadata table if it doesn't exist
     await this.db.exec("CREATE TABLE IF NOT EXISTS _schema_metadata (id INTEGER PRIMARY KEY CHECK (id = 1), schema_json TEXT NOT NULL, updated_at TEXT NOT NULL)");
 
@@ -206,16 +206,16 @@ export class DatabaseService {
   /**
    * Replace all records atomically (for full table sync from Google Sheets)
    * Uses D1 batch for atomic execution - all or nothing
-   * Uses fixed JOURNALIST_SCHEMA for all operations
+   * Uses provided schema (dynamically created from CSV headers)
    */
   async replaceAllRecords(
-    records: Array<Record<string, string>>
+    records: Array<Record<string, string>>,
+    schema: SchemaField[]
   ): Promise<void> {
     if (records.length === 0) {
       throw new Error("Cannot replace with empty record set");
     }
 
-    const schema = JOURNALIST_SCHEMA;
     const statements: D1PreparedStatement[] = [];
 
     // Step 1: Drop existing tables

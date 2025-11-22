@@ -3,7 +3,7 @@
  */
 export interface Env {
   DB: D1Database;
-  TIMESTAMP_URL: string;
+  TIMESTAMP_URL?: string;  // Make optional
   CSV_URL: string;
 }
 

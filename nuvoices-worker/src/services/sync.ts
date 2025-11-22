@@ -8,7 +8,7 @@
 import type { Env } from "../types";
 import { DatabaseService } from "./database";
 import { parseCSV, csvToRecords } from "../utils/csv-parser";
-import { validateCSVHeaders } from "../schema/journalist-schema";
+import { validateCSVHeaders, createSchemaFromHeaders } from "../schema/journalist-schema";
 
 interface TimestampResponse {
   spreadsheetId: string;
@@ -24,43 +24,64 @@ export async function syncFromGoogleSheets(env: Env): Promise<void> {
   const db = new DatabaseService(env.DB);
 
   try {
-    // Step 1: Fetch timestamp from Apps Script
-    const timestamp = await fetchTimestamp(env.TIMESTAMP_URL);
-    console.log(`Google Sheets lastUpdated: ${timestamp.lastUpdated}`);
-
-    // Step 2: Get last sync time from database
-    const lastSyncTime = await db.getLastSyncTime();
-    console.log(`Last sync time: ${lastSyncTime || 'never'}`);
-
-    // Step 3: Compare timestamps - skip if unchanged
-    if (lastSyncTime === timestamp.lastUpdated) {
-      console.log("No changes detected, skipping sync");
-      return;
-    }
-
-    // Step 4: Fetch CSV data from Apps Script
+    // Step 1: Fetch CSV data from Apps Script (moved earlier to get headers)
     console.log("Fetching CSV data...");
     const csvData = await fetchCSVData(env.CSV_URL);
 
-    // Step 5: Parse CSV
+    // Step 2: Parse CSV to get headers
     console.log("Parsing CSV...");
     const { headers, rows } = parseCSV(csvData);
     console.log(`Parsed ${headers.length} columns, ${rows.length} rows`);
 
-    // Step 6: Validate CSV headers against expected schema
+    // Step 3: Validate CSV headers
     validateCSVHeaders(headers);
-    console.log("CSV headers validated against schema");
+    console.log("CSV headers validated");
 
-    // Step 7: Convert to records
+    // Step 4: Create dynamic schema from headers (all TEXT type)
+    const schema = createSchemaFromHeaders(headers);
+    console.log(`Created dynamic schema with ${schema.length} fields (all TEXT)`);
+
+    // Step 5: Fetch timestamp from Apps Script (optional)
+    let shouldSync = true;
+    if (env.TIMESTAMP_URL) {
+      try {
+        const timestamp = await fetchTimestamp(env.TIMESTAMP_URL);
+        console.log(`Google Sheets lastUpdated: ${timestamp.lastUpdated}`);
+
+        // Step 6: Get last sync time from database
+        const lastSyncTime = await db.getLastSyncTime();
+        console.log(`Last sync time: ${lastSyncTime || 'never'}`);
+
+        // Step 7: Compare timestamps - skip if unchanged
+        if (lastSyncTime === timestamp.lastUpdated) {
+          console.log("No changes detected, skipping sync");
+          return;
+        }
+      } catch (error) {
+        console.warn("Failed to fetch timestamp, proceeding with sync anyway:", error);
+        // Continue with sync even if timestamp check fails
+      }
+    } else {
+      console.log("TIMESTAMP_URL not configured, proceeding with sync");
+    }
+
+    // Step 8: Convert to records
     const records = csvToRecords(headers, rows);
     console.log(`Converted to ${records.length} records`);
 
-    // Step 8: Replace all records atomically (uses fixed schema internally)
+    // Step 9: Replace all records atomically (uses dynamic schema)
     console.log("Replacing table...");
-    await db.replaceAllRecords(records);
+    await db.replaceAllRecords(records, schema);
 
-    // Step 9: Update last sync time
-    await db.setLastSyncTime(timestamp.lastUpdated);
+    // Step 10: Update last sync time (if timestamp was fetched)
+    if (env.TIMESTAMP_URL) {
+      try {
+        const timestamp = await fetchTimestamp(env.TIMESTAMP_URL);
+        await db.setLastSyncTime(timestamp.lastUpdated);
+      } catch (error) {
+        console.warn("Could not update last sync time:", error);
+      }
+    }
 
     console.log(`✅ Sync complete: ${records.length} records synced`);
 
@@ -82,7 +103,7 @@ async function fetchTimestamp(url: string): Promise<TimestampResponse> {
     throw new Error(`Failed to fetch timestamp: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
 
   if (!data.lastUpdated) {
     throw new Error("Invalid timestamp response: missing lastUpdated field");
