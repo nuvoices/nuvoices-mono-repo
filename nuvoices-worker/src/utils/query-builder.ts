@@ -210,20 +210,11 @@ export function buildCreateIndexSQL(): string[] {
 /**
  * Build CREATE VIRTUAL TABLE statement for FTS5 full-text search
  * Creates an external content table linked to the main records table
+ * Dynamically includes all TEXT columns from the schema
  */
-export function buildCreateFTS5TableSQL(): string {
-  // FTS5 virtual table with all searchable text columns
-  // Excluding numeric columns (years_experience, daily_rate_usd) and dates
-  const searchableColumns = [
-    "name",
-    "email",
-    "country",
-    "city",
-    "languages",
-    "specializations",
-    "outlet",
-    "linkedin_profile",
-  ];
+export function buildCreateFTS5TableSQL(schema: SchemaField[]): string {
+  // Include all columns from schema (all are TEXT type)
+  const searchableColumns = schema.map((field) => sanitizeColumnName(field.name));
 
   return `CREATE VIRTUAL TABLE IF NOT EXISTS records_fts USING fts5(${searchableColumns.join(", ")}, content=records, content_rowid=id)`;
 }

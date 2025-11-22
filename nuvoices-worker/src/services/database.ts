@@ -36,7 +36,7 @@ export class DatabaseService {
   async initializeSchema(schema: SchemaField[]): Promise<void> {
     const createTableSQL = buildCreateTableSQL(schema);
     const createIndexSQL = buildCreateIndexSQL();
-    const createFTS5SQL = buildCreateFTS5TableSQL();
+    const createFTS5SQL = buildCreateFTS5TableSQL(schema);
 
     // Create table
     await this.db.exec(createTableSQL);
@@ -233,7 +233,7 @@ export class DatabaseService {
     }
 
     // Step 4: Create FTS5 virtual table
-    const createFTS5SQL = buildCreateFTS5TableSQL();
+    const createFTS5SQL = buildCreateFTS5TableSQL(schema);
     statements.push(this.db.prepare(createFTS5SQL));
 
     // Step 5: Insert all records (batched in chunks due to D1 limits)
