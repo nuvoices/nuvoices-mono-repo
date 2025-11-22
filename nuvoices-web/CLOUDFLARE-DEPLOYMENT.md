@@ -61,7 +61,6 @@ This approach uses Cloudflare's official adapter for Next.js, which provides bet
 If you prefer to use the static export approach we've configured:
 
 1. **Ensure all dynamic routes have generateStaticParams:**
-   - `/experts/[expert]/page.tsx` ✓
    - `/magazine/[slug]/page.tsx` ✓
    - `/news/[slug]/page.tsx` ✓
    - `/podcast/[slug]/page.tsx` ✓

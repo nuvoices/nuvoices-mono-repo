@@ -161,7 +161,7 @@ export function ArticleDetailPage({ post, previousPost, nextPost, basePath }: Ar
       {/* Article Content */}
       <article className="max-w-[35.71875rem] mx-auto px-[2.5rem] py-[1.5625rem]">
         {/* Article Title */}
-        <h1 className="text-center text-[2.96875rem] leading-[1.1] tracking-[-0.089rem] font-serif text-[#3c2e24] mb-[1.25rem]">
+        <h1 className="text-center text-[1.5rem] leading-[1.1] tracking-[-0.089rem] font-serif text-[#3c2e24] mb-[1.25rem]">
           {post.title}
         </h1>
 
@@ -216,10 +216,10 @@ export function ArticleDetailPage({ post, previousPost, nextPost, basePath }: Ar
             {previousPost ? (
               <Link href={`/${basePath}/${previousPost.slug.current}`} className="group block no-underline">
                 <div className="border-t border-[#3c2e24] pt-[1.3125rem]">
-                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                  <div className="text-[0.875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.175rem]">
                     ← Previous
                   </div>
-                  <div className="text-[0.6875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
+                  <div className="text-[0.875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
                     {previousPost.title}
                   </div>
                 </div>
@@ -240,10 +240,10 @@ export function ArticleDetailPage({ post, previousPost, nextPost, basePath }: Ar
             {nextPost ? (
               <Link href={`/${basePath}/${nextPost.slug.current}`} className="group block no-underline">
                 <div className="border-t border-[#3c2e24] pt-[1.3125rem] text-right">
-                  <div className="text-[0.6875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.875rem]">
+                  <div className="text-[0.875rem] italic text-[#3c2e24] font-serif tracking-[-0.02rem] mb-[0.175rem]">
                     Next →
                   </div>
-                  <div className="text-[0.6875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
+                  <div className="text-[0.875rem] italic text-black font-serif font-semibold leading-[1.6] tracking-[-0.02rem] group-hover:text-[#3c2e24] transition-colors">
                     {nextPost.title}
                   </div>
                 </div>

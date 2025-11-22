@@ -16,7 +16,7 @@ export default function Footer() {
   const isHomepage = pathname === '/';
   console.log('pathname', usePathname())
   return (
-    <footer className="box-border bg-[#dd9ca1] w-full text-[#3c2e24] flex flex-col p-[2.063rem] min-h-[12.8125rem]">
+    <footer className="box-border bg-[#dd9ca1] w-full text-[#3c2e24] flex flex-col p-[2.063rem] min-h-[12.8125rem] gap-[2rem]">
       {/* Main description - 40px = 1.25rem - Only visible on homepage */}
       {isHomepage && (
         <p className="font-serif text-[1.25rem] leading-[1.2] tracking-[-0.038rem] max-w-[41.25rem] m-0">

@@ -51,13 +51,20 @@ export default async function PodcastPage() {
 
   return (
     <div className="min-h-screen bg-pink-50">
-      <Content className="py-16">
-        <h1 className="text-5xl font-serif text-center mb-6">Podcast</h1>
-        <p className="text-xl italic text-center mb-16">
-          A show coordinated, produced and edited by the NüVoices board.
-        </p>
+      {/* Main content */}
+      <main className="flex flex-col items-center gap-[1.5625rem] pb-[3rem]">
+        {/* Title section - matching magazine page structure */}
+        <div className="flex flex-col items-center justify-center h-[11.531rem] w-full max-w-[38.5625rem] text-center">
+          <h1 className="text-[2.5rem] font-serif leading-[1.1] tracking-[-0.075rem] text-black mb-[0.5rem]">
+            Podcast
+          </h1>
+          <p className="text-[1.5625rem] font-serif italic leading-[1.1] tracking-[-0.047rem] text-black mb-[1.25rem]">
+            A show coordinated, produced and edited by the NüVoices board.
+          </p>
+        </div>
 
         {/* Episodes Grid - using grid components */}
+        <Content>
         {episodes.length > 0 ? (
           <Grid>
             <GridRow>
@@ -78,11 +85,13 @@ export default async function PodcastPage() {
             </GridRow>
           </Grid>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the &quot;podcast&quot; category in Sanity.</p>
+          <div className="text-center py-[6rem]">
+            <p className="text-[#3c2e24] text-[1.5rem] font-serif mb-[1rem]">No podcast episodes found.</p>
+            <p className="text-[1rem] text-[#3c2e24] opacity-75">Make sure to create posts with the &quot;podcast&quot; category in Sanity Studio.</p>
           </div>
         )}
-      </Content>
+        </Content>
+      </main>
     </div>
   )
 }
