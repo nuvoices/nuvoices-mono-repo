@@ -1,12 +1,8 @@
 /**
  * Strict schema definition for journalist/expert records
  *
- * This schema defines the expected structure of data from Google Sheets.
- * Using a strict schema instead of dynamic inference provides:
- * - Type safety and predictable API responses
- * - Automatic type conversion (strings to numbers where appropriate)
- * - Clear validation rules
- * - Better developer experience
+ * This schema is now dynamically generated from CSV headers.
+ * All column types are TEXT to preserve data integrity.
  */
 
 export interface SchemaField {
@@ -16,23 +12,36 @@ export interface SchemaField {
 }
 
 /**
- * Fixed schema for journalist records
- * Based on the Google Sheets structure
+ * Create schema from CSV headers with all fields as TEXT
+ * This ensures data integrity and avoids type conversion issues
+ */
+export function createSchemaFromHeaders(headers: string[]): SchemaField[] {
+  return headers.map(header => ({
+    name: header,
+    sqlType: 'TEXT' as const,
+    required: false, // No required fields since structure is dynamic
+  }));
+}
+
+/**
+ * Legacy JOURNALIST_SCHEMA for backwards compatibility
+ * Will be replaced by dynamic schema from CSV headers
+ * @deprecated Use createSchemaFromHeaders instead
  */
 export const JOURNALIST_SCHEMA: SchemaField[] = [
-  { name: 'Name', sqlType: 'TEXT', required: true },
-  { name: 'Email', sqlType: 'TEXT', required: true },
+  { name: 'Name', sqlType: 'TEXT', required: false },
+  { name: 'Email', sqlType: 'TEXT', required: false },
   { name: 'Phone', sqlType: 'TEXT', required: false },
-  { name: 'Country', sqlType: 'TEXT', required: true },
+  { name: 'Country', sqlType: 'TEXT', required: false },
   { name: 'City', sqlType: 'TEXT', required: false },
   { name: 'Languages', sqlType: 'TEXT', required: false },
   { name: 'Specializations', sqlType: 'TEXT', required: false },
-  { name: 'Years_Experience', sqlType: 'INTEGER', required: false },
+  { name: 'Years_Experience', sqlType: 'TEXT', required: false },
   { name: 'Outlet', sqlType: 'TEXT', required: false },
   { name: 'Time_Zone', sqlType: 'TEXT', required: false },
   { name: 'LinkedIn_Profile', sqlType: 'TEXT', required: false },
   { name: 'Avatar', sqlType: 'TEXT', required: false },
-  { name: 'Daily_Rate_USD', sqlType: 'INTEGER', required: false },
+  { name: 'Daily_Rate_USD', sqlType: 'TEXT', required: false },
   { name: 'Available_For_Live', sqlType: 'TEXT', required: false },
   { name: 'Last_Updated', sqlType: 'TEXT', required: false },
 ];
@@ -94,27 +103,23 @@ export function toSqlColumnName(csvName: string): string {
 }
 
 /**
- * Validate that CSV headers contain all required fields
+ * Validate that CSV headers are present and non-empty
+ * Since all fields are optional, we just check for non-empty headers
  */
 export function validateCSVHeaders(headers: string[]): void {
-  const requiredFields = JOURNALIST_SCHEMA
-    .filter(field => field.required)
-    .map(field => field.name);
+  if (headers.length === 0) {
+    throw new Error('CSV headers cannot be empty');
+  }
 
-  const missingFields = requiredFields.filter(
-    required => !headers.includes(required)
-  );
-
-  if (missingFields.length > 0) {
-    throw new Error(
-      `Missing required fields in CSV: ${missingFields.join(', ')}`
-    );
+  const emptyHeaders = headers.filter(h => !h || h.trim() === '');
+  if (emptyHeaders.length > 0) {
+    throw new Error('CSV contains empty header names');
   }
 }
 
 /**
  * Get schema field by CSV column name
  */
-export function getSchemaField(csvName: string): SchemaField | undefined {
-  return JOURNALIST_SCHEMA.find(field => field.name === csvName);
+export function getSchemaField(csvName: string, schema: SchemaField[]): SchemaField | undefined {
+  return schema.find(field => field.name === csvName);
 }

@@ -2,7 +2,7 @@
  * CSV Parser Utility
  *
  * Parses CSV text with support for quoted fields containing commas.
- * Infers SQL schema types from data values.
+ * All fields are treated as TEXT type.
  */
 
 export interface ParsedCSV {
@@ -18,6 +18,7 @@ export interface FieldSchema {
 /**
  * Parse CSV text to structured data
  * Handles quoted fields with commas: "English, Mandarin, Cantonese"
+ * Skips first 2 rows and uses row 3 as headers
  */
 export function parseCSV(csvText: string): ParsedCSV {
   const lines = csvText.split('\n').filter(line => line.trim());
@@ -59,70 +60,12 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
- * Infer SQL schema from CSV data
- * Examines sample values to determine data types
- */
-export function inferSchemaFromCSV(headers: string[], rows: string[][]): FieldSchema[] {
-  const schema: FieldSchema[] = [];
-
-  for (let colIndex = 0; colIndex < headers.length; colIndex++) {
-    const columnName = headers[colIndex];
-    const sampleValues = rows
-      .slice(0, Math.min(10, rows.length)) // Sample first 10 rows
-      .map(row => row[colIndex])
-      .filter(val => val && val.trim() !== '');
-
-    const inferredType = inferColumnType(sampleValues);
-
-    schema.push({
-      name: columnName,
-      type: inferredType
-    });
-  }
-
-  return schema;
-}
-
-/**
- * Infer SQL type from sample values
- */
-function inferColumnType(sampleValues: string[]): "TEXT" | "INTEGER" | "REAL" {
-  if (sampleValues.length === 0) {
-    return "TEXT"; // Default
-  }
-
-  let hasInteger = false;
-  let hasReal = false;
-  let hasText = false;
-
-  for (const value of sampleValues) {
-    if (value.match(/^-?\d+$/)) {
-      // Integer: "123", "-456"
-      hasInteger = true;
-    } else if (value.match(/^-?\d+\.\d+$/)) {
-      // Real/Float: "123.45", "-67.89"
-      hasReal = true;
-    } else {
-      // Everything else is text
-      hasText = true;
-    }
-  }
-
-  // Priority: TEXT > REAL > INTEGER
-  if (hasText) return "TEXT";
-  if (hasReal) return "REAL";
-  if (hasInteger) return "INTEGER";
-
-  return "TEXT";
-}
-
-/**
  * Convert CSV rows to record objects
  */
 export function csvToRecords(headers: string[], rows: string[][]): Array<Record<string, string>> {
   return rows.map((row, index) => {
     const record: Record<string, string> = {
-      id: `row_${index + 2}` // Row 1 is headers, so data starts at row 2
+      id: `row_${index + 4}` // Rows 1-2 skipped, row 3 is headers, so data starts at row 4
     };
 
     headers.forEach((header, colIndex) => {

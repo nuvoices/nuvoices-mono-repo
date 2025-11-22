@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseCSV } from '../src/utils/csv-parser';
+import { createSchemaFromHeaders } from '../src/schema/journalist-schema';
 
 describe('parseCSV', () => {
   it('should skip first 2 rows and use row 3 as headers', () => {
@@ -33,5 +34,18 @@ Headers Only`;
 Only two rows`;
 
     expect(() => parseCSV(csvText)).toThrow('CSV must have at least 3 rows');
+  });
+});
+
+describe('createSchemaFromHeaders', () => {
+  it('should create TEXT schema from headers', () => {
+    const headers = ['Name', 'Email', 'Age', 'Salary'];
+    const schema = createSchemaFromHeaders(headers);
+
+    expect(schema).toHaveLength(4);
+    expect(schema[0]).toEqual({ name: 'Name', sqlType: 'TEXT', required: false });
+    expect(schema[1]).toEqual({ name: 'Email', sqlType: 'TEXT', required: false });
+    expect(schema[2]).toEqual({ name: 'Age', sqlType: 'TEXT', required: false });
+    expect(schema[3]).toEqual({ name: 'Salary', sqlType: 'TEXT', required: false });
   });
 });
