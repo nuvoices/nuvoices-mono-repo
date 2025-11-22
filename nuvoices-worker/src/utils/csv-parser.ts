@@ -22,12 +22,13 @@ export interface FieldSchema {
 export function parseCSV(csvText: string): ParsedCSV {
   const lines = csvText.split('\n').filter(line => line.trim());
 
-  if (lines.length === 0) {
-    throw new Error("CSV is empty");
+  if (lines.length < 3) {
+    throw new Error("CSV must have at least 3 rows (2 rows to skip + 1 header row)");
   }
 
-  const headers = parseCSVLine(lines[0]);
-  const rows = lines.slice(1).map(line => parseCSVLine(line));
+  // Skip first 2 rows, use row 3 as headers
+  const headers = parseCSVLine(lines[2]);
+  const rows = lines.slice(3).map(line => parseCSVLine(line));
 
   return { headers, rows };
 }
