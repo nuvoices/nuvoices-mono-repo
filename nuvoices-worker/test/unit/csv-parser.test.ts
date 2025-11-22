@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   parseCSV,
-  inferSchemaFromCSV,
   csvToRecords,
 } from "../../src/utils/csv-parser";
 
