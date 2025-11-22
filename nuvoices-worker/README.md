@@ -113,28 +113,40 @@ database_id = "your-production-database-id"
 
 ### 3. Configure Environment Variables
 
+The worker requires the following environment variables:
+
+- `CSV_URL` (required): Google Sheets CSV export URL
+- `TIMESTAMP_URL` (optional): Apps Script timestamp endpoint for change detection
+  - If not set, the worker will sync on every cron trigger
+  - If set but unavailable, the worker will log a warning and proceed with sync
+
 Create `.dev.vars` file for local development:
 
 ```env
-TIMESTAMP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=timestamp
-CSV_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=csv
+CSV_URL=https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv&gid=YOUR_GID
+# TIMESTAMP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=timestamp
 ```
 
-**Setting up Apps Script URLs:**
+**Setting up CSV_URL:**
+
+1. Open your Google Sheet
+2. Go to **File > Share > Publish to web**
+3. Select the specific sheet and choose "Comma-separated values (.csv)"
+4. Copy the published URL
+
+**Setting up TIMESTAMP_URL (optional):**
 
 1. Open your Google Sheet
 2. Go to **Extensions > Apps Script**
-3. Create a `doGet(e)` function that:
-   - Returns timestamp when `e.parameter.action === 'timestamp'`
-   - Returns CSV data when `e.parameter.action === 'csv'`
+3. Create a `doGet(e)` function that returns timestamp when `e.parameter.action === 'timestamp'`
 4. Deploy as **Web App** (Execute as: Me, Access: Anyone)
-5. Copy the deployment URL and append `?action=timestamp` or `?action=csv`
+5. Copy the deployment URL and append `?action=timestamp`
 
 For production, set these as environment variables in Cloudflare dashboard or use secrets:
 
 ```bash
-wrangler secret put TIMESTAMP_URL
 wrangler secret put CSV_URL
+wrangler secret put TIMESTAMP_URL  # Optional
 ```
 
 ### 4. Configure Cron Trigger
@@ -363,30 +375,32 @@ wrangler secret put CSV_URL
 - **Atomicity**: No moment where table is empty (batch operation)
 - **Error Handling**: Old data remains intact if sync fails
 
-## CSV Format
+## CSV Structure
 
-The CSV data from Apps Script must follow this format:
+The Google Sheets export has the following structure:
 
-```csv
-Name,Email,Phone,Country,Languages
-John Doe,john@example.com,+1-555-1234,USA,"English, Spanish"
-Jane Smith,jane@example.com,+1-555-5678,Canada,"English, French"
-```
+- **Rows 1-2**: Metadata/header rows (skipped during parsing)
+- **Row 3**: Column headers (dynamically extracted)
+- **Rows 4+**: Data rows
+
+All columns are stored as TEXT type in the database to preserve data integrity.
 
 **Requirements:**
-- Row 1 must be headers
 - Quoted fields with commas are supported: `"English, Spanish"`
-- Record IDs are auto-generated: `row_2`, `row_3`, etc.
+- Record IDs are auto-generated: `row_4`, `row_5`, etc. (starting from row 4 since rows 1-3 are headers/metadata)
 
 See `test/constants/mockSheetsCSV.txt` for a complete example.
 
-## Schema Inference
+## Dynamic Schema
 
-The worker automatically infers SQL types from CSV data:
+The database schema is now dynamically generated from the CSV headers on each sync:
 
-- **INTEGER**: Values matching `-?\\d+` (e.g., `123`, `-456`)
-- **REAL**: Values matching `-?\\d+\\.\\d+` (e.g., `123.45`, `-67.89`)
-- **TEXT**: Everything else (default)
+1. Parse CSV and extract headers from row 3
+2. Create schema with all fields as TEXT type
+3. Drop and recreate table with new schema
+4. Insert all records
+
+This approach ensures the worker adapts to schema changes in Google Sheets without code modifications. All column values are stored as TEXT type to preserve data integrity and avoid type conversion issues.
 
 ## Error Handling
 
