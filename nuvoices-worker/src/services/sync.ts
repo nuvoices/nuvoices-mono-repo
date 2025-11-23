@@ -24,6 +24,12 @@ export async function syncFromGoogleSheets(env: Env): Promise<void> {
   const db = new DatabaseService(env.DB);
 
   try {
+    // Step 0: Validate required environment variables
+    if (!env.CSV_URL) {
+      throw new Error("CSV_URL environment variable is not set. Please configure it in Cloudflare Dashboard.");
+    }
+    console.log(`CSV_URL configured: ${env.CSV_URL.substring(0, 50)}...`);
+
     // Step 1: Fetch CSV data from Apps Script (moved earlier to get headers)
     console.log("Fetching CSV data...");
     const csvData = await fetchCSVData(env.CSV_URL);
@@ -116,13 +122,25 @@ async function fetchTimestamp(url: string): Promise<TimestampResponse> {
  * Fetch CSV data from Apps Script
  */
 async function fetchCSVData(url: string): Promise<string> {
-  const response = await fetch(url);
+  if (!url) {
+    throw new Error("CSV_URL is undefined. Cannot fetch CSV data.");
+  }
+
+  console.log(`Fetching from URL: ${url.substring(0, 100)}...`);
+
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error(`Network error fetching CSV from ${url}: ${error instanceof Error ? error.message : String(error)}`);
+  }
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+    throw new Error(`Failed to fetch CSV from ${url}: HTTP ${response.status} ${response.statusText}`);
   }
 
   const text = await response.text();
+  console.log(`Received CSV data: ${text.length} characters`);
 
   if (!text || text.trim().length === 0) {
     throw new Error("CSV data is empty");
