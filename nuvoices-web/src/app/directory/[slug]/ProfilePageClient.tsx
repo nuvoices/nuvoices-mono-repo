@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Content } from "@/components/ui/Content"
 import { TagList } from "@/components/ui/Tag"
-import { ArrowLeft, Share2, Mail, Globe, Twitter, Linkedin, Instagram, Check } from "lucide-react"
+import { ArrowLeft, Share2, Mail, Globe, Twitter, Linkedin, Instagram, Check, MapPin } from "lucide-react"
 
 interface Record {
   airtable_id: string
@@ -118,191 +118,132 @@ export default function ProfilePageClient({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4ecea]">
+    <div className="min-h-screen bg-white">
       <Content>
-        <main className="py-[1.5rem]">
+        <main className="py-8 max-w-4xl mx-auto">
           {/* Back Button */}
           <Link
             href="/directory"
-            className="inline-flex items-center gap-2 text-[#3c2e24] hover:text-amber-700 mb-8 font-serif"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 font-sans text-sm transition-colors"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
             Back to Directory
           </Link>
 
           {/* Profile Card */}
-          <div className="bg-[#FFFAFA] border border-[#E9EAEB] rounded-[8px] overflow-hidden">
+          <div className="bg-white">
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-[#f4ecea] to-[#e8d5d1] p-8 relative">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-[2.5rem] font-serif font-normal leading-[1.1] tracking-[-0.089rem] text-[#3c2e24] mb-2">
-                    {record.name}
-                  </h1>
+            <div className="pb-8 border-b border-gray-200">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <h1 className="text-3xl md:text-4xl font-semibold text-gray-900">
+                      {record.name}
+                    </h1>
+                    {record.category && (
+                      <TagList items={record.category} color="gray" />
+                    )}
+                  </div>
                   {record.title && (
-                    <p className="text-[1.125rem] font-serif text-[#3c2e24] mb-3">
+                    <p className="text-lg text-gray-700 mb-4 font-medium">
                       {record.title}
                     </p>
                   )}
+                  {record.specialisations && (
+                    <div className="mb-4">
+                      <TagList items={record.specialisations} />
+                    </div>
+                  )}
                   {record.location && (
-                    <p className="text-[0.875rem] font-sans text-[#717680] flex items-center gap-2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M8 0C5.24 0 3 2.24 3 5C3 8.5 8 14 8 14C8 14 13 8.5 13 5C13 2.24 10.76 0 8 0ZM8 6.75C7.03 6.75 6.25 5.97 6.25 5C6.25 4.03 7.03 3.25 8 3.25C8.97 3.25 9.75 4.03 9.75 5C9.75 5.97 8.97 6.75 8 6.75Z"
-                          fill="#717680"
-                        />
-                      </svg>
-                      {record.location}
-                    </p>
+                    <div className="flex items-center gap-2 text-gray-600 mb-6">
+                      <MapPin size={18} className="text-gray-400" />
+                      <span className="text-sm">{record.location}</span>
+                    </div>
                   )}
                 </div>
-
-                {/* Share Button */}
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 bg-white px-4 py-2 rounded-md border border-[#E9EAEB] hover:bg-gray-50 transition-colors font-sans text-[0.875rem]"
-                  title="Copy profile link"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={16} className="text-green-600" />
-                      <span className="text-green-600">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 size={16} />
-                      Share Profile
-                    </>
-                  )}
-                </button>
               </div>
+
+              {/* Contact & Social */}
+              {(record.email || record.website || record.twitter || record.linkedin || record.instagram) && (
+                <div className="flex flex-wrap gap-3">
+                  {record.email && (
+                    <a
+                      href={`mailto:${record.email}`}
+                      className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all text-sm font-medium text-gray-700"
+                    >
+                      <Mail size={18} />
+                      <span>Email</span>
+                    </a>
+                  )}
+                  {record.website && (
+                    <a
+                      href={record.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all text-sm font-medium text-gray-700"
+                    >
+                      <Globe size={18} />
+                      <span>Website</span>
+                    </a>
+                  )}
+                  {record.linkedin && (
+                    <a
+                      href={
+                        record.linkedin.startsWith("http")
+                          ? record.linkedin
+                          : `https://linkedin.com/in/${record.linkedin}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 hover:bg-[#0A66C2] hover:text-white rounded-lg transition-all text-sm font-medium text-gray-700"
+                    >
+                      <Linkedin size={18} />
+                      <span>LinkedIn</span>
+                    </a>
+                  )}
+                  {record.twitter && (
+                    <a
+                      href={
+                        record.twitter.startsWith("http")
+                          ? record.twitter
+                          : `https://twitter.com/${record.twitter.replace("@", "")}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 hover:bg-[#1DA1F2] hover:text-white rounded-lg transition-all text-sm font-medium text-gray-700"
+                    >
+                      <Twitter size={18} />
+                      <span>Twitter</span>
+                    </a>
+                  )}
+                  {record.instagram && (
+                    <a
+                      href={
+                        record.instagram.startsWith("http")
+                          ? record.instagram
+                          : `https://instagram.com/${record.instagram.replace("@", "")}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-4 py-2.5 bg-gray-50 hover:bg-[#E4405F] hover:text-white rounded-lg transition-all text-sm font-medium text-gray-700"
+                    >
+                      <Instagram size={18} />
+                      <span>Instagram</span>
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Content Section */}
-            <div className="p-8 space-y-8">
-              {/* Contact Information */}
-              {(record.email || record.website) && (
-                <div>
-                  <h2 className="text-[1.25rem] font-serif font-semibold text-[#3c2e24] mb-4">
-                    Contact
-                  </h2>
-                  <div className="flex flex-wrap gap-4">
-                    {record.email && (
-                      <a
-                        href={`mailto:${record.email}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#E9EAEB] rounded-md hover:border-[#3c2e24] transition-colors font-sans text-[0.875rem]"
-                      >
-                        <Mail size={16} />
-                        Email
-                      </a>
-                    )}
-                    {record.website && (
-                      <a
-                        href={record.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#E9EAEB] rounded-md hover:border-[#3c2e24] transition-colors font-sans text-[0.875rem]"
-                      >
-                        <Globe size={16} />
-                        Website
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Social Media */}
-              {(record.twitter || record.linkedin || record.instagram) && (
-                <div>
-                  <h2 className="text-[1.25rem] font-serif font-semibold text-[#3c2e24] mb-4">
-                    Social Media
-                  </h2>
-                  <div className="flex flex-wrap gap-4">
-                    {record.twitter && (
-                      <a
-                        href={
-                          record.twitter.startsWith("http")
-                            ? record.twitter
-                            : `https://twitter.com/${record.twitter.replace("@", "")}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#E9EAEB] rounded-md hover:border-[#1DA1F2] hover:text-[#1DA1F2] transition-colors font-sans text-[0.875rem]"
-                      >
-                        <Twitter size={16} />
-                        Twitter
-                      </a>
-                    )}
-                    {record.linkedin && (
-                      <a
-                        href={
-                          record.linkedin.startsWith("http")
-                            ? record.linkedin
-                            : `https://linkedin.com/in/${record.linkedin}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#E9EAEB] rounded-md hover:border-[#0A66C2] hover:text-[#0A66C2] transition-colors font-sans text-[0.875rem]"
-                      >
-                        <Linkedin size={16} />
-                        LinkedIn
-                      </a>
-                    )}
-                    {record.instagram && (
-                      <a
-                        href={
-                          record.instagram.startsWith("http")
-                            ? record.instagram
-                            : `https://instagram.com/${record.instagram.replace("@", "")}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#E9EAEB] rounded-md hover:border-[#E4405F] hover:text-[#E4405F] transition-colors font-sans text-[0.875rem]"
-                      >
-                        <Instagram size={16} />
-                        Instagram
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Specializations */}
-              {record.specialisations && (
-                <div>
-                  <h2 className="text-[1.25rem] font-serif font-semibold text-[#3c2e24] mb-4">
-                    Specializations
-                  </h2>
-                  <TagList items={record.specialisations} />
-                </div>
-              )}
-
-              {/* Category */}
-              {record.category && (
-                <div>
-                  <h2 className="text-[1.25rem] font-serif font-semibold text-[#3c2e24] mb-4">
-                    Category
-                  </h2>
-                  <TagList items={record.category} color="gray" />
-                </div>
-              )}
-
-              {/* Languages */}
-              {record.languages && (
-                <div>
-                  <h2 className="text-[1.25rem] font-serif font-semibold text-[#3c2e24] mb-4">
-                    Languages
-                  </h2>
-                  <TagList items={record.languages} color="blue" />
-                </div>
-              )}
-            </div>
+            {record.languages && (
+              <div className="py-8">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                  Languages
+                </h2>
+                <TagList items={record.languages} color="blue" />
+              </div>
+            )}
           </div>
         </main>
       </Content>

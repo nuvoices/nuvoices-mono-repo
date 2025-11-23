@@ -135,7 +135,7 @@ export function Pagination({
 
       {/* Page indicator text - Mobile only */}
       <div className="sm:hidden flex items-center justify-center">
-        <span className="text-[0.75rem] text-[#414651] font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <span className="text-[0.75rem] text-[#414651] font-medium text-center" style={{ fontFamily: 'Inter, sans-serif' }}>
           Page <span className="font-bold">{currentPage}</span> of <span className="font-bold">{totalPages}</span>
         </span>
       </div>

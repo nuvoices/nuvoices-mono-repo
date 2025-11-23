@@ -350,22 +350,24 @@ curl http://localhost:8787/record/row_2
 
 ## Deployment
 
+Workers are managed and deployed via the **Cloudflare Dashboard**, not via CLI.
+
 ### Deploy to Cloudflare Workers
 
-```bash
-# Deploy to production
-pnpm deploy
-
-# Deploy to staging (if configured)
-wrangler deploy --env staging
-```
+1. Log in to your Cloudflare account
+2. Navigate to **Workers & Pages**
+3. Upload or update your worker code through the dashboard
+4. The cron trigger will automatically run every 2 minutes once deployed
 
 ### Set Production Environment Variables
 
-```bash
-wrangler secret put TIMESTAMP_URL
-wrangler secret put CSV_URL
-```
+Set environment variables in the Cloudflare dashboard:
+
+1. Go to your Worker in the Cloudflare dashboard
+2. Navigate to **Settings** → **Variables**
+3. Add the following environment variables:
+   - `TIMESTAMP_URL` - Apps Script timestamp endpoint (optional)
+   - `CSV_URL` - Google Sheets CSV export URL (required)
 
 ## Performance Characteristics
 
