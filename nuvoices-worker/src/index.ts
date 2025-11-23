@@ -5,6 +5,7 @@ import { errorHandler, notFoundHandler } from "./middleware/error";
 import { logger } from "./middleware/logger";
 import { getRecordsHandler } from "./routes/records";
 import { getRecordHandler } from "./routes/record";
+import recordBySlugRoute from "./routes/record-by-slug";
 import { syncFromGoogleSheets } from "./services/sync";
 
 /**
@@ -78,6 +79,7 @@ app.get("/", (c) => {
     endpoints: {
       records: "GET /records - List all records with filtering, search, and pagination",
       record: "GET /record/:id - Get a single record by ID",
+      recordBySlug: "GET /record/by-slug/:slug - Get a single record by URL slug",
       sync: "POST /sync - Manually trigger sync from Google Sheets (dev/testing)",
     },
     features: {
@@ -102,6 +104,9 @@ app.get("/records", getRecordsHandler);
 
 // GET /record/:id - Get a single record by ID
 app.get("/record/:id", getRecordHandler);
+
+// Mount the record-by-slug route
+app.route("/", recordBySlugRoute);
 
 /**
  * Manual sync trigger endpoint (useful for development/testing)

@@ -204,6 +204,7 @@ export function buildCreateIndexSQL(): string[] {
     "CREATE INDEX IF NOT EXISTS idx_airtable_id ON records(airtable_id)",
     "CREATE INDEX IF NOT EXISTS idx_created_time ON records(created_time)",
     "CREATE INDEX IF NOT EXISTS idx_last_modified_time ON records(last_modified_time)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_slug ON records(slug)",
   ];
 }
 

@@ -170,6 +170,18 @@ export class DatabaseService {
   }
 
   /**
+   * Get a single record by slug
+   */
+  async getRecordBySlug(slug: string): Promise<DBRecord | null> {
+    const result = await this.db
+      .prepare("SELECT * FROM records WHERE slug = ?")
+      .bind(slug)
+      .first<DBRecord>();
+
+    return result || null;
+  }
+
+  /**
    * Drop the records table (for full sync)
    */
   async dropTable(): Promise<void> {

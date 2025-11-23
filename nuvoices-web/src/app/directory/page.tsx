@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
 import { Content } from "@/components/ui/Content"
@@ -13,6 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TagList } from "@/components/ui/Tag"
+import { Pagination } from "@/components/ui/Pagination"
 
 interface Record {
   airtable_id: string
@@ -27,6 +30,7 @@ interface Record {
   twitter: string | null
   linkedin: string | null
   instagram: string | null
+  slug: string
 }
 
 interface ApiResponse {
@@ -41,22 +45,28 @@ interface ApiResponse {
   }
 }
 
-async function fetchRecords(search?: string): Promise<Record[]> {
+async function fetchRecords(
+  search?: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<ApiResponse> {
   const url = new URL(
     "https://nuvoices-worker.storywithoutend.workers.dev/records",
   )
   if (search) {
     url.searchParams.set("search", search)
   }
+  url.searchParams.set("page", page.toString())
+  url.searchParams.set("limit", limit.toString())
 
   const response = await fetch(url.toString())
   const data: ApiResponse = await response.json()
-  return data.data
+  return data
 }
 
 function TableSkeleton() {
   return (
-    <div className='w-full border bg-[#F5F5F5] font-sans border border-[#E9EAEB] opacity-60'>
+    <div className='w-full border bg-[#F5F5F5] font-sans border border-[#E9EAEB] opacity-60 rounded-[8px] overflow-hidden'>
       <div className='px-[01.5rem] py-[1.25rem] font-semibold text-[1.125rem]'>
         Greater China Female & Non-Binary Experts
       </div>
@@ -71,7 +81,7 @@ function TableSkeleton() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {[...Array(10)].map((_, i) => (
+            {[...Array(20)].map((_, i) => (
               <TableRow key={i} className='border-b border-gray-300'>
                 <TableCell className="px-[1.5rem] py-[1rem]">
                   <div className="h-4 w-full bg-gray-300 rounded animate-pulse"></div>
@@ -97,16 +107,26 @@ function TableSkeleton() {
 export default function DirectoryPage() {
   const [filterInput, setFilterInput] = useState("")
   const [debouncedFilter] = useDebounce(filterInput, 300)
+  const [currentPage, setCurrentPage] = useState(1)
+  const recordsPerPage = 20
 
   const {
-    data: records,
+    data: apiResponse,
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["records", debouncedFilter],
-    queryFn: () => fetchRecords(debouncedFilter),
+    queryKey: ["records", debouncedFilter, currentPage],
+    queryFn: () => fetchRecords(debouncedFilter, currentPage, recordsPerPage),
   })
+
+  const records = apiResponse?.data
+  const pagination = apiResponse?.pagination
+
+  // Reset to page 1 when search filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedFilter])
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">
@@ -154,7 +174,7 @@ export default function DirectoryPage() {
 
           {/* Table */}
           {!isLoading && !isError && (
-            <div className='w-full border bg-[#FFFAFA] font-sans border border-[#E9EAEB]'>
+            <div className='w-full border bg-[#FFFAFA] font-sans border border-[#E9EAEB] rounded-[8px] overflow-hidden'>
               <div className='px-[01.5rem] py-[1.25rem] font-semibold text-[1.125rem]'>
                 Greater China Female & Non-Binary Experts
               </div>
@@ -181,16 +201,34 @@ export default function DirectoryPage() {
                           key={record.airtable_id}
                           className='border-b border-red-200'
                         >
-                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.name}</TableCell>
+                          <TableCell className="px-[1.5rem] py-[1rem]">
+                            <Link
+                              href={`/directory/${record.slug}`}
+                              className="font-semibold text-[0.75rem] text-[#181D27] hover:text-amber-700 hover:underline transition-colors"
+                            >
+                              {record.name}
+                            </Link>
+                          </TableCell>
                           <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.title || "-"}</TableCell>
-                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.specialisations || "-"}</TableCell>
-                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.category || "-"}</TableCell>
+                          <TableCell className="px-[1.5rem] py-[1rem]">
+                            <TagList items={record.specialisations} />
+                          </TableCell>
+                          <TableCell className="px-[1.5rem] py-[1rem]">
+                            <TagList items={record.category} color="gray" />
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
                   </TableBody>
                 </Table>
               </div>
+              {pagination && pagination.totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              )}
             </div>
           )}
         </main>

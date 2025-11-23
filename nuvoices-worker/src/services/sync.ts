@@ -9,6 +9,7 @@ import type { Env } from "../types";
 import { DatabaseService } from "./database";
 import { parseCSV, csvToRecords } from "../utils/csv-parser";
 import { validateCSVHeaders, createSchemaFromHeaders } from "../schema/journalist-schema";
+import { generateUniqueSlugs } from "../utils/slug";
 
 interface TimestampResponse {
   spreadsheetId: string;
@@ -75,9 +76,27 @@ export async function syncFromGoogleSheets(env: Env): Promise<void> {
     const records = csvToRecords(headers, rows);
     console.log(`Converted to ${records.length} records`);
 
+    // Step 8.5: Generate unique slugs from names
+    console.log("Generating unique slugs...");
+    const names = records.map(r => r['Name'] || r['name'] || '');
+    const slugs = generateUniqueSlugs(names);
+
+    // Add slug to each record
+    const recordsWithSlugs = records.map((record, index) => ({
+      ...record,
+      slug: slugs[index]
+    }));
+    console.log(`Generated ${slugs.length} unique slugs`);
+
+    // Add 'slug' to schema
+    const schemaWithSlug = [
+      ...schema,
+      { name: 'slug', sqlType: 'TEXT' as const, required: false }
+    ];
+
     // Step 9: Replace all records atomically (uses dynamic schema)
     console.log("Replacing table...");
-    await db.replaceAllRecords(records, schema);
+    await db.replaceAllRecords(recordsWithSlugs, schemaWithSlug);
 
     // Step 10: Update last sync time (if timestamp was fetched)
     if (env.TIMESTAMP_URL) {
