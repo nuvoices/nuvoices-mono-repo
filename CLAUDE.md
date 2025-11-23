@@ -40,13 +40,16 @@ cd nuvoices-worker
 
 # Development
 pnpm dev              # Start local dev server (localhost:8787)
-pnpm deploy           # Deploy to Cloudflare Workers
 pnpm test             # Run tests with Vitest
 pnpm type-check       # Run TypeScript type checking
 
 # Database management
 wrangler d1 list      # List D1 databases
 wrangler tail         # View production logs
+
+# Deployment
+# Workers are deployed via Cloudflare Dashboard, not CLI
+# See nuvoices-worker/README.md for deployment instructions
 ```
 
 ## Architecture

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "use-debounce"
 import { Content } from "@/components/ui/Content"
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/table"
 import { TagList } from "@/components/ui/Tag"
 import { Pagination } from "@/components/ui/Pagination"
+import { ProfileModal } from "@/components/ui/ProfileModal"
 
 interface Record {
   airtable_id: string
@@ -108,6 +108,7 @@ export default function DirectoryPage() {
   const [filterInput, setFilterInput] = useState("")
   const [debouncedFilter] = useDebounce(filterInput, 300)
   const [currentPage, setCurrentPage] = useState(1)
+  const [selectedRecord, setSelectedRecord] = useState<Record | null>(null)
   const recordsPerPage = 20
 
   const {
@@ -199,15 +200,11 @@ export default function DirectoryPage() {
                       records?.map((record) => (
                         <TableRow
                           key={record.airtable_id}
-                          className='border-b border-red-200'
+                          className='border-b border-red-200 cursor-pointer hover:bg-gray-50 transition-colors'
+                          onClick={() => setSelectedRecord(record)}
                         >
-                          <TableCell className="px-[1.5rem] py-[1rem]">
-                            <Link
-                              href={`/directory/${record.slug}`}
-                              className="font-semibold text-[0.75rem] text-[#181D27] hover:text-amber-700 hover:underline transition-colors"
-                            >
-                              {record.name}
-                            </Link>
+                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">
+                            {record.name}
                           </TableCell>
                           <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.title || "-"}</TableCell>
                           <TableCell className="px-[1.5rem] py-[1rem]">
@@ -233,6 +230,15 @@ export default function DirectoryPage() {
           )}
         </main>
       </Content>
+
+      {/* Profile Modal */}
+      {selectedRecord && (
+        <ProfileModal
+          record={selectedRecord}
+          isOpen={!!selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+        />
+      )}
     </div>
   )
 }
