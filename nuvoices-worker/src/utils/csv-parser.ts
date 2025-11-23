@@ -16,12 +16,46 @@ export interface FieldSchema {
 }
 
 /**
+ * Split CSV text into lines while respecting quoted fields
+ * Newlines inside quoted fields are preserved as part of the field value
+ */
+function splitCSVLines(csvText: string): string[] {
+  const lines: string[] = [];
+  let currentLine = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      currentLine += char;
+    } else if (char === '\n' && !inQuotes) {
+      // Only treat newline as line separator when not inside quotes
+      if (currentLine.trim()) {
+        lines.push(currentLine);
+      }
+      currentLine = '';
+    } else {
+      currentLine += char;
+    }
+  }
+
+  // Add the last line if it's not empty
+  if (currentLine.trim()) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+/**
  * Parse CSV text to structured data
  * Handles quoted fields with commas: "English, Mandarin, Cantonese"
  * Skips first 2 rows and uses row 3 as headers
  */
 export function parseCSV(csvText: string): ParsedCSV {
-  const lines = csvText.split('\n').filter(line => line.trim());
+  const lines = splitCSVLines(csvText);
 
   if (lines.length < 3) {
     throw new Error("CSV must have at least 3 rows (2 rows to skip + 1 header row)");

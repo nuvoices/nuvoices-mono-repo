@@ -93,6 +93,30 @@ Raj Patel,raj.patel@email.com,+91-98765-43210,"English, Hindi",8`;
       expect(result.rows).toHaveLength(2);
       expect(result.rows[0][3]).toBe("English, Mandarin");
     });
+
+    it("should handle newlines within quoted fields", () => {
+      const csvData = `Skip,Row,One
+Skip,Row,Two
+Name,Specialisations,Location
+Titilayo Ogundele,"South China Sea, international security,
+foreign media signaling",Arlington
+John Doe,"Technology, Innovation",Seattle`;
+
+      const result = parseCSV(csvData);
+
+      expect(result.headers).toEqual(["Name", "Specialisations", "Location"]);
+      expect(result.rows).toHaveLength(2);
+      expect(result.rows[0]).toEqual([
+        "Titilayo Ogundele",
+        "South China Sea, international security,\nforeign media signaling",
+        "Arlington",
+      ]);
+      expect(result.rows[1]).toEqual([
+        "John Doe",
+        "Technology, Innovation",
+        "Seattle",
+      ]);
+    });
   });
 
   describe("inferSchemaFromCSV", () => {
