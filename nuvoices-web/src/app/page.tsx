@@ -119,14 +119,76 @@ const newsPostsQuery = groq`
 `
 
 export default async function Home() {
-  // Fetch posts from Sanity
-  const [magazinePosts, podcastPosts, featuredPost, newsPosts] =
-    await Promise.all([
-      client.fetch<Post[]>(magazinePostsQuery),
-      client.fetch<Post[]>(podcastPostsQuery),
-      client.fetch<Post | null>(featuredPostQuery),
-      client.fetch<Post[]>(newsPostsQuery),
-    ])
+  // Fetch featured post first to exclude from category queries
+  const featuredPost = await client.fetch<Post | null>(featuredPostQuery)
+
+  // Build category queries with featured post exclusion
+  const magazinePostsQueryFiltered = groq`
+    *[_type == "post" && status == "published" && "featuredstories" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      featuredImage {
+        asset->{
+          _id,
+          url
+        },
+        alt
+      },
+      author->{
+        name
+      }
+    }
+  `
+
+  const podcastPostsQueryFiltered = groq`
+    *[_type == "post" && status == "published" && "podcast" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      featuredImage {
+        asset->{
+          _id,
+          url
+        },
+        alt
+      },
+      author->{
+        name
+      }
+    }
+  `
+
+  const newsPostsQueryFiltered = groq`
+    *[_type == "post" && status == "published" && "events" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      featuredImage {
+        asset->{
+          _id,
+          url
+        },
+        alt
+      },
+      author->{
+        name
+      }
+    }
+  `
+
+  // Fetch category posts in parallel
+  const [magazinePosts, podcastPosts, newsPosts] = await Promise.all([
+    client.fetch<Post[]>(magazinePostsQueryFiltered),
+    client.fetch<Post[]>(podcastPostsQueryFiltered),
+    client.fetch<Post[]>(newsPostsQueryFiltered),
+  ])
   return (
     <div className='bg-[#f4ecea] flex flex-col gap-[1.563rem] items-center min-h-screen'>
       {/* Hero Section */}
