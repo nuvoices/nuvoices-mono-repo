@@ -15,11 +15,18 @@ import {
 } from "@/components/ui/table"
 
 interface Record {
-  id: number
+  airtable_id: string
   name: string
-  country: string
+  title: string | null
+  specialisations: string | null
+  category: string | null
+  location: string | null
   languages: string | null
-  specializations: string | null
+  email: string | null
+  website: string | null
+  twitter: string | null
+  linkedin: string | null
+  instagram: string | null
 }
 
 interface ApiResponse {
@@ -58,9 +65,9 @@ function TableSkeleton() {
           <TableHeader className='bg-[#E5E5E5] border-b border-[#E9EAEB]'>
             <TableRow>
               <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Name</TableHead>
-              <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Country</TableHead>
-              <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Languages</TableHead>
-              <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Specializations</TableHead>
+              <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Title</TableHead>
+              <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Specialisations</TableHead>
+              <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Category</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -156,9 +163,9 @@ export default function DirectoryPage() {
                   <TableHeader className='bg-[#FAFAFA] border-b border-[#E9EAEB]'>
                     <TableRow>
                       <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Name</TableHead>
-                      <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Country</TableHead>
-                      <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Languages</TableHead>
-                      <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Specializations</TableHead>
+                      <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Title</TableHead>
+                      <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Specialisations</TableHead>
+                      <TableHead className="px-[1.5rem] py-[0.75rem] font-semibold text-[0.75rem] text-[#717680]">Category</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -171,13 +178,13 @@ export default function DirectoryPage() {
                     ) : (
                       records?.map((record) => (
                         <TableRow
-                          key={record.id}
+                          key={record.airtable_id}
                           className='border-b border-red-200'
                         >
                           <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.name}</TableCell>
-                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.country}</TableCell>
-                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.languages || "-"}</TableCell>
-                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.specializations || "-"}</TableCell>
+                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.title || "-"}</TableCell>
+                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.specialisations || "-"}</TableCell>
+                          <TableCell className="px-[1.5rem] py-[1rem] font-semibold text-[0.75rem] text-[#181D27]">{record.category || "-"}</TableCell>
                         </TableRow>
                       ))
                     )}
