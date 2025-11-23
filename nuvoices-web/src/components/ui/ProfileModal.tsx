@@ -90,7 +90,10 @@ export function ProfileModal({ record, isOpen, onClose }: ProfileModalProps) {
       onClick={onClose}
     >
       <div
-        className="fixed inset-0 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:inset-auto bg-[#3c2e24] md:rounded-xl shadow-2xl md:max-w-[45rem] w-full md:max-h-[90vh] h-full md:h-auto overflow-y-auto relative"
+        className="bg-[#3c2e24] overflow-y-auto relative
+                   fixed inset-0 w-full h-full
+                   sm:absolute sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2
+                   sm:rounded-xl sm:shadow-2xl sm:max-w-[45rem] sm:w-auto sm:max-h-[90vh] sm:h-auto sm:min-w-[28rem]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
