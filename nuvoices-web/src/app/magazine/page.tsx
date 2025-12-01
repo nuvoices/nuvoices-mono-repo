@@ -34,7 +34,7 @@ interface Post {
 }
 
 const magazinePostsQuery = groq`
-  *[_type == "post" && status == "published" && "featuredstories" in categories[]->slug.current] | order(publishedAt desc) {
+  *[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] | order(publishedAt desc) {
     _id,
     title,
     slug,

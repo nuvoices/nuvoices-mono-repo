@@ -2,6 +2,39 @@ const { createClient } = require('@sanity/client');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
 
+// Map old WordPress categories to new simplified categories
+const CATEGORY_MAPPING = {
+  // Podcast
+  'podcast': 'podcast',
+
+  // Magazine
+  'featured-stories': 'magazine',
+  'opinion': 'magazine',
+  'personal-essay': 'magazine',
+  'photography': 'magazine',
+  'profiles': 'magazine',
+  'qa': 'magazine',
+  'translation': 'magazine',
+  'travel': 'magazine',
+  'art': 'magazine',
+  'essay': 'magazine',
+  'fiction': 'magazine',
+  'film': 'magazine',
+  'books': 'magazine',
+
+  // News
+  'events': 'news',
+  'job': 'news',
+  'uncategorized': 'news',
+};
+
+// The 3 new fixed categories
+const NEW_CATEGORIES = [
+  { id: 'podcast', title: 'Podcast', slug: 'podcast' },
+  { id: 'magazine', title: 'Magazine', slug: 'magazine' },
+  { id: 'news', title: 'News', slug: 'news' },
+];
+
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');
 }
@@ -16,64 +49,39 @@ const client = createClient({
 
 async function importCategories() {
   try {
-    console.log('Starting category import...');
-    
-    const parser = new WordPressParser('./nuvoices.xml');
-    await parser.parseXML();
-    
-    const wpCategories = parser.getCategories();
-    console.log(`Found ${wpCategories.length} categories to import`);
+    console.log('Starting category import (3 fixed categories)...');
 
-    // Sort categories to handle parent-child relationships
-    // Import parents first, then children
-    const sortedCategories = [...wpCategories].sort((a, b) => {
-      if (!a.parent && b.parent) return -1;
-      if (a.parent && !b.parent) return 1;
-      return 0;
-    });
+    const categoryMap = new Map(); // Maps category slug to Sanity _id
 
-    const categoryMap = new Map(); // Maps wp nicename to Sanity _id
-
-    for (const wpCategory of sortedCategories) {
+    for (const category of NEW_CATEGORIES) {
       // Check if category already exists
       const existingCategory = await client.fetch(
-        '*[_type == "category" && wpTermId == $wpTermId][0]',
-        { wpTermId: wpCategory.wpTermId }
+        '*[_type == "category" && slug.current == $slug][0]',
+        { slug: category.slug }
       );
 
       if (existingCategory) {
-        console.log(`Category "${wpCategory.name}" already exists, skipping...`);
-        categoryMap.set(wpCategory.nicename, existingCategory._id);
+        console.log(`Category "${category.title}" already exists, skipping...`);
+        categoryMap.set(category.slug, existingCategory._id);
         continue;
       }
 
       const categoryDoc = {
         _type: 'category',
-        _id: `category-wp-${wpCategory.wpTermId}`,
-        title: wpCategory.name,
+        _id: `category-${category.id}`,
+        title: category.title,
         slug: {
           _type: 'slug',
-          current: ContentTransformer.createSlug(wpCategory.nicename)
+          current: category.slug
         },
-        description: wpCategory.description,
-        wpTermId: wpCategory.wpTermId,
-        wpNicename: wpCategory.nicename,
       };
 
-      // Handle parent reference
-      if (wpCategory.parent && categoryMap.has(wpCategory.parent)) {
-        categoryDoc.parent = {
-          _type: 'reference',
-          _ref: categoryMap.get(wpCategory.parent)
-        };
-      }
-
       const result = await client.createOrReplace(categoryDoc);
-      categoryMap.set(wpCategory.nicename, result._id);
+      categoryMap.set(category.slug, result._id);
       console.log(`Imported category: ${categoryDoc.title}`);
     }
 
-    console.log(`Successfully imported ${sortedCategories.length} categories`);
+    console.log(`Successfully imported ${NEW_CATEGORIES.length} categories`);
     return categoryMap;
   } catch (error) {
     console.error('Error importing categories:', error);
@@ -164,4 +172,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { importTaxonomies, importCategories, importTags };
+module.exports = { importTaxonomies, importCategories, importTags, CATEGORY_MAPPING };

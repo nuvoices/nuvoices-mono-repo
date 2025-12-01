@@ -36,7 +36,7 @@ interface Post {
 
 // Query to get latest 3 magazine posts
 const magazinePostsQuery = groq`
-  *[_type == "post" && status == "published" && "featuredstories" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
+  *[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
     _id,
     title,
     slug,
@@ -97,9 +97,9 @@ const featuredPostQuery = groq`
   }
 `
 
-// Query to get latest 3 news/events posts
+// Query to get latest 3 news posts
 const newsPostsQuery = groq`
-  *[_type == "post" && status == "published" && "events" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
+  *[_type == "post" && status == "published" && "news" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
     _id,
     title,
     slug,
@@ -124,7 +124,7 @@ export default async function Home() {
 
   // Build category queries with featured post exclusion
   const magazinePostsQueryFiltered = groq`
-    *[_type == "post" && status == "published" && "featuredstories" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
+    *[_type == "post" && status == "published" && "magazine" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
       _id,
       title,
       slug,
@@ -164,7 +164,7 @@ export default async function Home() {
   `
 
   const newsPostsQueryFiltered = groq`
-    *[_type == "post" && status == "published" && "events" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
+    *[_type == "post" && status == "published" && "news" in categories[]->slug.current${featuredPost ? ` && _id != "${featuredPost._id}"` : ''}] | order(publishedAt desc) [0...3] {
       _id,
       title,
       slug,

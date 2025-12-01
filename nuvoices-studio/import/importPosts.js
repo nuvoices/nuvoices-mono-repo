@@ -4,8 +4,32 @@ const http = require('http');
 const { URL } = require('url');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
+const { CATEGORY_MAPPING } = require('./importTaxonomies');
 const dotenv = require('dotenv');
 dotenv.config();
+
+// Helper function to determine the single category for a post
+// Priority: Podcast > Magazine > News
+function getPostCategory(wpCategories) {
+  const mappedCategories = new Set();
+
+  for (const wpCatNicename of wpCategories) {
+    const newCategory = CATEGORY_MAPPING[wpCatNicename];
+    if (newCategory) {
+      mappedCategories.add(newCategory);
+    }
+  }
+
+  // Apply priority: podcast > magazine > news
+  if (mappedCategories.has('podcast')) {
+    return 'podcast';
+  }
+  if (mappedCategories.has('magazine')) {
+    return 'magazine';
+  }
+  // Default to news
+  return 'news';
+}
 
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');
@@ -261,7 +285,7 @@ async function importPosts(options = {}) {
 
     // Build lookup maps for references
     const authors = await client.fetch('*[_type == "author"]{ _id, wpAuthorId, name }');
-    const categories = await client.fetch('*[_type == "category"]{ _id, wpNicename, title }');
+    const categories = await client.fetch('*[_type == "category"]{ _id, "slug": slug.current, title }');
     const tags = await client.fetch('*[_type == "tag"]{ _id, wpNicename, title }');
 
     const authorMap = new Map();
@@ -271,10 +295,11 @@ async function importPosts(options = {}) {
       }
     });
 
+    // Map new category slugs (podcast, magazine, news) to Sanity _ids
     const categoryMap = new Map();
     categories.forEach(category => {
-      if (category.wpNicename) {
-        categoryMap.set(category.wpNicename, category._id);
+      if (category.slug) {
+        categoryMap.set(category.slug, category._id);
       }
     });
 
@@ -353,15 +378,10 @@ async function importPosts(options = {}) {
         // Convert HTML content to Portable Text with proper image references
         const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap, attachmentMap);
 
-        // Build category references with unique keys
-        const categoryRefs = wpPost.categories
-          .map(catNicename => categoryMap.get(catNicename))
-          .filter(Boolean)
-          .map(id => ({
-            _key: ContentTransformer.generateKey(),
-            _type: 'reference',
-            _ref: id
-          }));
+        // Build single category reference using priority: Podcast > Magazine > News
+        const postCategory = getPostCategory(wpPost.categories);
+        const categoryId = categoryMap.get(postCategory);
+        const categoryRef = categoryId ? { _type: 'reference', _ref: categoryId } : null;
 
         // Build tag references with unique keys
         const tagRefs = wpPost.tags
@@ -374,15 +394,7 @@ async function importPosts(options = {}) {
           }));
 
         // Check if this is a magazine post with images
-        const isMagazinePost = wpPost.categories.some(cat => 
-          cat.toLowerCase().includes('magazine') || 
-          cat.toLowerCase().includes('nustories') ||
-          cat.toLowerCase().includes('opinion') ||
-          cat.toLowerCase().includes('personal-essay') ||
-          cat.toLowerCase().includes('photography') ||
-          cat.toLowerCase().includes('profiles') ||
-          cat.toLowerCase().includes('q-a')
-        );
+        const isMagazinePost = postCategory === 'magazine';
         
         const hasImages = imageAssetMap.size > 0;
         
@@ -411,7 +423,7 @@ async function importPosts(options = {}) {
             publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
             excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
             body: portableTextBody,
-            categories: categoryRefs,
+            categories: categoryRef ? [categoryRef] : [],
             tags: tagRefs,
             status: 'published',
             wpPostId: wpPost.wpPostId,
@@ -489,7 +501,7 @@ async function importPosts(options = {}) {
           publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
           excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
           body: portableTextBody,
-          categories: categoryRefs,
+          categories: categoryRef ? [categoryRef] : [],
           tags: tagRefs,
           status: 'published',
           wpPostId: wpPost.wpPostId,

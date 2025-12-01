@@ -33,7 +33,7 @@ interface NewsPost {
 }
 
 const newsPostsQuery = groq`
-  *[_type == "post" && status == "published" && "events" in categories[]->slug.current] | order(publishedAt desc) {
+  *[_type == "post" && status == "published" && "news" in categories[]->slug.current] | order(publishedAt desc) {
     _id,
     title,
     slug,
