@@ -4,8 +4,9 @@ const http = require('http');
 const { URL } = require('url');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');

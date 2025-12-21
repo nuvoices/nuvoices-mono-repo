@@ -3,8 +3,9 @@
 const importAuthors = require('./importAuthors');
 const { importTaxonomies } = require('./importTaxonomies');
 const importPosts = require('./importPosts');
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 async function runFullImport() {
   console.log('🚀 Starting WordPress to Sanity migration...\n');

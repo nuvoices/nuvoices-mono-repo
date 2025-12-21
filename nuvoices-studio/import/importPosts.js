@@ -5,8 +5,9 @@ const { URL } = require('url');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
 const { CATEGORY_MAPPING } = require('./importTaxonomies');
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Helper function to determine the single category for a post
 // Priority: Podcast > Magazine > News

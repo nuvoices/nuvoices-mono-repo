@@ -1,6 +1,7 @@
 const { createClient } = require('@sanity/client');
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const client = createClient({
   projectId: process.env.SANITY_STUDIO_PROJECT_ID,
