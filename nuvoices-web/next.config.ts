@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   },
   // Turbopack configuration for SVG imports
   turbopack: {
+    root: '..',
     rules: {
       '*.svg': {
         loaders: ['@svgr/webpack'],
