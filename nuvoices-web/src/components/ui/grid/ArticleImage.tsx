@@ -12,7 +12,7 @@ export function ArticleImage({ src, alt, rotation = 'none', className = '' }: Ar
   const rotationClass = rotation === 'left' ? '-rotate-2' : rotation === 'right' ? 'rotate-2' : '';
 
   return (
-    <div className={`relative w-[13.25rem] h-[10.188rem] flex items-center justify-center ${className}`}>
+    <div className={`relative w-full aspect-[4/3] ${className}`}>
       <div className={`w-full h-full ${rotationClass}`}>
         {src ? (
           <Image
@@ -20,7 +20,7 @@ export function ArticleImage({ src, alt, rotation = 'none', className = '' }: Ar
             alt={alt}
             width={424}
             height={326}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 aspect-[4/3]"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">

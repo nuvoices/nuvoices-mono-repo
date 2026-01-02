@@ -4,8 +4,33 @@ const http = require('http');
 const { URL } = require('url');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
+const { CATEGORY_MAPPING } = require('./importTaxonomies');
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+// Helper function to determine the single category for a post
+// Priority: Podcast > Magazine > News
+function getPostCategory(wpCategories) {
+  const mappedCategories = new Set();
+
+  for (const wpCatNicename of wpCategories) {
+    const newCategory = CATEGORY_MAPPING[wpCatNicename];
+    if (newCategory) {
+      mappedCategories.add(newCategory);
+    }
+  }
+
+  // Apply priority: podcast > magazine > news
+  if (mappedCategories.has('podcast')) {
+    return 'podcast';
+  }
+  if (mappedCategories.has('magazine')) {
+    return 'magazine';
+  }
+  // Default to news
+  return 'news';
+}
 
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');
@@ -261,7 +286,7 @@ async function importPosts(options = {}) {
 
     // Build lookup maps for references
     const authors = await client.fetch('*[_type == "author"]{ _id, wpAuthorId, name }');
-    const categories = await client.fetch('*[_type == "category"]{ _id, wpNicename, title }');
+    const categories = await client.fetch('*[_type == "category"]{ _id, "slug": slug.current, title }');
     const tags = await client.fetch('*[_type == "tag"]{ _id, wpNicename, title }');
 
     const authorMap = new Map();
@@ -271,10 +296,11 @@ async function importPosts(options = {}) {
       }
     });
 
+    // Map new category slugs (podcast, magazine, news) to Sanity _ids
     const categoryMap = new Map();
     categories.forEach(category => {
-      if (category.wpNicename) {
-        categoryMap.set(category.wpNicename, category._id);
+      if (category.slug) {
+        categoryMap.set(category.slug, category._id);
       }
     });
 
@@ -332,22 +358,8 @@ async function importPosts(options = {}) {
           }
         }
 
-        // Check for gallery attachments (posts with child attachments)
-        let galleryHtml = '';
-        const galleryAttachments = wpAttachments.filter(
-          att => att.wpPostParent === wpPost.wpPostId && 
-                 att.url && 
-                 (att.url.includes('.jpg') || att.url.includes('.jpeg') || att.url.includes('.png') || att.url.includes('.gif'))
-        );
-        if (galleryAttachments.length > 0) {
-          console.log(`  Found ${galleryAttachments.length} gallery images for post "${wpPost.title}"`);
-          galleryAttachments.forEach(att => {
-            galleryHtml += `<img src="${att.url}" alt="${att.title || ''}" />`;
-          });
-        }
-
-        // Process images in content (including gallery) unless skipping
-        let processedHtml = wpPost.content + galleryHtml;
+        // Process images in content only (gallery attachments not appended)
+        let processedHtml = wpPost.content;
         let imageAssetMap = new Map();
         
         if (!skipImages) {
@@ -365,30 +377,25 @@ async function importPosts(options = {}) {
         }
         
         // Convert HTML content to Portable Text with proper image references
-        const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap);
+        const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap, attachmentMap);
 
-        // Build category references
-        const categoryRefs = wpPost.categories
-          .map(catNicename => categoryMap.get(catNicename))
-          .filter(Boolean)
-          .map(id => ({ _type: 'reference', _ref: id }));
+        // Build single category reference using priority: Podcast > Magazine > News
+        const postCategory = getPostCategory(wpPost.categories);
+        const categoryId = categoryMap.get(postCategory);
+        const categoryRef = categoryId ? { _type: 'reference', _ref: categoryId } : null;
 
-        // Build tag references
+        // Build tag references with unique keys
         const tagRefs = wpPost.tags
           .map(tagNicename => tagMap.get(tagNicename))
           .filter(Boolean)
-          .map(id => ({ _type: 'reference', _ref: id }));
+          .map(id => ({
+            _key: ContentTransformer.generateKey(),
+            _type: 'reference',
+            _ref: id
+          }));
 
         // Check if this is a magazine post with images
-        const isMagazinePost = wpPost.categories.some(cat => 
-          cat.toLowerCase().includes('magazine') || 
-          cat.toLowerCase().includes('nustories') ||
-          cat.toLowerCase().includes('opinion') ||
-          cat.toLowerCase().includes('personal-essay') ||
-          cat.toLowerCase().includes('photography') ||
-          cat.toLowerCase().includes('profiles') ||
-          cat.toLowerCase().includes('q-a')
-        );
+        const isMagazinePost = postCategory === 'magazine';
         
         const hasImages = imageAssetMap.size > 0;
         
@@ -408,7 +415,7 @@ async function importPosts(options = {}) {
             title: wpPost.title,
             slug: {
               _type: 'slug',
-              current: ContentTransformer.createSlug(wpPost.slug || wpPost.title)
+              current: wpPost.slug || ContentTransformer.createSlug(wpPost.title)
             },
             author: {
               _type: 'reference',
@@ -417,7 +424,7 @@ async function importPosts(options = {}) {
             publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
             excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
             body: portableTextBody,
-            categories: categoryRefs,
+            categories: categoryRef ? [categoryRef] : [],
             tags: tagRefs,
             status: 'published',
             wpPostId: wpPost.wpPostId,
@@ -430,8 +437,11 @@ async function importPosts(options = {}) {
           };
 
           if (existingPost) {
-            await client.patch(existingPost._id)
-              .set({
+            const publishedId = existingPost._id.replace(/^drafts\./, '');
+
+            await client
+              .transaction()
+              .patch(publishedId, patch => patch.set({
                 title: postDoc.title,
                 slug: postDoc.slug,
                 author: postDoc.author,
@@ -444,13 +454,22 @@ async function importPosts(options = {}) {
                 wpPostName: postDoc.wpPostName,
                 ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
                 seo: postDoc.seo
-              })
-              .commit();
-            console.log(`Updated magazine post: ${postDoc.title}`);
+              }))
+              .delete(`drafts.${publishedId}`)
+              .commit({ autoGenerateArrayKeys: true });
+
+            console.log(`Updated and published magazine post: ${postDoc.title}`);
             updatedCount++;
           } else {
-            await client.create(postDoc);
-            console.log(`Imported magazine post: ${postDoc.title}`);
+            const publishedId = postDoc._id;
+
+            await client
+              .transaction()
+              .createOrReplace(postDoc)
+              .delete(`drafts.${publishedId}`)
+              .commit({ autoGenerateArrayKeys: true });
+
+            console.log(`Imported and published magazine post: ${postDoc.title}`);
             importedCount++;
           }
           
@@ -474,7 +493,7 @@ async function importPosts(options = {}) {
           title: wpPost.title,
           slug: {
             _type: 'slug',
-            current: ContentTransformer.createSlug(wpPost.slug || wpPost.title)
+            current: wpPost.slug || ContentTransformer.createSlug(wpPost.title)
           },
           author: {
             _type: 'reference',
@@ -483,7 +502,7 @@ async function importPosts(options = {}) {
           publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
           excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
           body: portableTextBody,
-          categories: categoryRefs,
+          categories: categoryRef ? [categoryRef] : [],
           tags: tagRefs,
           status: 'published',
           wpPostId: wpPost.wpPostId,
@@ -497,9 +516,12 @@ async function importPosts(options = {}) {
 
         let result;
         if (existingPost) {
-          // Update existing post
-          result = await client.patch(existingPost._id)
-            .set({
+          // Update existing post - patch the published version directly
+          const publishedId = existingPost._id.replace(/^drafts\./, '');
+
+          result = await client
+            .transaction()
+            .patch(publishedId, patch => patch.set({
               title: postDoc.title,
               slug: postDoc.slug,
               author: postDoc.author,
@@ -512,14 +534,25 @@ async function importPosts(options = {}) {
               wpPostName: postDoc.wpPostName,
               ...(featuredImageAsset && { featuredImage: featuredImageAsset }),
               seo: postDoc.seo
-            })
-            .commit();
-          console.log(`Updated post: ${postDoc.title}`);
+            }))
+            // Delete any draft version that might exist
+            .delete(`drafts.${publishedId}`)
+            .commit({ autoGenerateArrayKeys: true });
+
+          console.log(`Updated and published: ${postDoc.title}`);
           updatedCount++;
         } else {
-          // Create new post
-          result = await client.create(postDoc);
-          console.log(`Imported post: ${postDoc.title}`);
+          // Create new post and publish it
+          const publishedId = postDoc._id;
+
+          result = await client
+            .transaction()
+            .createOrReplace(postDoc)
+            // Delete any draft that might exist
+            .delete(`drafts.${publishedId}`)
+            .commit({ autoGenerateArrayKeys: true });
+
+          console.log(`Imported and published: ${postDoc.title}`);
           importedCount++;
         }
 

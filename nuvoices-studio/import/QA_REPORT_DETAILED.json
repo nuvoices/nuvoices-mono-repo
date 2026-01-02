@@ -1,0 +1,22 @@
+{
+  "generated": "2025-11-02T05:35:05.883Z",
+  "summary": {
+    "totalPosts": 0,
+    "postsWithIssues": 0,
+    "issuesByType": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 0,
+      "INFO": 0
+    },
+    "issuesByCategory": {
+      "Issue #1": 0,
+      "Issue #2": 0,
+      "Issue #3": 0,
+      "Issue #4": 0,
+      "Issue #5": 0
+    }
+  },
+  "results": []
+}

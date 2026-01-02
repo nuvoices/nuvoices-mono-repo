@@ -1,0 +1,86 @@
+/**
+ * CSV data helpers for testing
+ * Generates valid journalist CSV data that matches JOURNALIST_SCHEMA
+ */
+
+/**
+ * Generate CSV from journalist records
+ */
+export function createJournalistCSV(records: Array<Record<string, string>>): string {
+  const headers = "Name,Email,Phone,Country,City,Languages,Specializations,Years_Experience,Outlet,Time_Zone,LinkedIn_Profile,Avatar,Daily_Rate_USD,Available_For_Live,Last_Updated";
+
+  const rows = records.map(record => {
+    const values = [
+      record.Name || "Test Journalist",
+      record.Email || "test@example.com",
+      record.Phone || "+1-555-0000",
+      record.Country || "USA",
+      record.City || "New York",
+      record.Languages || "English",
+      record.Specializations || "Technology",
+      record.Years_Experience || "5",
+      record.Outlet || "Test Outlet",
+      record.Time_Zone || "GMT-5",
+      record.LinkedIn_Profile || "linkedin.com/in/test",
+      record.Avatar || "https://example.com/avatar.jpg",
+      record.Daily_Rate_USD || "300",
+      record.Available_For_Live || "Yes",
+      record.Last_Updated || "2025-01-15"
+    ];
+
+    return values.join(',');
+  });
+
+  return [headers, ...rows].join('\n');
+}
+
+/**
+ * Simple CSV with 2 journalist records for testing updates
+ */
+export const SIMPLE_JOURNALIST_CSV = createJournalistCSV([
+  { Name: "Updated Person", Email: "updated@example.com", Country: "USA" },
+  { Name: "Another Person", Email: "another@example.com", Country: "Canada" }
+]);
+
+/**
+ * Single journalist CSV record
+ */
+export const SINGLE_JOURNALIST_CSV = createJournalistCSV([
+  { Name: "New Person", Email: "new@example.com", Country: "UK" }
+]);
+
+/**
+ * Full mock CSV data from mockSheetsCSV.txt with 20 journalist records
+ * This is the complete dataset for comprehensive integration testing
+ */
+export const MOCK_SHEETS_CSV = `Name,Email,Phone,Country,City,Languages,Specializations,Years_Experience,Outlet,Time_Zone,LinkedIn_Profile,Avatar,Daily_Rate_USD,Available_For_Live,Last_Updated
+Sarah Chen,s.chen.reporter@email.com,+86-138-1234-5678,China,Beijing,"English, Mandarin, Cantonese","Politics, Trade, Technology",12,Freelance,GMT+8,linkedin.com/in/sarahchen,https://images.example.com/avatars/schen-profile-400x400.jpg,450,Yes,2025-01-15
+Raj Patel,raj.patel.news@email.com,+91-98765-43210,India,Mumbai,"English, Hindi, Marathi","Business, Bollywood, Finance",8,Times of India,GMT+5:30,linkedin.com/in/rajpatel,https://media.example.org/reporters/raj_patel_headshot.png,350,Yes,2025-01-10
+Yuki Tanaka,y.tanaka@email.jp,+81-90-1234-5678,Japan,Tokyo,"Japanese, English","Technology, Gaming, Pop Culture",10,NHK World,GMT+9,linkedin.com/in/yukitanaka,https://cdn.newsagency.com/photos/ytanaka-2025.jpg,500,No,2025-01-12
+Kim Min-jung,kmj.reporter@email.kr,+82-10-9876-5432,South Korea,Seoul,"Korean, English, Mandarin","K-pop, Technology, Politics",6,Freelance,GMT+9,linkedin.com/in/kimminjung,https://assets.journalist.net/profiles/kim-minjung-sq.jpg,400,Yes,2025-01-08
+Ahmad Hassan,a.hassan.jour@email.com,+62-812-3456-7890,Indonesia,Jakarta,"Indonesian, English, Arabic","Politics, Islam, Environment",15,Jakarta Post,GMT+7,linkedin.com/in/ahmadhassan,https://storage.media.com/avatars/ahmad_hassan_300.jpg,325,Yes,2025-01-14
+Priya Sharma,priya.sharma@email.in,+91-98123-45678,India,New Delhi,"English, Hindi, Punjabi","Politics, Women's Issues, Education",11,NDTV,GMT+5:30,linkedin.com/in/priyasharma,https://images.newsnetwork.in/staff/priya-sharma-pic.png,375,Yes,2025-01-11
+Michael Wong,m.wong.asia@email.com,+852-9123-4567,Hong Kong,Hong Kong,"English, Cantonese, Mandarin","Finance, Real Estate, Protests",9,South China Morning Post,GMT+8,linkedin.com/in/michaelwong,https://press-photos.example.hk/mwong-professional.jpg,475,Yes,2025-01-13
+Nguyen Thi Mai,mai.nguyen@email.vn,+84-90-123-4567,Vietnam,Ho Chi Minh City,"Vietnamese, English, French","Manufacturing, Tourism, War History",7,VnExpress,GMT+7,linkedin.com/in/nguyenmai,https://vnmedia.example.vn/reporters/nguyen_mai_avatar.jpg,300,No,2025-01-09
+James Liu,j.liu.correspondent@email.com,+886-912-345-678,Taiwan,Taipei,"Mandarin, English, Taiwanese","Semiconductors, Cross-Strait Relations, Tech",13,Reuters,GMT+8,linkedin.com/in/jamesliu,https://reuters-staff.example.com/asia/jliu-headshot-2025.png,525,Yes,2025-01-16
+Fatima Al-Rahman,fatima.ar@email.com,+971-50-123-4567,UAE,Dubai,"Arabic, English, Urdu","Oil & Gas, Tourism, Middle East Affairs",10,Gulf News,GMT+4,linkedin.com/in/fatimaalrahman,https://gulfmedia.example.ae/team/fatima-alrahman-sq.jpg,450,Yes,2025-01-07
+David Tan,d.tan.reporter@email.sg,+65-9123-4567,Singapore,Singapore,"English, Mandarin, Malay","Finance, Shipping, Southeast Asian Politics",14,Channel News Asia,GMT+8,linkedin.com/in/davidtan,https://cna-media.example.sg/staff/david_tan_400px.jpg,500,Yes,2025-01-15
+Maria Santos,m.santos.asia@email.ph,+63-917-123-4567,Philippines,Manila,"English, Tagalog, Spanish","Natural Disasters, Politics, Tourism",8,ABS-CBN,GMT+8,linkedin.com/in/mariasantos,https://ph-news.example.com/reporters/msantos-profile.png,275,Yes,2025-01-10
+Chen Wei,chen.wei@email.cn,+86-139-8765-4321,China,Shanghai,"Mandarin, Shanghainese, English","Business, Stock Market, Real Estate",11,Freelance,GMT+8,linkedin.com/in/chenwei,https://shanghai-media.example.cn/freelance/chenwei_headshot.jpg,425,No,2025-01-12
+Aisha Begum,a.begum.news@email.bd,+880-1712-345678,Bangladesh,Dhaka,"Bengali, English, Hindi","Textiles, Climate Change, Poverty",6,The Daily Star,GMT+6,linkedin.com/in/aishabegum,https://bdmedia.example.com.bd/journalists/aisha-begum-sq.jpg,250,Yes,2025-01-08
+Hiroshi Yamamoto,h.yamamoto@email.jp,+81-80-9876-5432,Japan,Osaka,"Japanese, English","Manufacturing, Robotics, Aging Society",16,Asahi Shimbun,GMT+9,linkedin.com/in/hiroshiyamamoto,https://asahi-staff.example.jp/photos/h_yamamoto_2025.png,550,No,2025-01-14
+Sita Thapa,s.thapa.journalist@email.np,+977-98-1234-5678,Nepal,Kathmandu,"Nepali, English, Hindi","Mountains, Tourism, Earthquakes",5,Kathmandu Post,GMT+5:45,linkedin.com/in/sitathapa,https://ktm-post.example.np/team/sita_thapa_avatar.jpg,225,Yes,2025-01-11
+Tom Anderson,t.anderson.asia@email.com,+86-138-9876-5432,China,Shenzhen,"English, Mandarin","Tech Manufacturing, Startups, Innovation",9,Bloomberg,GMT+8,linkedin.com/in/tomanderson,https://bloomberg-asia.example.com/correspondents/tanderson.jpg,475,Yes,2025-01-13
+Lee Sung-min,lee.sm@email.kr,+82-10-1234-5678,South Korea,Busan,"Korean, English, Japanese","Shipping, Automotive, Labor Issues",12,Yonhap News,GMT+9,linkedin.com/in/leesungmin,https://yonhap-media.example.kr/profiles/lee_sungmin_300.png,425,Yes,2025-01-09
+Ravi Kumar,r.kumar.tech@email.in,+91-98321-54678,India,Bangalore,"English, Hindi, Tamil, Telugu","IT Industry, Startups, Space Program",10,The Hindu,GMT+5:30,linkedin.com/in/ravikumar,https://hindu-staff.example.in/tech/ravi_kumar_pic.jpg,350,Yes,2025-01-15
+Susan Chang,s.chang.reporter@email.hk,+852-9876-5432,Hong Kong,Hong Kong,"English, Cantonese, Mandarin","Banking, IPOs, China Relations",8,Financial Times,GMT+8,linkedin.com/in/susanchang,https://ft-asia.example.com/journalists/schang-headshot-sq.png,500,Yes,2025-01-10`;
+
+/**
+ * First 5 records from MOCK_SHEETS_CSV for quick testing
+ */
+export const MOCK_SHEETS_CSV_SUBSET = `Name,Email,Phone,Country,City,Languages,Specializations,Years_Experience,Outlet,Time_Zone,LinkedIn_Profile,Avatar,Daily_Rate_USD,Available_For_Live,Last_Updated
+Sarah Chen,s.chen.reporter@email.com,+86-138-1234-5678,China,Beijing,"English, Mandarin, Cantonese","Politics, Trade, Technology",12,Freelance,GMT+8,linkedin.com/in/sarahchen,https://images.example.com/avatars/schen-profile-400x400.jpg,450,Yes,2025-01-15
+Raj Patel,raj.patel.news@email.com,+91-98765-43210,India,Mumbai,"English, Hindi, Marathi","Business, Bollywood, Finance",8,Times of India,GMT+5:30,linkedin.com/in/rajpatel,https://media.example.org/reporters/raj_patel_headshot.png,350,Yes,2025-01-10
+Yuki Tanaka,y.tanaka@email.jp,+81-90-1234-5678,Japan,Tokyo,"Japanese, English","Technology, Gaming, Pop Culture",10,NHK World,GMT+9,linkedin.com/in/yukitanaka,https://cdn.newsagency.com/photos/ytanaka-2025.jpg,500,No,2025-01-12
+Kim Min-jung,kmj.reporter@email.kr,+82-10-9876-5432,South Korea,Seoul,"Korean, English, Mandarin","K-pop, Technology, Politics",6,Freelance,GMT+9,linkedin.com/in/kimminjung,https://assets.journalist.net/profiles/kim-minjung-sq.jpg,400,Yes,2025-01-08
+Ahmad Hassan,a.hassan.jour@email.com,+62-812-3456-7890,Indonesia,Jakarta,"Indonesian, English, Arabic","Politics, Islam, Environment",15,Jakarta Post,GMT+7,linkedin.com/in/ahmadhassan,https://storage.media.com/avatars/ahmad_hassan_300.jpg,325,Yes,2025-01-14`;

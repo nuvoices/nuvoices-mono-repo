@@ -1,0 +1,5 @@
+# Google Sheets CSV export URL (required)
+CSV_URL=https://docs.google.com/spreadsheets/d/e/2PACX-1vS0mtuYo44HxBnYcnbUnB1COAZUajWSis70g10TomELXI2RIAKs5GqyMGgRsNYkNCF_o_m4fYQwRv96/pub?output=csv&gid=1920512850
+
+# Google Sheets timestamp URL (optional - if not set, sync will run every time)
+# TIMESTAMP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=timestamp

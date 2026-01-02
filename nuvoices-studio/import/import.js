@@ -1,10 +1,21 @@
 #!/usr/bin/env node
 
+// Load environment variables FIRST, before any other imports
+const path = require('path');
+const dotenv = require('dotenv');
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+// Handle --production flag to override dataset BEFORE importing modules
+// (modules create Sanity clients at require time)
+if (process.argv.includes('--production')) {
+  process.env.SANITY_STUDIO_DATASET = 'production';
+  console.log('⚠️  Using PRODUCTION dataset\n');
+}
+
+// Now import modules that depend on environment variables
 const importAuthors = require('./importAuthors');
 const { importTaxonomies } = require('./importTaxonomies');
 const importPosts = require('./importPosts');
-const dotenv = require('dotenv');
-dotenv.config();
 
 async function runFullImport() {
   console.log('🚀 Starting WordPress to Sanity migration...\n');
@@ -60,10 +71,11 @@ Usage:
 
 Options:
   --authors     Import only authors
-  --taxonomies  Import only categories and tags  
+  --taxonomies  Import only categories and tags
   --posts       Import only posts
   --update      Update existing posts instead of skipping
   --skip-images Skip image downloads (useful if source is unavailable)
+  --production  Override dataset to 'production' (default uses .env value)
   --help, -h    Show this help message
 
 Environment Variables Required:
@@ -78,6 +90,7 @@ Examples:
   node import.js --posts         # Import only posts
   node import.js --posts --skip-images  # Import posts without images
   node import.js --posts --update       # Update existing posts
+  node import.js --posts --production   # Import posts to production dataset
 `);
   process.exit(0);
 }

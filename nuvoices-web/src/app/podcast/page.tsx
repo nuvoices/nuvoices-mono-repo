@@ -10,6 +10,7 @@ import {
   ArticleExcerpt,
   ArticleDate,
 } from '@/components/ui/grid'
+import { Content } from '@/components/ui/Content'
 
 interface PodcastEpisode {
   _id: string
@@ -50,43 +51,47 @@ export default async function PodcastPage() {
 
   return (
     <div className="min-h-screen bg-pink-50">
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        <h1 className="text-5xl font-serif text-center mb-6">Podcast</h1>
-        <p className="text-xl italic text-center mb-16">
-          A show coordinated, produced and edited by the NüVoices board.
-        </p>
+      {/* Main content */}
+      <main className="flex flex-col items-center gap-[1.5625rem] pb-[3rem]">
+        {/* Title section - matching magazine page structure */}
+        <div className="flex flex-col items-center justify-center h-[11.531rem] w-full max-w-[38.5625rem] text-center">
+          <h1 className="text-[2.5rem] font-serif leading-[1.1] tracking-[-0.075rem] text-black mb-[0.5rem]">
+            Podcast
+          </h1>
+          <p className="text-[1.5625rem] font-serif italic leading-[1.1] tracking-[-0.047rem] text-black mb-[1.25rem]">
+            A show coordinated, produced and edited by the NüVoices board.
+          </p>
+        </div>
 
         {/* Episodes Grid - using grid components */}
+        <Content>
         {episodes.length > 0 ? (
-          <div className="flex justify-center">
-            <Grid>
-              {/* Group episodes into rows of 3 */}
-              {Array.from({ length: Math.ceil(episodes.length / 3) }, (_, rowIndex) => (
-                <GridRow key={rowIndex}>
-                  {episodes.slice(rowIndex * 3, (rowIndex + 1) * 3).map((episode, indexInRow) => (
-                    <Article key={episode._id} href={`/podcast/${episode.slug.current}`}>
-                      <ArticleImage
-                        src={episode.featuredImage?.asset?.url}
-                        alt={episode.title}
-                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
-                      />
-                      <ArticleContent>
-                        <ArticleTitle>{episode.title}</ArticleTitle>
-                        {episode.excerpt && <ArticleExcerpt>{episode.excerpt}</ArticleExcerpt>}
-                        <ArticleDate date={episode.publishedAt} />
-                      </ArticleContent>
-                    </Article>
-                  ))}
-                </GridRow>
+          <Grid>
+            <GridRow>
+              {episodes.map((episode, index) => (
+                <Article key={episode._id} href={`/podcast/${episode.slug.current}`}>
+                  <ArticleImage
+                    src={episode.featuredImage?.asset?.url}
+                    alt={episode.title}
+                    rotation={index % 2 === 0 ? 'left' : 'right'}
+                  />
+                  <ArticleContent>
+                    <ArticleTitle>{episode.title}</ArticleTitle>
+                    {episode.excerpt && <ArticleExcerpt>{episode.excerpt}</ArticleExcerpt>}
+                    <ArticleDate date={episode.publishedAt} />
+                  </ArticleContent>
+                </Article>
               ))}
-            </Grid>
-          </div>
+            </GridRow>
+          </Grid>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No podcast episodes found. Make sure to create posts with the &quot;podcast&quot; category in Sanity.</p>
+          <div className="text-center py-[6rem]">
+            <p className="text-[#3c2e24] text-[1.5rem] font-serif mb-[1rem]">No podcast episodes found.</p>
+            <p className="text-[1rem] text-[#3c2e24] opacity-75">Make sure to create posts with the &quot;podcast&quot; category in Sanity Studio.</p>
           </div>
         )}
-      </div>
+        </Content>
+      </main>
     </div>
   )
 }

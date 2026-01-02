@@ -20,7 +20,7 @@ interface GridRowProps {
 
 export function GridRow({ children, className = '' }: GridRowProps) {
   return (
-    <div className={`flex gap-[0.313rem] justify-center ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-[1.5rem] gap-y-[3rem] ${className}`}>
       {children}
     </div>
   );

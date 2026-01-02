@@ -14,7 +14,7 @@ export function Article({ href, children, className = '' }: ArticleProps) {
       className={`block no-underline ${className}`}
       style={{ textDecoration: 'none' }}
     >
-      <article className="group cursor-pointer w-[14.813rem] flex flex-col gap-[0.313rem]">
+      <article className="group cursor-pointer w-full flex flex-col gap-[0.7rem]">
         {children}
       </article>
     </Link>

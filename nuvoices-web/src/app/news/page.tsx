@@ -10,6 +10,7 @@ import {
   ArticleExcerpt,
   ArticleDate,
 } from "@/components/ui/grid";
+import { Content } from "@/components/ui/Content";
 
 interface NewsPost {
   _id: string;
@@ -32,7 +33,7 @@ interface NewsPost {
 }
 
 const newsPostsQuery = groq`
-  *[_type == "post" && status == "published" && "events" in categories[]->slug.current] | order(publishedAt desc) {
+  *[_type == "post" && status == "published" && "news" in categories[]->slug.current] | order(publishedAt desc) {
     _id,
     title,
     slug,
@@ -53,7 +54,6 @@ const newsPostsQuery = groq`
 
 export default async function NewsPage() {
   const newsPosts = await client.fetch<NewsPost[]>(newsPostsQuery);
-  console.log(newsPosts)
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">
@@ -70,28 +70,25 @@ export default async function NewsPage() {
         </div>
 
         {/* Articles Grid - using grid components */}
-        <div className="w-full max-w-[45.1875rem] px-6">
+        <Content>
           {newsPosts.length > 0 ? (
             <Grid>
-              {/* Group news items into rows of 3 */}
-              {Array.from({ length: Math.ceil(newsPosts.length / 3) }, (_, rowIndex) => (
-                <GridRow key={rowIndex}>
-                  {newsPosts.slice(rowIndex * 3, (rowIndex + 1) * 3).map((post, indexInRow) => (
-                    <Article key={post._id} href={`/news/${post.slug.current}`}>
-                      <ArticleImage
-                        src={post.featuredImage?.asset?.url}
-                        alt={post.featuredImage?.alt || post.title}
-                        rotation={indexInRow % 2 === 0 ? 'left' : 'right'}
-                      />
-                      <ArticleContent>
-                        <ArticleTitle>{post.title}</ArticleTitle>
-                        {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
-                        <ArticleDate date={post.publishedAt} />
-                      </ArticleContent>
-                    </Article>
-                  ))}
-                </GridRow>
-              ))}
+              <GridRow>
+                {newsPosts.map((post, index) => (
+                  <Article key={post._id} href={`/news/${post.slug.current}`}>
+                    <ArticleImage
+                      src={post.featuredImage?.asset?.url}
+                      alt={post.featuredImage?.alt || post.title}
+                      rotation={index % 2 === 0 ? 'left' : 'right'}
+                    />
+                    <ArticleContent>
+                      <ArticleTitle>{post.title}</ArticleTitle>
+                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                      <ArticleDate date={post.publishedAt} />
+                    </ArticleContent>
+                  </Article>
+                ))}
+              </GridRow>
             </Grid>
           ) : (
             <div className="text-center py-[6rem]">
@@ -99,7 +96,7 @@ export default async function NewsPage() {
               <p className="text-[1rem] text-[#3c2e24] opacity-75">Make sure to create posts with the &quot;news&quot; category in Sanity Studio.</p>
             </div>
           )}
-        </div>
+        </Content>
       </main>
     </div>
   );

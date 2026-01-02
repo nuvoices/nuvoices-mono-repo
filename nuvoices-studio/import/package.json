@@ -10,6 +10,7 @@
     "import:posts": "node import.js --posts",
     "import:posts-no-images": "node import.js --posts --skip-images",
     "import:posts-update": "node import.js --posts --update",
+    "update:post": "node update-single-post.js",
     "help": "node import.js --help"
   },
   "dependencies": {

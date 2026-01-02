@@ -13,7 +13,7 @@ export function ArticleDate({ date, className = '' }: ArticleDateProps) {
   });
 
   return (
-    <div className={`text-[0.688rem] font-serif leading-[1.1] text-[#3c2e24] ${className}`}>
+    <div className={`text-[1rem] font-serif italic leading-[1.1] text-[#3c2e24] ${className}`}>
       {formattedDate}
     </div>
   );
