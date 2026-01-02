@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import path from "path";
+
+// Monorepo root for Turbopack workspace resolution
+const monorepoRoot = path.resolve(__dirname, '..');
 
 const nextConfig: NextConfig = {
   // For Cloudflare Pages deployment
@@ -7,7 +11,7 @@ const nextConfig: NextConfig = {
   },
   // Turbopack configuration for SVG imports
   turbopack: {
-    root: '..',
+    root: monorepoRoot,
     rules: {
       '*.svg': {
         loaders: ['@svgr/webpack'],
