@@ -21,10 +21,10 @@
   ],
   "dependencies": {
     "@sanity/ui": "^3.1.8",
-    "@sanity/vision": "^4.10.2",
+    "@sanity/vision": "^4.22.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "sanity": "^4.10.2",
+    "sanity": "^4.22.0",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {

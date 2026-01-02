@@ -8,6 +8,12 @@ const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+// Handle --production flag to override dataset
+if (process.argv.includes('--production')) {
+  process.env.SANITY_STUDIO_DATASET = 'production';
+  console.log('⚠️  Using PRODUCTION dataset\n');
+}
+
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');
 }
@@ -528,15 +534,22 @@ async function updateSinglePost(identifier, options = {}) {
 if (require.main === module) {
   const args = process.argv.slice(2);
 
-  if (args.length === 0) {
-    console.error('\n❌ Error: No post identifier provided');
+  if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
+    if (args.length === 0) {
+      console.error('\n❌ Error: No post identifier provided');
+    }
     console.log('\nUsage:');
-    console.log('  node update-single-post.js <post-id-or-slug> [--skip-images]');
+    console.log('  node update-single-post.js <post-id-or-slug> [options]');
+    console.log('\nOptions:');
+    console.log('  --skip-images  Skip image processing');
+    console.log('  --production   Override dataset to \'production\' (default uses .env value)');
+    console.log('  --help, -h     Show this help message');
     console.log('\nExamples:');
     console.log('  node update-single-post.js 931');
     console.log('  node update-single-post.js my-post-slug');
     console.log('  node update-single-post.js 931 --skip-images');
-    process.exit(1);
+    console.log('  node update-single-post.js 931 --production');
+    process.exit(args.length === 0 ? 1 : 0);
   }
 
   const identifier = args[0];

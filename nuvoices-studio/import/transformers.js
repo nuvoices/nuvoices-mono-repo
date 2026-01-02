@@ -106,6 +106,39 @@ class ContentTransformer {
   }
 
   /**
+   * Preprocess Buzzsprout script-based embeds to convert them to placeholders
+   * Handles patterns like:
+   * <div id="buzzsprout-player-9242127"></div><script src="https://www.buzzsprout.com/1858406/9242127-title.js?..."></script>
+   * <div id="buzzsprout-player-17378632"></div><script src="https://www.buzzsprout.com/1858406/episodes/17378632-title.js?..."></script>
+   * Converts to: <div class="wp-embed-placeholder" data-url="https://www.buzzsprout.com/1858406/9242127?client_source=small_player&iframe=true"></div>
+   */
+  static preprocessBuzzsproutScripts(html) {
+    if (!html) return html;
+
+    // Pattern to match Buzzsprout script embeds with their preceding div container
+    // The div id and script container_id both contain the episode ID
+    // Script src formats:
+    //   - https://www.buzzsprout.com/SHOW_ID/EPISODE_ID-slug.js?...
+    //   - https://www.buzzsprout.com/SHOW_ID/episodes/EPISODE_ID-slug.js?...
+    const buzzsproutPattern = /<div\s+id=["']buzzsprout-player-(\d+)["'][^>]*>\s*<\/div>\s*<script[^>]*src=["']https?:\/\/(?:www\.)?buzzsprout\.com\/(\d+)\/(?:episodes\/)?(\d+)[^"']*["'][^>]*>\s*<\/script>/gi;
+
+    html = html.replace(buzzsproutPattern, (match, divEpisodeId, showId, episodeId) => {
+      const buzzsproutUrl = `https://www.buzzsprout.com/${showId}/${episodeId}?client_source=small_player&iframe=true`;
+      return `<div class="wp-embed-placeholder" data-url="${buzzsproutUrl}"></div>`;
+    });
+
+    // Also handle case where script appears without the div container
+    const scriptOnlyPattern = /<script[^>]*src=["']https?:\/\/(?:www\.)?buzzsprout\.com\/(\d+)\/(?:episodes\/)?(\d+)[^"']*["'][^>]*>\s*<\/script>/gi;
+
+    html = html.replace(scriptOnlyPattern, (match, showId, episodeId) => {
+      const buzzsproutUrl = `https://www.buzzsprout.com/${showId}/${episodeId}?client_source=small_player&iframe=true`;
+      return `<div class="wp-embed-placeholder" data-url="${buzzsproutUrl}"></div>`;
+    });
+
+    return html;
+  }
+
+  /**
    * Preprocess HTML to convert WordPress shortcodes and plain embed URLs to iframes
    */
   static preprocessEmbeds(html) {
@@ -313,6 +346,7 @@ class ContentTransformer {
       html = this.preprocessHorizontalRules(html);
       html = this.preprocessGalleries(html, attachmentMap); // Process galleries before captions
       html = this.preprocessCaptions(html);
+      html = this.preprocessBuzzsproutScripts(html); // Convert script-based Buzzsprout embeds before generic embed handling
       html = this.preprocessEmbeds(html);
       html = this.preprocessEmptyParagraphs(html); // Remove empty paragraphs last
 
