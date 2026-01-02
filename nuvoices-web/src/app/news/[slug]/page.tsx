@@ -65,7 +65,7 @@ interface NavigationPost {
 }
 
 const postQuery = groq`
-  *[_type == "post" && slug.current == $slug && "events" in categories[]->slug.current][0] {
+  *[_type == "post" && slug.current == $slug && status == "published" && "news" in categories[]->slug.current][0] {
     _id,
     title,
     slug,
@@ -111,9 +111,9 @@ const postQuery = groq`
   }
 `;
 
-// Queries to get previous and next posts within news/events category
+// Queries to get previous and next posts within news category
 const previousPostQuery = groq`
-  *[_type == "post" && "events" in categories[]->slug.current && publishedAt > $publishedAt] | order(publishedAt asc)[0] {
+  *[_type == "post" && status == "published" && "news" in categories[]->slug.current && publishedAt > $publishedAt] | order(publishedAt asc)[0] {
     _id,
     title,
     slug
@@ -121,7 +121,7 @@ const previousPostQuery = groq`
 `;
 
 const nextPostQuery = groq`
-  *[_type == "post" && "events" in categories[]->slug.current && publishedAt < $publishedAt] | order(publishedAt desc)[0] {
+  *[_type == "post" && status == "published" && "news" in categories[]->slug.current && publishedAt < $publishedAt] | order(publishedAt desc)[0] {
     _id,
     title,
     slug
