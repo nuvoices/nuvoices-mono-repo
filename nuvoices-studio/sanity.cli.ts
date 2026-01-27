@@ -11,6 +11,5 @@ export default defineCliConfig({
    */
   deployment: {
     autoUpdates: true,
-    appId: 'cldyvefg37rnrp2i57u3bo9n'
   },
 })

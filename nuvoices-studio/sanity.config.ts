@@ -9,6 +9,16 @@ if (!projectId) {
   throw new Error('Missing Sanity Studio project ID')
 }
 
+const structure = (S: any) =>
+  S.list()
+    .title('Content')
+    .items([
+      S.documentTypeListItem('post').title('Posts'),
+      S.documentTypeListItem('author').title('Authors'),
+      S.documentTypeListItem('category').title('Categories'),
+      S.documentTypeListItem('tag').title('Tags'),
+    ])
+
 export default defineConfig([
   {
     name: 'production',
@@ -16,7 +26,7 @@ export default defineConfig([
     projectId,
     dataset: 'production',
     basePath: '/production',
-    plugins: [structureTool(), visionTool()],
+    plugins: [structureTool({structure}), visionTool()],
     schema: {types: schemaTypes},
   },
   {
@@ -25,7 +35,7 @@ export default defineConfig([
     projectId,
     dataset: 'staging2',
     basePath: '/staging',
-    plugins: [structureTool(), visionTool()],
+    plugins: [structureTool({structure}), visionTool()],
     schema: {types: schemaTypes},
   },
 ])
