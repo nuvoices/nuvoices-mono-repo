@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Content } from "@/components/ui/Content";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Section } from "@/components/ui/Section";
 import { TaxInformation } from "@/components/TaxInformation";
@@ -8,8 +9,8 @@ export default function DonatePage() {
   return (
     <PageLayout>
       {/* Main content */}
-      <main className="flex flex-col items-center px-6 py-[2.5rem]">
-        <div className="max-w-[25rem] w-full space-y-[1.25rem]">
+      <main className="flex flex-col items-center py-[2.5rem]">
+        <Content className="space-y-[1.25rem]">
           <PageHeader title="Donate" />
 
           {/* Introduction - 40px = 1.25rem, 50px line height = 1.5625rem */}
@@ -47,7 +48,16 @@ export default function DonatePage() {
 
             <Section title="Support us on FundJournalism.org">
               <p>
-                Help us fundraise and build financial stability through our FundJournalism page. Here, you can choose between different donation options — from a one-time payment to a monthly or yearly contribution.
+                Help us fundraise and build financial stability through our{" "}
+                <a
+                  href="https://nuvoices.fundjournalism.org/donate"
+                  className="text-black underline hover:bg-yellow-200 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  FundJournalism page
+                </a>
+                . Here, you can choose between different donation options — from a one-time payment to a monthly or yearly contribution.
               </p>
             </Section>
 
@@ -68,7 +78,7 @@ export default function DonatePage() {
 
             <TaxInformation />
           </div>
-        </div>
+        </Content>
       </main>
     </PageLayout>
   );

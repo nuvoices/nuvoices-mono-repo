@@ -39,12 +39,12 @@ export default function ExplorePage() {
             <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
               <Link
                 href="/magazine"
-                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.5rem] py-[0.75rem] text-center no-underline hover:opacity-90 transition max-w-[14rem] box-border flex flex-col gap-0"
               >
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   NÜVOICES
                 </div>
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   MAGAZINE
                 </div>
               </Link>
@@ -57,12 +57,12 @@ export default function ExplorePage() {
             <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
               <Link
                 href="/podcast"
-                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.5rem] py-[0.75rem] text-center no-underline hover:opacity-90 transition max-w-[14rem] box-border flex flex-col gap-0"
               >
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   NÜVOICES
                 </div>
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   PODCAST
                 </div>
               </Link>
@@ -75,12 +75,12 @@ export default function ExplorePage() {
             <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
               <Link
                 href="/news"
-                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.5rem] py-[0.75rem] text-center no-underline hover:opacity-90 transition max-w-[14rem] box-border flex flex-col gap-0"
               >
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   NÜVOICES
                 </div>
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   NEWS
                 </div>
               </Link>
@@ -93,12 +93,12 @@ export default function ExplorePage() {
             <div className="flex flex-col gap-[1rem] max-w-[18.75rem] items-center">
               <Link
                 href="/directory"
-                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.25rem] py-[0.6rem] text-center no-underline hover:opacity-90 transition max-w-[12rem] box-border flex flex-col gap-0"
+                className="bg-[#3c2e24] rounded-[0.3125rem] px-[1.5rem] py-[0.75rem] text-center no-underline hover:opacity-90 transition max-w-[14rem] box-border flex flex-col gap-0"
               >
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   NÜVOICES
                 </div>
-                <div className="font-sans font-extrabold text-[0.75rem] text-[#f5f4f1] uppercase">
+                <div className="font-sans font-extrabold text-[0.875rem] text-[#f5f4f1] uppercase">
                   DIRECTORY
                 </div>
               </Link>

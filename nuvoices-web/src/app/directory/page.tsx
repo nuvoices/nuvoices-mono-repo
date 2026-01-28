@@ -58,6 +58,8 @@ async function fetchRecords(
   }
   url.searchParams.set("page", page.toString())
   url.searchParams.set("limit", limit.toString())
+  url.searchParams.set("sort", "name")
+  url.searchParams.set("order", "asc")
 
   const response = await fetch(url.toString())
   const data: ApiResponse = await response.json()
@@ -131,7 +133,7 @@ export default function DirectoryPage() {
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">
-      <Content>
+      <Content className="max-w-[70rem]">
         <main className="py-[1.5rem]">
           {/* Title */}
           <h1 className="text-[2.96875rem] font-serif font-normal leading-[1.1] tracking-[-0.089rem] text-[#3c2e24] mb-[1.5rem]">

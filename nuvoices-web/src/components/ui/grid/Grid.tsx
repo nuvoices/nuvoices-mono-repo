@@ -7,7 +7,7 @@ interface GridProps {
 
 export function Grid({ children, className = '' }: GridProps) {
   return (
-    <div className={`flex flex-col gap-[0.9375rem] ${className}`}>
+    <div className={`flex flex-col gap-[0.469rem] ${className}`}>
       {children}
     </div>
   );
@@ -20,7 +20,7 @@ interface GridRowProps {
 
 export function GridRow({ children, className = '' }: GridRowProps) {
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-[1.5rem] gap-y-[3rem] ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-[0.75rem] gap-y-[3rem] ${className}`}>
       {children}
     </div>
   );

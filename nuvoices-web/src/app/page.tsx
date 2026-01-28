@@ -205,15 +205,15 @@ export default async function Home() {
             />
           </div>
 
-          {/* Tagline - 110px = 3.438rem, responsive sizing */}
-          <div className='font-serif text-[2rem] sm:text-[2.5rem] md:text-[3.438rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]'>
+          {/* Tagline - responsive sizing */}
+          <div className='font-serif text-[1.75rem] sm:text-[2.25rem] md:text-[3rem] leading-[1.2] text-[#3c2e24] text-center tracking-[-0.103rem] max-w-[38.844rem]'>
             Amplifying women and minority voices on China
           </div>
 
           {/* Buttons - 252px x 99px, 35px text */}
           <div className='flex gap-[0.938rem]'>
             <ActionButton href='/join' label='JOIN' />
-            <ActionButton label='DONATE' />
+            <ActionButton href='/donate' label='DONATE' />
             <ActionButton href='/explore' label='EXPLORE' />
           </div>
         </div>
@@ -223,7 +223,7 @@ export default async function Home() {
       {featuredPost && (
         <div className='flex flex-col gap-[0.938rem] items-center w-full'>
            <div className='flex flex-col items-center justify-center mt-[3rem] mb-[-1.5rem] w-full'>
-              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.8rem] leading-[1.6] tracking-[12px] text-black text-center">
+              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] leading-[1.6] tracking-[12px] text-black text-center">
                 FEATURED 
               </h2>
             </div>
@@ -268,7 +268,7 @@ export default async function Home() {
         <div className='flex flex-col gap-[0.938rem] items-center w-full'>
           <Content>
              <div className='flex flex-col items-center justify-center mb-[1.8rem] mt-[2rem] w-full'>
-              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.8rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
+              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
                 MAGAZINE
               </h2>
               <div className='w-full h-[1px] bg-black'></div>
@@ -305,7 +305,7 @@ export default async function Home() {
         <div className='flex flex-col gap-[0.938rem] items-center w-full'>
           <Content>
              <div className='flex flex-col items-center justify-center mb-[1.8rem] mt-[2rem] w-full'>
-              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.8rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
+              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
                 PODCAST
               </h2>
               <div className='w-full h-[1px] bg-black'></div>
@@ -339,10 +339,10 @@ export default async function Home() {
 
       {/* News Section */}
       {newsPosts.length > 0 && (
-        <div className='flex flex-col gap-[0.938rem] items-center w-full pb-[1.563rem]'>
+        <div className='flex flex-col gap-[0.938rem] items-center w-full'>
           <Content>
             <div className='flex flex-col items-center justify-center mb-[1.8rem] mt-[2rem] w-full'>
-              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.8rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
+              <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
                 NEWS
               </h2>
               <div className='w-full h-[1px] bg-black'></div>
@@ -370,6 +370,9 @@ export default async function Home() {
           </Content>
         </div>
       )}
+
+      {/* Spacer before footer */}
+      <div className='h-[4rem]' aria-hidden='true' />
     </div>
   )
 }
