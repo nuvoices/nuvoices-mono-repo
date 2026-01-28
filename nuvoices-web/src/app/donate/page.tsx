@@ -47,7 +47,16 @@ export default function DonatePage() {
 
             <Section title="Support us on FundJournalism.org">
               <p>
-                Help us fundraise and build financial stability through our FundJournalism page. Here, you can choose between different donation options — from a one-time payment to a monthly or yearly contribution.
+                Help us fundraise and build financial stability through our{" "}
+                <a
+                  href="https://nuvoices.fundjournalism.org/donate"
+                  className="text-black underline hover:bg-yellow-200 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  FundJournalism page
+                </a>
+                . Here, you can choose between different donation options — from a one-time payment to a monthly or yearly contribution.
               </p>
             </Section>
 

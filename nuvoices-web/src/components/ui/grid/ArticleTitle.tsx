@@ -8,7 +8,7 @@ interface ArticleTitleProps {
 export function ArticleTitle({ children, className = '' }: ArticleTitleProps) {
   return (
     <h3
-      className={`text-[1.375rem] font-serif leading-[1.1] tracking-[-0.047rem] text-[#3c2e24] font-normal ${className}`}
+      className={`text-[1.25rem] font-serif leading-[1.1] tracking-[-0.047rem] text-[#3c2e24] font-normal ${className}`}
       style={{ marginBlock: 0 }}
     >
       {children}

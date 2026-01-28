@@ -8,7 +8,7 @@ const footerNavigationLinks: NavLink[] = [
   { href: '/join', label: 'Join' },
   { href: '/donate', label: 'Donate' },
   { href: '/submissions', label: 'Submit' },
-  { href: '/contact', label: 'Contact' },
+  { href: 'mailto:nuvoices@protonmail.com', label: 'Contact' },
 ];
 
 export default function Footer() {

@@ -59,7 +59,7 @@ export default async function PodcastPage() {
             Podcast
           </h1>
           <p className="text-[1.5625rem] font-serif italic leading-[1.1] tracking-[-0.047rem] text-black mb-[1.25rem]">
-            A show coordinated, produced and edited by the NüVoices board.
+            Coordinated, produced and edited by the NüVoices board
           </p>
         </div>
 

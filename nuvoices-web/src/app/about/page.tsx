@@ -19,7 +19,7 @@ export default function AboutPage() {
           </p>
 
           {/* 30px = 0.9375rem */}
-          <p className="text-[0.9375rem] font-serif leading-[1.6] text-black">
+          <p className="mt-[1rem] text-[0.9375rem] font-serif leading-[1.6] text-black">
             More women and marginalized groups are writing about China, doing business in China and generally doing interesting things on China than ever before. We're an independent not-for-profit organization that enables more of their voices to be heard.
           </p>
 

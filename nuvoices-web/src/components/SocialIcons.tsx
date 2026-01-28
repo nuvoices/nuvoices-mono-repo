@@ -4,10 +4,10 @@ import LinkedInIcon from '../../public/icons/linkedin.svg';
 import EmailIcon from '../../public/icons/email.svg';
 
 const socialLinks = [
-  { href: '#', icon: TwitterIcon, label: 'Twitter' },
-  { href: '#', icon: InstagramIcon, label: 'Instagram' },
-  { href: '#', icon: LinkedInIcon, label: 'LinkedIn' },
-  { href: '#', icon: EmailIcon, label: 'Email' },
+  { href: 'https://x.com/nuvoices', icon: TwitterIcon, label: 'X' },
+  { href: 'https://www.instagram.com/nuvoicescollective', icon: InstagramIcon, label: 'Instagram' },
+  { href: 'https://linkedin.com/company/nuvoices', icon: LinkedInIcon, label: 'LinkedIn' },
+  { href: 'mailto:nuvoices@protonmail.com', icon: EmailIcon, label: 'Email' },
 ];
 
 interface SocialIconsProps {
