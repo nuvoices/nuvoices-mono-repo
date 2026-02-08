@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import NavigationLinks, { type NavLink } from './NavigationLinks';
 import SocialIcons from './SocialIcons';
+import SearchIcon from '../../public/search-normal.svg';
 
 const headerNavigationLinks: NavLink[] = [
   { href: '/about', label: 'About' },
@@ -18,8 +19,61 @@ const headerNavigationLinks: NavLink[] = [
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const isHomepage = pathname === '/';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (mobileMenuOpen && mobileSearchInputRef.current) {
+      // Small delay to let the panel animate in
+      const timer = setTimeout(() => mobileSearchInputRef.current?.focus(), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [mobileMenuOpen]);
+
+  const handleDesktopSearch = () => {
+    const trimmed = searchQuery.trim();
+    if (trimmed) {
+      router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleMobileSearch = () => {
+    const trimmed = mobileSearchQuery.trim();
+    if (trimmed) {
+      router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+      setMobileMenuOpen(false);
+      setMobileSearchQuery('');
+    }
+  };
+
+  const handleDesktopKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleDesktopSearch();
+    } else if (e.key === 'Escape') {
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleMobileKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleMobileSearch();
+    }
+  };
 
   return (
     <>
@@ -41,14 +95,52 @@ export default function Header() {
             )}
 
             {/* Social Icons - Desktop */}
-            <SocialIcons variant="desktop" />
+            {!searchOpen && <SocialIcons variant="desktop" />}
           </div>
 
-          {/* Right Section: Navigation */}
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-[1.25rem]">
-            <NavigationLinks links={headerNavigationLinks} variant="header" />
-          </nav>
+          {/* Right Section: Navigation or Search Input */}
+          {/* Desktop: Search Mode */}
+          {searchOpen ? (
+            <div className="hidden md:flex items-center gap-3 flex-1 max-w-[32rem] ml-auto">
+              <div className="flex items-center flex-1 border-b border-[#3c2e24] pb-[2px]">
+                <SearchIcon className="w-[1rem] h-[1rem] text-[#3c2e24] flex-shrink-0 mr-2" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleDesktopKeyDown}
+                  placeholder="Search articles..."
+                  className="flex-1 bg-transparent border-none outline-none font-sans text-[1rem] text-[#3c2e24] placeholder:text-[#3c2e24]/40 tracking-[-0.021rem]"
+                />
+              </div>
+              <button
+                onClick={handleDesktopSearch}
+                className="font-sans font-semibold text-[0.875rem] text-[#3c2e24] bg-transparent border-none cursor-pointer hover:opacity-70 transition tracking-[-0.021rem]"
+              >
+                Go
+              </button>
+              <button
+                onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                className="p-1 bg-transparent border-none cursor-pointer hover:opacity-70 transition"
+                aria-label="Close search"
+              >
+                <X className="h-4 w-4 text-[#3c2e24]" strokeWidth={2.5} />
+              </button>
+            </div>
+          ) : (
+            /* Desktop: Normal Navigation */
+            <nav className="hidden md:flex items-center gap-[1.25rem]">
+              <NavigationLinks links={headerNavigationLinks} variant="header" />
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="bg-transparent border-none cursor-pointer p-1 hover:opacity-70 transition flex items-center justify-center"
+                aria-label="Search"
+              >
+                <SearchIcon className="w-[1rem] h-[1rem] text-[#3c2e24]" />
+              </button>
+            </nav>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -100,6 +192,32 @@ export default function Header() {
           >
             <X className="h-6 w-6 text-[#3c2e24]" strokeWidth={2.5} />
           </button>
+        </div>
+
+        {/* Mobile Search Input */}
+        <div className="w-full px-[1.5rem] mt-[1.5rem] box-border">
+          <div className="flex items-center border-b border-[#FFFFFF]/30 pb-[6px]">
+            <SearchIcon className="w-[1.125rem] h-[1.125rem] text-[#FFFFFF]/60 flex-shrink-0 mr-3" />
+            <input
+              ref={mobileSearchInputRef}
+              type="text"
+              value={mobileSearchQuery}
+              onChange={(e) => setMobileSearchQuery(e.target.value)}
+              onKeyDown={handleMobileKeyDown}
+              placeholder="Search..."
+              className="flex-1 bg-transparent border-none outline-none font-serif text-[1.25rem] text-[#FFFFFF] placeholder:text-[#FFFFFF]/40 tracking-[-0.047rem]"
+              style={{ fontFamily: 'Source Serif Pro, serif' }}
+            />
+            {mobileSearchQuery.trim() && (
+              <button
+                onClick={handleMobileSearch}
+                className="font-serif text-[1rem] text-[#FFFFFF]/80 bg-transparent border-none cursor-pointer hover:text-[#FFFFFF] transition"
+                style={{ fontFamily: 'Source Serif Pro, serif' }}
+              >
+                Go
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Navigation Links */}
