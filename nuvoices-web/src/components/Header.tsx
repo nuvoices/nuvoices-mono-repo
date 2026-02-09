@@ -95,37 +95,37 @@ export default function Header() {
             )}
 
             {/* Social Icons - Desktop */}
-            {!searchOpen && <SocialIcons variant="desktop" />}
+            <SocialIcons variant="desktop" />
           </div>
 
           {/* Right Section: Navigation or Search Input */}
           {/* Desktop: Search Mode */}
           {searchOpen ? (
-            <div className="hidden md:flex items-center gap-3 flex-1 max-w-[32rem] ml-auto">
-              <div className="flex items-center flex-1 border-b border-[#3c2e24] pb-[2px]">
-                <SearchIcon className="w-[1rem] h-[1rem] text-[#3c2e24] flex-shrink-0 mr-2" />
+            <div className="hidden md:flex items-center gap-[0.5rem]">
+              <div className="flex items-stretch h-[2rem]">
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleDesktopKeyDown}
-                  placeholder="Search articles..."
-                  className="flex-1 bg-transparent border-none outline-none font-sans text-[1rem] text-[#3c2e24] placeholder:text-[#3c2e24]/40 tracking-[-0.021rem]"
+                  placeholder="Search..."
+                  className="bg-[#FFFAFA] border border-r-0 border-input rounded-l-md outline-none font-sans text-sm text-[#3c2e24] placeholder:text-muted-foreground tracking-[-0.021rem] w-[14rem] pl-[0.625rem] pr-2"
                 />
+                <button
+                  onClick={handleDesktopSearch}
+                  className="w-[2.75rem] bg-[#ece7e5] border border-input rounded-r-md cursor-pointer hover:bg-[#e2dcda] transition flex items-center justify-center flex-shrink-0"
+                  aria-label="Submit search"
+                >
+                  <SearchIcon className="w-[14px] h-[14px] text-[#3c2e24]/70" />
+                </button>
               </div>
               <button
-                onClick={handleDesktopSearch}
-                className="font-sans font-semibold text-[0.875rem] text-[#3c2e24] bg-transparent border-none cursor-pointer hover:opacity-70 transition tracking-[-0.021rem]"
-              >
-                Go
-              </button>
-              <button
                 onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
-                className="p-1 bg-transparent border-none cursor-pointer hover:opacity-70 transition"
+                className="bg-transparent border-none cursor-pointer hover:opacity-70 transition font-sans font-semibold text-[1rem] text-[#3c2e24] tracking-[-0.021rem]"
                 aria-label="Close search"
               >
-                <X className="h-4 w-4 text-[#3c2e24]" strokeWidth={2.5} />
+                Cancel
               </button>
             </div>
           ) : (
@@ -134,7 +134,7 @@ export default function Header() {
               <NavigationLinks links={headerNavigationLinks} variant="header" />
               <button
                 onClick={() => setSearchOpen(true)}
-                className="bg-transparent border-none cursor-pointer p-1 hover:opacity-70 transition flex items-center justify-center"
+                className="bg-transparent border-none cursor-pointer w-[2.75rem] h-[2.75rem] -mx-[0.875rem] hover:opacity-70 transition flex items-center justify-center"
                 aria-label="Search"
               >
                 <SearchIcon className="w-[1rem] h-[1rem] text-[#3c2e24]" />
