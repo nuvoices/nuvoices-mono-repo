@@ -196,8 +196,7 @@ export default function Header() {
 
         {/* Mobile Search Input */}
         <div className="w-full px-[1.5rem] mt-[1.5rem] box-border">
-          <div className="flex items-center border-b border-[#FFFFFF]/30 pb-[6px]">
-            <SearchIcon className="w-[1.125rem] h-[1.125rem] text-[#FFFFFF]/60 flex-shrink-0 mr-3" />
+          <div className="flex items-stretch h-[2.75rem]">
             <input
               ref={mobileSearchInputRef}
               type="text"
@@ -205,18 +204,15 @@ export default function Header() {
               onChange={(e) => setMobileSearchQuery(e.target.value)}
               onKeyDown={handleMobileKeyDown}
               placeholder="Search..."
-              className="flex-1 bg-transparent border-none outline-none font-serif text-[1.25rem] text-[#FFFFFF] placeholder:text-[#FFFFFF]/40 tracking-[-0.047rem]"
-              style={{ fontFamily: 'Source Serif Pro, serif' }}
+              className="flex-1 bg-[#FFFFFF]/10 border border-r-0 border-[#FFFFFF]/20 rounded-l-md outline-none font-sans text-[1rem] text-[#FFFFFF] placeholder:text-[#FFFFFF]/40 tracking-[-0.021rem] pl-[0.75rem] pr-2"
             />
-            {mobileSearchQuery.trim() && (
-              <button
-                onClick={handleMobileSearch}
-                className="font-serif text-[1rem] text-[#FFFFFF]/80 bg-transparent border-none cursor-pointer hover:text-[#FFFFFF] transition"
-                style={{ fontFamily: 'Source Serif Pro, serif' }}
-              >
-                Go
-              </button>
-            )}
+            <button
+              onClick={handleMobileSearch}
+              className="w-[2.75rem] bg-[#FFFFFF]/10 border border-[#FFFFFF]/20 rounded-r-md cursor-pointer hover:bg-[#FFFFFF]/20 transition flex items-center justify-center flex-shrink-0"
+              aria-label="Submit search"
+            >
+              <SearchIcon className="w-[1rem] h-[1rem] text-[#FFFFFF]/60" />
+            </button>
           </div>
         </div>
 
