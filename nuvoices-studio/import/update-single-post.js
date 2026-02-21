@@ -532,26 +532,43 @@ async function updateSinglePost(identifier, options = {}) {
 
 // Simple inline CSV parser (no external library)
 function parseCSV(content) {
-  const lines = content.split('\n').filter(line => line.trim());
+  // Normalize line endings
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const rows = [];
-  for (const line of lines) {
-    const fields = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-        else { inQuotes = !inQuotes; }
-      } else if (char === ',' && !inQuotes) {
-        fields.push(current); current = '';
+  let fields = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized[i];
+    if (char === '"') {
+      if (inQuotes && normalized[i + 1] === '"') {
+        current += '"';
+        i++;
       } else {
-        current += char;
+        inQuotes = !inQuotes;
       }
+    } else if (char === ',' && !inQuotes) {
+      fields.push(current);
+      current = '';
+    } else if (char === '\n' && !inQuotes) {
+      fields.push(current);
+      current = '';
+      if (fields.some(f => f.trim())) {
+        rows.push(fields);
+      }
+      fields = [];
+    } else {
+      current += char;
     }
-    fields.push(current);
+  }
+
+  // Handle last line (no trailing newline)
+  fields.push(current);
+  if (fields.some(f => f.trim())) {
     rows.push(fields);
   }
+
   return rows;
 }
 
@@ -607,6 +624,7 @@ if (require.main === module) {
       console.log('  node update-single-post.js <post-id-or-slug> [options]');
       console.log('\nOptions:');
       console.log('  --skip-images  Skip image processing');
+      console.log('  --descriptions-csv <file>  Import descriptions from a CSV file by wpPostId');
       console.log('  --production   Override dataset to \'production\' (default uses .env value)');
       console.log('  --help, -h     Show this help message');
       console.log('\nExamples:');
