@@ -27,19 +27,19 @@ function buildPrompt(tone, title, content) {
   switch (tone) {
     case 'editorial':
       return (
-        `Write a 1-2 sentence editorial description (max 280 characters) for a New Voices magazine post titled "${title}". ` +
+        `Write a 1-2 sentence editorial description (max 280 characters) for a New Voices magazine post titled '${title}'. ` +
         `Use third-person journalistic voice. Output ONLY the description, no quotes or preamble. ` +
         `Content: ${truncated}`
       );
     case 'engaging':
       return (
-        `Write a 1-2 sentence engaging description (max 280 characters) for a New Voices magazine post titled "${title}". ` +
+        `Write a 1-2 sentence engaging description (max 280 characters) for a New Voices magazine post titled '${title}'. ` +
         `Use an inviting reader-facing voice that draws people in. Output ONLY the description, no quotes or preamble. ` +
         `Content: ${truncated}`
       );
     case 'neutral':
       return (
-        `Write a 1-2 sentence neutral summary (max 280 characters) for a New Voices magazine post titled "${title}". ` +
+        `Write a 1-2 sentence neutral summary (max 280 characters) for a New Voices magazine post titled '${title}'. ` +
         `Use plain factual language. Output ONLY the description, no quotes or preamble. ` +
         `Content: ${truncated}`
       );
@@ -53,6 +53,7 @@ function callClaude(prompt) {
     input: prompt,
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: 60000,
   });
   return result.trim();
 }
@@ -81,6 +82,7 @@ async function main() {
   };
 
   let successCount = 0;
+  let skippedCount = 0;
 
   for (let i = 0; i < posts.length; i++) {
     const post = posts[i];
@@ -88,6 +90,7 @@ async function main() {
 
     if (strippedContent.length < 50) {
       console.log(`⚠️  Skipping "${post.title}" — content too short`);
+      skippedCount++;
       continue;
     }
 
@@ -108,7 +111,7 @@ async function main() {
     }
 
     successCount++;
-    console.log(`✓ [${successCount}/${total}] Generated: "${post.title}"`);
+    console.log(`✓ [${successCount} done] "${post.title}"`);
   }
 
   // Write output files
@@ -123,7 +126,7 @@ async function main() {
     fs.writeFileSync(filePath, content, 'utf8');
   }
 
-  console.log(`✅ Wrote ${successCount} descriptions to each CSV file in output/`);
+  console.log(`✅ Wrote ${successCount} descriptions to each CSV file in output/. Skipped ${skippedCount} posts (no/short content).`);
 }
 
 main().catch(err => {
