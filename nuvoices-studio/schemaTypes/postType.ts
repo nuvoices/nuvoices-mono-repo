@@ -50,6 +50,13 @@ export const postType = defineType({
       description: "A brief summary of the post",
     }),
     defineField({
+      name: "description",
+      title: "Description",
+      type: "string",
+      description: "Reader-facing teaser shown on listing pages (max 280 characters)",
+      validation: (Rule) => Rule.max(280),
+    }),
+    defineField({
       name: "body",
       title: "Body",
       type: "array",
