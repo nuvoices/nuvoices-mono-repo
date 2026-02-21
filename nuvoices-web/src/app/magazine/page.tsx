@@ -19,7 +19,7 @@ interface Post {
   slug: {
     current: string;
   };
-  excerpt?: string;
+  description?: string;
   publishedAt: string;
   featuredImage?: {
     asset?: {
@@ -38,7 +38,7 @@ const magazinePostsQuery = groq`
     _id,
     title,
     slug,
-    excerpt,
+    description,
     publishedAt,
     featuredImage {
       asset->{
@@ -84,7 +84,7 @@ export default async function MagazinePage() {
                     />
                     <ArticleContent>
                       <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                      {post.description && <ArticleExcerpt>{post.description}</ArticleExcerpt>}
                       <ArticleDate date={post.publishedAt} />
                     </ArticleContent>
                   </Article>
