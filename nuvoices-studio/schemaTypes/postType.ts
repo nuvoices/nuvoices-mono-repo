@@ -47,7 +47,7 @@ export const postType = defineType({
       title: "Excerpt",
       type: "text",
       rows: 4,
-      description: "A brief summary of the post",
+      description: "Legacy WordPress excerpt — use the Description field for reader-facing teasers",
     }),
     defineField({
       name: "description",

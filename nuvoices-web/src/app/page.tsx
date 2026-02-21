@@ -34,72 +34,9 @@ interface Post {
   }
 }
 
-// Query to get latest 3 magazine posts
-const magazinePostsQuery = groq`
-  *[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
-    _id,
-    title,
-    slug,
-    description,
-    publishedAt,
-    featuredImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    author->{
-      name
-    }
-  }
-`
-
-// Query to get latest 3 podcast posts
-const podcastPostsQuery = groq`
-  *[_type == "post" && status == "published" && "podcast" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
-    _id,
-    title,
-    slug,
-    description,
-    publishedAt,
-    featuredImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    author->{
-      name
-    }
-  }
-`
-
 // Query to get the most recent featured post
 const featuredPostQuery = groq`
   *[_type == "post" && status == "published"] | order(publishedAt desc) [0] {
-    _id,
-    title,
-    slug,
-    description,
-    publishedAt,
-    featuredImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    author->{
-      name
-    }
-  }
-`
-
-// Query to get latest 3 news posts
-const newsPostsQuery = groq`
-  *[_type == "post" && status == "published" && "news" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
     _id,
     title,
     slug,
