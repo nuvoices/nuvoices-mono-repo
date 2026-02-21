@@ -20,7 +20,7 @@ interface Post {
   slug: {
     current: string
   }
-  excerpt?: string
+  description?: string
   publishedAt: string
   featuredImage?: {
     asset?: {
@@ -40,7 +40,7 @@ const magazinePostsQuery = groq`
     _id,
     title,
     slug,
-    excerpt,
+    description,
     publishedAt,
     featuredImage {
       asset->{
@@ -61,7 +61,7 @@ const podcastPostsQuery = groq`
     _id,
     title,
     slug,
-    excerpt,
+    description,
     publishedAt,
     featuredImage {
       asset->{
@@ -82,7 +82,7 @@ const featuredPostQuery = groq`
     _id,
     title,
     slug,
-    excerpt,
+    description,
     publishedAt,
     featuredImage {
       asset->{
@@ -103,7 +103,7 @@ const newsPostsQuery = groq`
     _id,
     title,
     slug,
-    excerpt,
+    description,
     publishedAt,
     featuredImage {
       asset->{
@@ -128,7 +128,7 @@ export default async function Home() {
       _id,
       title,
       slug,
-      excerpt,
+      description,
       publishedAt,
       featuredImage {
         asset->{
@@ -148,7 +148,7 @@ export default async function Home() {
       _id,
       title,
       slug,
-      excerpt,
+      description,
       publishedAt,
       featuredImage {
         asset->{
@@ -168,7 +168,7 @@ export default async function Home() {
       _id,
       title,
       slug,
-      excerpt,
+      description,
       publishedAt,
       featuredImage {
         asset->{
@@ -287,8 +287,8 @@ export default async function Home() {
                     />
                     <ArticleContent>
                       <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && (
-                        <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>
+                      {post.description && (
+                        <ArticleExcerpt>{post.description}</ArticleExcerpt>
                       )}
                       <ArticleDate date={post.publishedAt} />
                     </ArticleContent>
@@ -324,8 +324,8 @@ export default async function Home() {
                     />
                     <ArticleContent>
                       <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && (
-                        <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>
+                      {post.description && (
+                        <ArticleExcerpt>{post.description}</ArticleExcerpt>
                       )}
                       <ArticleDate date={post.publishedAt} />
                     </ArticleContent>
@@ -358,8 +358,8 @@ export default async function Home() {
                     />
                     <ArticleContent>
                       <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && (
-                        <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>
+                      {post.description && (
+                        <ArticleExcerpt>{post.description}</ArticleExcerpt>
                       )}
                       <ArticleDate date={post.publishedAt} />
                     </ArticleContent>
