@@ -23,7 +23,7 @@ interface ArticleExcerptProps {
 
 export function ArticleExcerpt({ children, className = '' }: ArticleExcerptProps) {
   return (
-    <div className={`text-[1rem] font-serif italic leading-[1.1] text-[#3c2e24] line-clamp-2 ${className}`}>
+    <div className={`text-sm font-serif italic leading-[1.1] text-[#3c2e24] ${className}`}>
       {children}
     </div>
   );

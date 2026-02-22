@@ -9,6 +9,7 @@
     "build": "pnpm -r build",
     "studio:dev": "pnpm --filter nuvoices-studio dev",
     "web:dev": "pnpm --filter nuvoices-web dev",
+    "web:dev:production": "pnpm --filter nuvoices-web dev:production",
     "studio:build": "pnpm --filter nuvoices-studio build",
     "web:build": "pnpm --filter nuvoices-web build",
     "lint": "pnpm -r lint",
