@@ -11,3 +11,4 @@ pnpm-debug.log*
 
 # Playwright MCP screenshots
 .playwright-mcp/
+nuvoices-studio/STUDIO_MIGRATION_PLAN.md
