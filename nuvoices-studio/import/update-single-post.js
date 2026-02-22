@@ -530,41 +530,125 @@ async function updateSinglePost(identifier, options = {}) {
   }
 }
 
-// Run the script if executed directly
-if (require.main === module) {
-  const args = process.argv.slice(2);
+// Simple inline CSV parser (no external library)
+function parseCSV(content) {
+  // Normalize line endings
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const rows = [];
+  let fields = [];
+  let current = '';
+  let inQuotes = false;
 
-  if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
-    if (args.length === 0) {
-      console.error('\n❌ Error: No post identifier provided');
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized[i];
+    if (char === '"') {
+      if (inQuotes && normalized[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      fields.push(current);
+      current = '';
+    } else if (char === '\n' && !inQuotes) {
+      fields.push(current);
+      current = '';
+      if (fields.some(f => f.trim())) {
+        rows.push(fields);
+      }
+      fields = [];
+    } else {
+      current += char;
     }
-    console.log('\nUsage:');
-    console.log('  node update-single-post.js <post-id-or-slug> [options]');
-    console.log('\nOptions:');
-    console.log('  --skip-images  Skip image processing');
-    console.log('  --production   Override dataset to \'production\' (default uses .env value)');
-    console.log('  --help, -h     Show this help message');
-    console.log('\nExamples:');
-    console.log('  node update-single-post.js 931');
-    console.log('  node update-single-post.js my-post-slug');
-    console.log('  node update-single-post.js 931 --skip-images');
-    console.log('  node update-single-post.js 931 --production');
-    process.exit(args.length === 0 ? 1 : 0);
   }
 
-  const identifier = args[0];
-  const skipImages = args.includes('--skip-images');
+  // Handle last line (no trailing newline)
+  fields.push(current);
+  if (fields.some(f => f.trim())) {
+    rows.push(fields);
+  }
 
-  updateSinglePost(identifier, { skipImages })
-    .then((result) => {
-      console.log(`\n✅ Post update completed successfully`);
-      console.log(`   View at: http://localhost:3000/magazine/${result.post.slug}`);
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('\n❌ Post update failed:', error);
+  return rows;
+}
+
+// Import descriptions from a CSV file (--descriptions-csv mode)
+async function importDescriptionsFromCSV(csvFilePath) {
+  const content = require('fs').readFileSync(csvFilePath, 'utf8');
+  const rows = parseCSV(content);
+  const dataRows = rows.slice(1); // skip header
+
+  console.log(`\nImporting descriptions from: ${csvFilePath}`);
+  console.log(`Posts to update: ${dataRows.length}\n`);
+
+  let successCount = 0;
+  for (const [postId, title, description] of dataRows) {
+    const wpPostId = parseInt(postId, 10);
+    const post = await client.fetch(
+      '*[_type == "post" && wpPostId == $id][0]{ _id }',
+      { id: wpPostId }
+    );
+    if (!post) {
+      throw new Error(`No Sanity post found for wpPostId ${wpPostId} (title: "${title}")`);
+    }
+    await client.patch(post._id).set({ description }).commit();
+    successCount++;
+    console.log(`✓ Updated: "${title}" (wpPostId: ${wpPostId})`);
+  }
+  console.log(`\n✅ Successfully updated ${successCount} posts`);
+}
+
+
+// Run the script if executed directly
+if (require.main === module) {
+  const args = process.argv.slice(2).filter(a => a !== '--production');
+  const csvIndex = args.indexOf('--descriptions-csv');
+
+  if (csvIndex !== -1) {
+    // New CSV import mode
+    const csvFile = args[csvIndex + 1];
+    if (!csvFile) {
+      console.error('❌ --descriptions-csv requires a file path');
       process.exit(1);
-    });
+    }
+    importDescriptionsFromCSV(csvFile)
+      .then(() => process.exit(0))
+      .catch(err => { console.error('\n❌ Import failed:', err.message); process.exit(1); });
+  } else {
+    // Existing single-post update mode (unchanged logic)
+    if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
+      if (args.length === 0) {
+        console.error('\n❌ Error: No post identifier provided');
+      }
+      console.log('\nUsage:');
+      console.log('  node update-single-post.js <post-id-or-slug> [options]');
+      console.log('\nOptions:');
+      console.log('  --skip-images  Skip image processing');
+      console.log('  --descriptions-csv <file>  Import descriptions from a CSV file by wpPostId');
+      console.log('  --production   Override dataset to \'production\' (default uses .env value)');
+      console.log('  --help, -h     Show this help message');
+      console.log('\nExamples:');
+      console.log('  node update-single-post.js 931');
+      console.log('  node update-single-post.js my-post-slug');
+      console.log('  node update-single-post.js 931 --skip-images');
+      console.log('  node update-single-post.js 931 --production');
+      process.exit(args.length === 0 ? 1 : 0);
+    }
+
+    const identifier = args[0];
+    const skipImages = args.includes('--skip-images');
+
+    updateSinglePost(identifier, { skipImages })
+      .then((result) => {
+        console.log(`\n✅ Post update completed successfully`);
+        console.log(`   View at: http://localhost:3000/magazine/${result.post.slug}`);
+        process.exit(0);
+      })
+      .catch((error) => {
+        console.error('\n❌ Post update failed:', error);
+        process.exit(1);
+      });
+  }
 }
 
 module.exports = updateSinglePost;

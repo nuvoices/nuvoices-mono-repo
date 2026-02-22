@@ -47,7 +47,14 @@ export const postType = defineType({
       title: "Excerpt",
       type: "text",
       rows: 4,
-      description: "A brief summary of the post",
+      description: "Legacy WordPress excerpt — use the Description field for reader-facing teasers",
+    }),
+    defineField({
+      name: "description",
+      title: "Description",
+      type: "string",
+      description: "Reader-facing teaser shown on listing pages (max 280 characters)",
+      validation: (Rule) => Rule.max(280),
     }),
     defineField({
       name: "body",
