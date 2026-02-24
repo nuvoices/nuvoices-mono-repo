@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
 import {
