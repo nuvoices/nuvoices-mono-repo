@@ -58,7 +58,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const matched = SUBCATEGORY_PRIORITY.find((s) => s.slug === slug);
   const title = matched
     ? matched.title
-    : slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+    : slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">

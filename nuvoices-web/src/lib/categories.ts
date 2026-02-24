@@ -18,7 +18,9 @@ export function getDisplaySubcategory(
 ): { slug: string; title: string } | null {
   if (!categories || categories.length === 0) return null;
 
-  const slugs = new Set(categories.map((c) => c.slug.current));
+  const slugs = new Set(
+    categories.filter((c) => c?.slug?.current).map((c) => c.slug.current),
+  );
 
   for (const sub of SUBCATEGORY_PRIORITY) {
     if (slugs.has(sub.slug)) {
