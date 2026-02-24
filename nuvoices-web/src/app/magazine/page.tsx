@@ -90,7 +90,7 @@ export default async function MagazinePage() {
                       {subcategory && (
                         <Link
                           href={`/category/${subcategory.slug}`}
-                          className="text-[1.125rem] font-serif leading-[1.1] text-[#3c2e24]"
+                          className="block text-center text-[1.125rem] font-[family-name:var(--font-old-standard)] font-bold leading-[1.1] text-[#3c2e24] no-underline hover:text-[#6b5545] hover:cursor-pointer mb-[0.75rem]"
                         >
                           {subcategory.title}
                         </Link>

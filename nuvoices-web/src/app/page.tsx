@@ -1,8 +1,6 @@
 import Image from "next/image"
-import Link from "next/link"
 import { client } from "@/sanity/client"
 import { groq } from "next-sanity"
-import { getDisplaySubcategory } from "@/lib/categories"
 import {
   Grid,
   GridRow,
@@ -280,18 +278,8 @@ export default async function Home() {
             </div>
             <Grid>
               <GridRow>
-                {magazinePosts.map((post, index) => {
-                  const subcategory = getDisplaySubcategory(post.categories)
-                  return (
+                {magazinePosts.map((post, index) => (
                     <div key={post._id}>
-                      {subcategory && (
-                        <Link
-                          href={`/category/${subcategory.slug}`}
-                          className="text-[1.125rem] font-serif leading-[1.1] text-[#3c2e24]"
-                        >
-                          {subcategory.title}
-                        </Link>
-                      )}
                       <Article href={`/magazine/${post.slug.current}`}>
                         <ArticleImage
                           src={post.featuredImage?.asset?.url}
@@ -307,8 +295,7 @@ export default async function Home() {
                         </ArticleContent>
                       </Article>
                     </div>
-                  )
-                })}
+                  ))}
               </GridRow>
             </Grid>
           </Content>
