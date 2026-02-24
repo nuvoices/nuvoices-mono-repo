@@ -1,5 +1,6 @@
 import { client } from "@/sanity/client";
 import { groq } from "next-sanity";
+import Link from "next/link";
 import {
   Grid,
   GridRow,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/grid";
 import { Content } from "@/components/ui/Content";
 import ActionButton from "@/components/ActionButton";
+import { getDisplaySubcategory } from "@/lib/categories";
 
 interface Post {
   _id: string;
@@ -31,6 +33,7 @@ interface Post {
   author?: {
     name: string;
   };
+  categories?: Array<{ _id: string; title: string; slug: { current: string } }>;
 }
 
 const magazinePostsQuery = groq`
@@ -49,6 +52,11 @@ const magazinePostsQuery = groq`
     },
     author->{
       name
+    },
+    categories[]->{
+      _id,
+      title,
+      slug
     }
   }
 `;
@@ -75,20 +83,33 @@ export default async function MagazinePage() {
           {posts.length > 0 ? (
             <Grid>
               <GridRow>
-                {posts.map((post, index) => (
-                  <Article key={post._id} href={`/magazine/${post.slug.current}`}>
-                    <ArticleImage
-                      src={post.featuredImage?.asset?.url}
-                      alt={post.featuredImage?.alt || post.title}
-                      rotation={index % 2 === 0 ? 'left' : 'right'}
-                    />
-                    <ArticleContent>
-                      <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
-                      <ArticleDate date={post.publishedAt} />
-                    </ArticleContent>
-                  </Article>
-                ))}
+                {posts.map((post, index) => {
+                  const subcategory = getDisplaySubcategory(post.categories);
+                  return (
+                    <div key={post._id}>
+                      {subcategory && (
+                        <Link
+                          href={`/category/${subcategory.slug}`}
+                          className="text-[1.125rem] font-serif leading-[1.1] text-[#3c2e24]"
+                        >
+                          {subcategory.title}
+                        </Link>
+                      )}
+                      <Article href={`/magazine/${post.slug.current}`}>
+                        <ArticleImage
+                          src={post.featuredImage?.asset?.url}
+                          alt={post.featuredImage?.alt || post.title}
+                          rotation={index % 2 === 0 ? 'left' : 'right'}
+                        />
+                        <ArticleContent>
+                          <ArticleTitle>{post.title}</ArticleTitle>
+                          {post.excerpt && <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>}
+                          <ArticleDate date={post.publishedAt} />
+                        </ArticleContent>
+                      </Article>
+                    </div>
+                  );
+                })}
               </GridRow>
             </Grid>
           ) : (
