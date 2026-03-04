@@ -4,10 +4,23 @@ const http = require('http');
 const { URL } = require('url');
 const WordPressParser = require('./parser');
 const ContentTransformer = require('./transformers');
-const { CATEGORY_MAPPING } = require('./importTaxonomies');
+const { CATEGORY_MAPPING, SUB_CATEGORY_MAPPING } = require('./importTaxonomies');
 const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+// Returns additional sub-category slugs for a post based on its WordPress categories.
+// These are appended alongside the primary category (podcast/magazine/news).
+function getPostSubCategories(wpCategories) {
+  const subCategories = new Set();
+  for (const wpCatNicename of wpCategories) {
+    const subCategory = SUB_CATEGORY_MAPPING[wpCatNicename];
+    if (subCategory) {
+      subCategories.add(subCategory);
+    }
+  }
+  return Array.from(subCategories);
+}
 
 // Helper function to determine the single category for a post
 // Priority: Podcast > Magazine > News
@@ -286,7 +299,7 @@ async function importPosts(options = {}) {
 
     // Build lookup maps for references
     const authors = await client.fetch('*[_type == "author"]{ _id, wpAuthorId, name }');
-    const categories = await client.fetch('*[_type == "category"]{ _id, "slug": slug.current, title }');
+    const categories = await client.fetch('*[_type == "category" && !(_id in path("drafts.**"))]{ _id, "slug": slug.current, title }');
     const tags = await client.fetch('*[_type == "tag"]{ _id, wpNicename, title }');
 
     const authorMap = new Map();
@@ -379,10 +392,19 @@ async function importPosts(options = {}) {
         // Convert HTML content to Portable Text with proper image references
         const portableTextBody = ContentTransformer.htmlToPortableText(processedHtml, imageAssetMap, attachmentMap);
 
-        // Build single category reference using priority: Podcast > Magazine > News
+        // Build category references: primary (podcast/magazine/news) + any sub-categories
         const postCategory = getPostCategory(wpPost.categories);
         const categoryId = categoryMap.get(postCategory);
-        const categoryRef = categoryId ? { _type: 'reference', _ref: categoryId } : null;
+        const primaryRef = categoryId
+          ? { _key: ContentTransformer.generateKey(), _type: 'reference', _ref: categoryId }
+          : null;
+
+        const subCategoryRefs = getPostSubCategories(wpPost.categories)
+          .map(slug => categoryMap.get(slug))
+          .filter(Boolean)
+          .map(id => ({ _key: ContentTransformer.generateKey(), _type: 'reference', _ref: id }));
+
+        const allCategoryRefs = [...(primaryRef ? [primaryRef] : []), ...subCategoryRefs];
 
         // Build tag references with unique keys
         const tagRefs = wpPost.tags
@@ -394,7 +416,6 @@ async function importPosts(options = {}) {
             _ref: id
           }));
 
-        // Check if this is a magazine post with images
         const isMagazinePost = postCategory === 'magazine';
         
         const hasImages = imageAssetMap.size > 0;
@@ -424,7 +445,7 @@ async function importPosts(options = {}) {
             publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
             excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
             body: portableTextBody,
-            categories: categoryRef ? [categoryRef] : [],
+            categories: allCategoryRefs,
             tags: tagRefs,
             status: 'published',
             wpPostId: wpPost.wpPostId,
@@ -502,7 +523,7 @@ async function importPosts(options = {}) {
           publishedAt: ContentTransformer.parseWordPressDate(wpPost.publishedAt),
           excerpt: ContentTransformer.cleanExcerpt(wpPost.excerpt),
           body: portableTextBody,
-          categories: categoryRef ? [categoryRef] : [],
+          categories: allCategoryRefs,
           tags: tagRefs,
           status: 'published',
           wpPostId: wpPost.wpPostId,
