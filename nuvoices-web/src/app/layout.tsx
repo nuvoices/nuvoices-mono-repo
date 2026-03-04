@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Raleway, Source_Serif_4 } from "next/font/google";
+import { Raleway, Source_Serif_4, Old_Standard_TT } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -18,6 +18,12 @@ const sourceSerif = Source_Serif_4({
   style: ["normal", "italic"],
 });
 
+const oldStandardTT = Old_Standard_TT({
+  variable: "--font-old-standard",
+  subsets: ["latin"],
+  weight: ["700"],
+});
+
 export const metadata: Metadata = {
   title: "NuVoices - Amplifying voices on China",
   description: "Amplifying the voices of women and minority experts on China",
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${raleway.variable} ${sourceSerif.variable} antialiased font-serif`}
+        className={`${raleway.variable} ${sourceSerif.variable} ${oldStandardTT.variable} antialiased font-serif`}
       >
         <Providers>
           <Header />

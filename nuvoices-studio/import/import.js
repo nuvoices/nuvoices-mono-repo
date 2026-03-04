@@ -16,6 +16,7 @@ if (process.argv.includes('--production')) {
 const importAuthors = require('./importAuthors');
 const { importTaxonomies } = require('./importTaxonomies');
 const importPosts = require('./importPosts');
+const applyCsvCategories = require('./applyCsvCategories');
 
 async function runFullImport() {
   console.log('🚀 Starting WordPress to Sanity migration...\n');
@@ -75,6 +76,7 @@ Options:
   --posts       Import only posts
   --update      Update existing posts instead of skipping
   --skip-images Skip image downloads (useful if source is unavailable)
+  --apply-csv   Apply category overrides from featured-stories-categorization.csv
   --production  Override dataset to 'production' (default uses .env value)
   --help, -h    Show this help message
 
@@ -124,6 +126,11 @@ async function main() {
       const skipImages = args.includes('--skip-images');
       const result = await importPosts({ updateExisting, skipImages });
       console.log(`✅ Posts imported successfully: ${result.importedCount} imported, ${result.updatedCount} updated, ${result.skippedCount} skipped`);
+    } else if (args.includes('--apply-csv')) {
+      console.log('📋 Applying CSV category overrides...');
+      const csvPath = args.find(a => a.endsWith('.csv'));
+      const result = await applyCsvCategories(csvPath);
+      console.log(`✅ CSV applied: ${result.updatedCount} updated, ${result.skippedCount} skipped`);
     } else {
       // Run full import
       await runFullImport();

@@ -10,5 +10,8 @@
       "Bash(pnpm dev:*)"
     ],
     "deny": []
+  },
+  "enabledPlugins": {
+    "spectre@spectre": true
   }
 }

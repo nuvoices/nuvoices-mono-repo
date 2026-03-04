@@ -12,7 +12,7 @@ export function ArticleImage({ src, alt, rotation = 'none', className = '' }: Ar
   const rotationClass = rotation === 'left' ? '-rotate-2' : rotation === 'right' ? 'rotate-2' : '';
 
   return (
-    <div className={`relative w-full aspect-[4/3] ${className}`}>
+    <div className={`relative w-full aspect-[4/3] overflow-hidden ${className}`}>
       <div className={`w-full h-full ${rotationClass}`}>
         {src ? (
           <Image

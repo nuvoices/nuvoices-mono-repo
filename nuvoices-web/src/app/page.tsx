@@ -11,7 +11,7 @@ import {
   ArticleExcerpt,
   ArticleDate,
 } from "@/components/ui/grid"
-import { Content, FullWidthBreakout } from "@/components/ui/Content"
+import { Content } from "@/components/ui/Content"
 import ActionButton from "@/components/ActionButton"
 
 interface Post {
@@ -32,11 +32,12 @@ interface Post {
   author?: {
     name: string
   }
+  categories?: Array<{ _id: string; title: string; slug: { current: string } }>
 }
 
-// Query to get the most recent featured post
+// Query to get the most recent featured post (must have "featured" category)
 const featuredPostQuery = groq`
-  *[_type == "post" && status == "published"] | order(publishedAt desc) [0] {
+  *[_type == "post" && status == "published" && "featured" in categories[]->slug.current] | order(publishedAt desc) [0] {
     _id,
     title,
     slug,
@@ -76,7 +77,8 @@ export default async function Home() {
       },
       author->{
         name
-      }
+      },
+      categories[]->{ _id, title, slug }
     }
   `
 

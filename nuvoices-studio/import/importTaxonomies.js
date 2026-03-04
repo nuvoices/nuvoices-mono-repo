@@ -28,12 +28,37 @@ const CATEGORY_MAPPING = {
   'uncategorized': 'news',
 };
 
-// The 3 new fixed categories
+// The fixed categories
 const NEW_CATEGORIES = [
   { id: 'podcast', title: 'Podcast', slug: 'podcast' },
   { id: 'magazine', title: 'Magazine', slug: 'magazine' },
   { id: 'news', title: 'News', slug: 'news' },
+  { id: 'personal-essay', title: 'Personal Essay', slug: 'personal-essay' },
+  { id: 'profile', title: 'Profile', slug: 'profile' },
+  { id: 'books', title: 'Books', slug: 'books' },
+  { id: 'film', title: 'Film', slug: 'film' },
+  { id: 'art', title: 'Art', slug: 'art' },
+  { id: 'analysis', title: 'Analysis', slug: 'analysis' },
+  { id: 'featured', title: 'Featured', slug: 'featured' },
 ];
+
+// Additional sub-categories appended to posts based on their WordPress categories.
+// essay and personal-essay both map to personal-essay; qa maps to profile.
+const SUB_CATEGORY_MAPPING = {
+  'featured-stories': 'featured',
+  'personal-essay': 'personal-essay',
+  'essay': 'personal-essay',
+  'travel': 'personal-essay',
+  'profiles': 'profile',
+  'qa': 'profile',
+  'books': 'books',
+  'fiction': 'books',
+  'translation': 'books',
+  'film': 'film',
+  'art': 'art',
+  'photography': 'art',
+  'opinion': 'analysis',
+};
 
 if (!process.env.SANITY_STUDIO_PROJECT_ID || !process.env.SANITY_STUDIO_DATASET) {
   throw new Error('Missing Sanity Studio project ID or dataset environment variables');
@@ -172,4 +197,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { importTaxonomies, importCategories, importTags, CATEGORY_MAPPING };
+module.exports = { importTaxonomies, importCategories, importTags, CATEGORY_MAPPING, SUB_CATEGORY_MAPPING };
