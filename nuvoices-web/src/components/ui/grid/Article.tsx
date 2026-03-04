@@ -28,7 +28,7 @@ interface ArticleContentProps {
 
 export function ArticleContent({ children, className = '' }: ArticleContentProps) {
   return (
-    <div className={`flex flex-col gap-[0.313rem] ${className}`}>
+    <div className={`flex flex-col gap-[0.6rem] ${className}`}>
       {children}
     </div>
   );

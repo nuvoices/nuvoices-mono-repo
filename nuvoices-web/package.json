@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:production": "NEXT_PUBLIC_SANITY_DATASET=production next dev --turbopack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",

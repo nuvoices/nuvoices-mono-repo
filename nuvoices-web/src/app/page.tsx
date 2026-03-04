@@ -20,7 +20,7 @@ interface Post {
   slug: {
     current: string
   }
-  excerpt?: string
+  description?: string
   publishedAt: string
   featuredImage?: {
     asset?: {
@@ -35,77 +35,13 @@ interface Post {
   categories?: Array<{ _id: string; title: string; slug: { current: string } }>
 }
 
-// Query to get latest 3 magazine posts
-const magazinePostsQuery = groq`
-  *[_type == "post" && status == "published" && "magazine" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
-    _id,
-    title,
-    slug,
-    excerpt,
-    publishedAt,
-    featuredImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    author->{
-      name
-    },
-    categories[]->{ _id, title, slug }
-  }
-`
-
-// Query to get latest 3 podcast posts
-const podcastPostsQuery = groq`
-  *[_type == "post" && status == "published" && "podcast" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
-    _id,
-    title,
-    slug,
-    excerpt,
-    publishedAt,
-    featuredImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    author->{
-      name
-    }
-  }
-`
-
 // Query to get the most recent featured post
 const featuredPostQuery = groq`
   *[_type == "post" && status == "published"] | order(publishedAt desc) [0] {
     _id,
     title,
     slug,
-    excerpt,
-    publishedAt,
-    featuredImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    author->{
-      name
-    }
-  }
-`
-
-// Query to get latest 3 news posts
-const newsPostsQuery = groq`
-  *[_type == "post" && status == "published" && "news" in categories[]->slug.current] | order(publishedAt desc) [0...3] {
-    _id,
-    title,
-    slug,
-    excerpt,
+    description,
     publishedAt,
     featuredImage {
       asset->{
@@ -130,7 +66,7 @@ export default async function Home() {
       _id,
       title,
       slug,
-      excerpt,
+      description,
       publishedAt,
       featuredImage {
         asset->{
@@ -151,7 +87,7 @@ export default async function Home() {
       _id,
       title,
       slug,
-      excerpt,
+      description,
       publishedAt,
       featuredImage {
         asset->{
@@ -171,7 +107,7 @@ export default async function Home() {
       _id,
       title,
       slug,
-      excerpt,
+      description,
       publishedAt,
       featuredImage {
         asset->{
@@ -279,23 +215,24 @@ export default async function Home() {
             <Grid>
               <GridRow>
                 {magazinePosts.map((post, index) => (
-                    <div key={post._id}>
-                      <Article href={`/magazine/${post.slug.current}`}>
-                        <ArticleImage
-                          src={post.featuredImage?.asset?.url}
-                          alt={post.featuredImage?.alt || post.title}
-                          rotation={index % 2 === 0 ? "left" : "right"}
-                        />
-                        <ArticleContent>
-                          <ArticleTitle>{post.title}</ArticleTitle>
-                          {post.excerpt && (
-                            <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>
-                          )}
-                          <ArticleDate date={post.publishedAt} />
-                        </ArticleContent>
-                      </Article>
-                    </div>
-                  ))}
+                  <Article
+                    key={post._id}
+                    href={`/magazine/${post.slug.current}`}
+                  >
+                    <ArticleImage
+                      src={post.featuredImage?.asset?.url}
+                      alt={post.featuredImage?.alt || post.title}
+                      rotation={index % 2 === 0 ? "left" : "right"}
+                    />
+                    <ArticleContent>
+                      <ArticleTitle>{post.title}</ArticleTitle>
+                      {post.description && (
+                        <ArticleExcerpt>{post.description}</ArticleExcerpt>
+                      )}
+                      <ArticleDate date={post.publishedAt} />
+                    </ArticleContent>
+                  </Article>
+                ))}
               </GridRow>
             </Grid>
           </Content>
@@ -326,8 +263,8 @@ export default async function Home() {
                     />
                     <ArticleContent>
                       <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && (
-                        <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>
+                      {post.description && (
+                        <ArticleExcerpt>{post.description}</ArticleExcerpt>
                       )}
                       <ArticleDate date={post.publishedAt} />
                     </ArticleContent>
@@ -360,8 +297,8 @@ export default async function Home() {
                     />
                     <ArticleContent>
                       <ArticleTitle>{post.title}</ArticleTitle>
-                      {post.excerpt && (
-                        <ArticleExcerpt>{post.excerpt}</ArticleExcerpt>
+                      {post.description && (
+                        <ArticleExcerpt>{post.description}</ArticleExcerpt>
                       )}
                       <ArticleDate date={post.publishedAt} />
                     </ArticleContent>
