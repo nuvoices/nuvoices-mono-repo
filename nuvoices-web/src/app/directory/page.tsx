@@ -160,6 +160,7 @@ export default function DirectoryPage() {
               placeholder='Search'
               value={filterInput}
               onChange={(e) => setFilterInput(e.target.value)}
+              className="pl-[2rem]"
             />
           </div>
 

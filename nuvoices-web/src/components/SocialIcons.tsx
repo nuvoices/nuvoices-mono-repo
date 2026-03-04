@@ -1,12 +1,14 @@
 import TwitterIcon from '../../public/icons/twitter.svg';
+import BlueSkyIcon from '../../public/icons/bluesky.svg';
 import InstagramIcon from '../../public/icons/instagram.svg';
 import LinkedInIcon from '../../public/icons/linkedin.svg';
 import EmailIcon from '../../public/icons/email.svg';
 
 const socialLinks = [
-  { href: 'https://x.com/nuvoices', icon: TwitterIcon, label: 'X' },
   { href: 'https://www.instagram.com/nuvoicescollective', icon: InstagramIcon, label: 'Instagram' },
   { href: 'https://linkedin.com/company/nuvoices', icon: LinkedInIcon, label: 'LinkedIn' },
+  { href: 'https://bsky.app/profile/nuvoices.bsky.social', icon: BlueSkyIcon, label: 'BlueSky' },
+  { href: 'https://x.com/nuvoices', icon: TwitterIcon, label: 'X' },
   { href: 'mailto:nuvoices@protonmail.com', icon: EmailIcon, label: 'Email' },
 ];
 
