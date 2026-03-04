@@ -12,7 +12,6 @@ import {
   ArticleDate,
 } from "@/components/ui/grid";
 import { Content } from "@/components/ui/Content";
-import ActionButton from "@/components/ActionButton";
 import { getDisplaySubcategory } from "@/lib/categories";
 
 interface Post {
