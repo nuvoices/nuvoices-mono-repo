@@ -35,7 +35,7 @@ interface Post {
   categories?: Array<{ _id: string; title: string; slug: { current: string } }>
 }
 
-// Query to get the most recent featured post (must have "featured" category)
+// Query to get the most recent featured post (must have "featured" category!)
 const featuredPostQuery = groq`
   *[_type == "post" && status == "published" && "featured" in categories[]->slug.current] | order(publishedAt desc) [0] {
     _id,
