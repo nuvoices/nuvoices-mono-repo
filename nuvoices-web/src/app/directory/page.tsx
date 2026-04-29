@@ -133,7 +133,7 @@ export default function DirectoryPage() {
 
   return (
     <div className="min-h-screen bg-[#f4ecea]">
-      <Content className="max-w-[70rem]">
+      <Content maxWidth="70rem">
         <main className="py-[1.5rem]">
           {/* Title */}
           <h1 className="text-[2.96875rem] font-serif font-normal leading-[1.1] tracking-[-0.089rem] text-[#3c2e24] mb-[1.5rem]">
