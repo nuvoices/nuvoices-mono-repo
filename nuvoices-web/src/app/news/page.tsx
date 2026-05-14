@@ -70,7 +70,7 @@ export default async function NewsPage() {
         </div>
 
         {/* Articles Grid - using grid components */}
-        <Content>
+        <Content maxWidth="50rem">
           {newsPosts.length > 0 ? (
             <Grid>
               <GridRow>

@@ -64,7 +64,7 @@ export default async function PodcastPage() {
         </div>
 
         {/* Episodes Grid - using grid components */}
-        <Content>
+        <Content maxWidth="50rem">
         {episodes.length > 0 ? (
           <Grid>
             <GridRow>

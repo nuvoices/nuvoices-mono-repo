@@ -3,6 +3,7 @@ import React from 'react';
 interface ContentProps {
   children: React.ReactNode;
   className?: string;
+  maxWidth?: string;
 }
 
 interface FullWidthBreakoutProps {
@@ -32,18 +33,19 @@ interface FullWidthBreakoutProps {
  */
 export function Content({
   children,
-  className = ''
+  className = '',
+  maxWidth = '45rem'
 }: ContentProps) {
   return (
     <div
       className={`
         w-full
         box-border
-        max-w-[45rem]
         px-[1.5rem] sm:px-6 md:px-8
         mx-auto
         ${className}
       `.trim().replace(/\s+/g, ' ')}
+      style={{ maxWidth }}
     >
       {children}
     </div>

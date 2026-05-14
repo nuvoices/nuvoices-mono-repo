@@ -205,7 +205,7 @@ export default async function Home() {
       {/* Magazine Section */}
       {magazinePosts.length > 0 && (
         <div className='flex flex-col gap-[0.938rem] items-center w-full'>
-          <Content>
+          <Content maxWidth='50rem'>
              <div className='flex flex-col items-center justify-center mb-[1.8rem] mt-[2rem] w-full'>
               <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
                 MAGAZINE
@@ -242,7 +242,7 @@ export default async function Home() {
       {/* Podcast Section */}
       {podcastPosts.length > 0 && (
         <div className='flex flex-col gap-[0.938rem] items-center w-full'>
-          <Content>
+          <Content maxWidth='50rem'>
              <div className='flex flex-col items-center justify-center mb-[1.8rem] mt-[2rem] w-full'>
               <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
                 PODCAST
@@ -279,7 +279,7 @@ export default async function Home() {
       {/* News Section */}
       {newsPosts.length > 0 && (
         <div className='flex flex-col gap-[0.938rem] items-center w-full'>
-          <Content>
+          <Content maxWidth='50rem'>
             <div className='flex flex-col items-center justify-center mb-[1.8rem] mt-[2rem] w-full'>
               <h2 className="font-['Raleway',sans-serif] font-semibold text-[1.5rem] mb-[1rem] leading-[1.6] tracking-[12px] text-black text-center">
                 NEWS

@@ -78,7 +78,7 @@ export default async function MagazinePage() {
         </div>
 
         {/* Articles Grid - 1446px = 45.1875rem width, 606px = 18.9375rem height per row */}
-        <Content>
+        <Content maxWidth="50rem">
           {posts.length > 0 ? (
             <Grid>
               <GridRow>
