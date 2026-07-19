@@ -65,7 +65,7 @@ export default function DonatePage() {
               <p>
                 If you'd prefer to make a one-off donation, please visit our{" "}
                 <a
-                  href="https://www.paypal.com/donate?token=Pwm4Zffsus7PVSGbC59GPsIqHp89zG0yNGcBtJtLIeCXrkr7Bu1JsfMcy87FEZ1iUEUuqSGwTp8FDLap"
+                  href="https://www.paypal.com/donate/?hosted_button_id=XUJ9SVQK523FS"
                   className="text-black underline hover:bg-yellow-200 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
